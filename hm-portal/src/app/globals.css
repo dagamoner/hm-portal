@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-primary: #F5B041;       /* Golden Yellow / Safety */
+  --color-primary-hover: #E59830;
+  
+  --color-secondary: #1F2937;     /* Dark Slate/Navy for B2B contrast */
+  --color-secondary-hover: #111827;
+
+  --color-background: #F9FAFB;    /* Light gray background */
+  --color-foreground: #111827;
+
+  --color-card: #FFFFFF;
+  --color-card-foreground: #111827;
+
+  --color-muted: #F3F4F6;
+  --color-muted-foreground: #6B7280;
+
+  --color-border: #E5E7EB;
+
+  --font-sans: var(--font-inter);
+}
+
+:root {
+  --background: var(--color-background);
+  --foreground: var(--color-foreground);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), sans-serif;
+  scroll-behavior: smooth;
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+}
