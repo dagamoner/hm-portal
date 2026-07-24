@@ -9,24 +9,182 @@ datasource db {
   provider  = "postgresql"
 }
 
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  role      String   @default("USER") // ADMIN | USER
-  createdAt DateTime @default(now())
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
 }
 
-model ServiceRequest {
-  id            String   @id @default(uuid())
-  requestNumber String   @unique
-  status        String   @default("PENDING")
-  clientName    String
-  clientEmail   String
-  clientPhone   String
-  address       String
-  serviceType   String   // Ej: "Evaluación de Riesgos", "Venta de Equipos"
-  estimatedPrice Float?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+enum Role {
+  ADMIN
+  MANAGER
+  INSPECTOR
+  CLIENT
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  email     String?  @unique
+  password  String
+  name      String
+  role      Role     @default(CLIENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+}
+
+model Company {
+  id                  String   @id @default(uuid())
+  name                String
+  owner               String
+  taxId               String   @unique
+  address             String
+  workContact         String
+  insuranceART        String
+  establishmentsCount Int      @default(1)
+  workersAdmin        Int      @default(0)
+  workersOps          Int      @default(0)
+  keyData             String?
+  remarks             String?
+  artUser             String?
+  artPass             String?
+  industry            String
+  riskLevel           RiskLevel @default(MEDIUM)
+  status              String   @default("Activa")
+  safetyCompliance    Float    @default(0)
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  users               User[]
+  incidents           Incident[]
+  inspections         Inspection[]
+  measurements        MeasurementRecord[]
+  documents           Document[]
+  ergonomicEvals      ErgonomicEvaluation[]
+  cancerigenoEvals    CancerigenoEvaluation[]
+}
+
+model CancerigenoEvaluation {
+  id          String   @id @default(uuid())
+  year        Int
+  
+  // Stored as JSON to handle dynamic structure of 81/19
+  responsables Json     @default("{}")
+  puestos      Json     @default("[]")
+  sustancias   Json     @default("[]")
+  medidas      Json     @default("[]")
+  
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ErgonomicEvaluation {
+  id          String   @id @default(uuid())
+  jobPosition String
+  sector      String
+  workerName  String?
+  date        DateTime @default(now())
+  
+  // Stored as JSON to handle dynamic structure of 886/15
+  planilla1   Json     @default("{}")
+  planilla2   Json     @default("{}")
+  planilla3   Json     @default("{}")
+  planilla4   Json     @default("{}")
+  
+  globalStatus String  @default("Pendiente")
+  
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Incident {
+  id          String   @id @default(uuid())
+  title       String
+  date        DateTime
+  location    String
+  severity    RiskLevel
+  status      String   @default("Abierto")
+  description String
+  
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Inspection {
+  id          String   @id @default(uuid())
+  title       String
+  location    String
+  date        DateTime
+  status      String   @default("En Progreso")
+  score       Float    @default(0)
+  
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  
+  items       Json     @default("[]")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model MeasurementRecord {
+  id          String   @id @default(uuid())
+  type        String
+  area        String
+  value       Float
+  unit        String
+  instrument  String
+  date        DateTime
+  status      String   @default("Pendiente")
+  
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  
+  details     Json     @default("{}")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum DocumentCategory {
+  LEGAL
+  PERSONAL
+  ACTIVOS
+  PROCEDIMIENTOS
+}
+
+enum DocumentStatus {
+  VIGENTE
+  POR_VENCER
+  VENCIDO
+}
+
+model Document {
+  id             String           @id @default(uuid())
+  title          String
+  category       DocumentCategory
+  status         DocumentStatus   @default(VIGENTE)
+  uploadDate     DateTime         @default(now())
+  expirationDate DateTime?
+  fileUrl        String?
+  
+  companyId      String
+  company        Company          @relation(fields: [companyId], references: [id])
+  
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 }
