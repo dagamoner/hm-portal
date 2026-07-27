@@ -37,14 +37,228 @@ model User {
   company   Company? @relation(fields: [companyId], references: [id])
 }
 
+// ==========================================
+// RIESGOS MODULE - HIERARCHICAL MODELS
+// ==========================================
+
+model Establishment {
+  id               String   @id @default(uuid())
+  companyId        String
+  company          Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  name             String
+  address          String?
+  province         String?
+  municipality     String?
+  coordinates      String?
+  type             String?
+  startDate        DateTime?
+  coveredArea      Float?
+  uncoveredArea    Float?
+  floors           Int?
+  buildingAge      Int?
+  
+  // JSON fields for grouped extensive data
+  regulatoryRegime Json?    // Actividad general, construcción, jurisdicción, etc.
+  organization     Json?    // Organigrama, responsables, etc.
+  staffing         Json?    // Dotación: propios, contratados, etc.
+  operation        Json?    // Funcionamiento: turnos, horarios, etc.
+  production       Json?    // Producción: productos, capacidad, etc.
+  background       Json?    // Antecedentes: inspecciones, intimaciones
+  emergencies      Json?    // Emergencias: servicios externos, distancias
+  
+  sectors          Sector[]
+  workers          Worker[]
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Sector {
+  id               String   @id @default(uuid())
+  establishmentId  String
+  establishment    Establishment @relation(fields: [establishmentId], references: [id], onDelete: Cascade)
+  
+  name             String
+  description      String?
+  area             Float?
+  height           Float?
+  maxOccupants     Int?
+  
+  // JSON field for physical details (circulaciones, escaleras, instalaciones, etc.)
+  physicalDetails  Json?
+  
+  processes        Process[]
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Process {
+  id               String   @id @default(uuid())
+  sectorId         String
+  sector           Sector   @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+  
+  name             String
+  description      String?
+  
+  // JSON field for process details (materias primas, equipos, temperaturas, residuos, etc.)
+  processDetails   Json?
+  
+  jobRoles         JobRole[]
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model JobRole {
+  id               String   @id @default(uuid())
+  processId        String
+  process          Process  @relation(fields: [processId], references: [id], onDelete: Cascade)
+  
+  name             String
+  personnelCount   Int?
+  shifts           String?
+  
+  // JSON field for job role details (competencias, EPP, rotación, etc.)
+  roleDetails      Json?
+  
+  tasks            Task[]
+  workers          Worker[]
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Task {
+  id               String   @id @default(uuid())
+  jobRoleId        String
+  jobRole          JobRole  @relation(fields: [jobRoleId], references: [id], onDelete: Cascade)
+  
+  name             String
+  description      String?
+  type             String? // rutinaria, no rutinaria, emergencia
+  
+  // JSON field for task details (frecuencia, duración, lugar, etc.)
+  taskDetails      Json?
+  
+  hazards          Hazard[]
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Hazard {
+  id               String   @id @default(uuid())
+  taskId           String
+  task             Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  name             String?
+  description      String?
+  type             String?
+  
+  category         String?  // Legacy
+  source           String?  // Legacy
+  event            String?  // Legacy
+  consequence      String?  // Legacy
+  exposedCount     Int?     // Personas expuestas
+  
+  evaluations      RiskEvaluation[]
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model RiskEvaluation {
+  id               String   @id @default(uuid())
+  hazardId         String
+  hazard           Hazard   @relation(fields: [hazardId], references: [id], onDelete: Cascade)
+  
+  probability      Int?
+  severity         Int?
+  riskLevel        Int?
+  controlMeasures  String?
+  
+  // Inherent Risk
+  initialProbability Int?
+  initialSeverity    Int?
+  inherentRisk       Int?
+  
+  // Existing Controls
+  existingControls   Json?    // Array of existing controls
+  
+  // Residual Risk
+  residualProbability Int?
+  residualSeverity    Int?
+  residualRisk        Int?
+  
+  // Objective Risk
+  objectiveProbability Int?
+  objectiveSeverity    Int?
+  objectiveRisk        Int?
+  
+  priorityIndex      Float?   // Calculated priority
+  status             String   @default("Borrador") // Borrador, Validado, Aprobado
+  
+  evaluatorId        String?
+  observations       String?
+  
+  improvementActions ImprovementAction[]
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model ImprovementAction {
+  id               String   @id @default(uuid())
+  evaluationId     String
+  evaluation       RiskEvaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  
+  description      String
+  hierarchy        String   // Eliminación, sustitución, ingeniería, admin, EPP
+  status           String   @default("Pendiente")
+  priority         String?
+  
+  deadline         DateTime?
+  responsible      String?
+  
+  actionDetails    Json?    // Costo, indicador de avance, evidencias, reevaluación, etc.
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Worker {
+  id               String   @id @default(uuid())
+  establishmentId  String
+  establishment    Establishment @relation(fields: [establishmentId], references: [id], onDelete: Cascade)
+  
+  firstName        String
+  lastName         String
+  documentId       String   // DNI / Legajo
+  
+  primaryRoleId    String?
+  primaryRole      JobRole? @relation(fields: [primaryRoleId], references: [id], onDelete: SetNull)
+  
+  // JSON fields for medical and functional data
+  functionalData   Json?    // Apto, restricciones (NO DATOS CLÍNICOS)
+  laborData        Json?    // EPP, capacitaciones, turnos, etc.
+  exposures        Json?    // Relación con agentes de riesgo específicos
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
 model Company {
   id                  String   @id @default(uuid())
   name                String
+  legalName           String?
   owner               String
   taxId               String   @unique
   address             String
   workContact         String
   insuranceART        String
+  selfInsured         Boolean  @default(false)
   establishmentsCount Int      @default(1)
   workersAdmin        Int      @default(0)
   workersOps          Int      @default(0)
@@ -53,6 +267,8 @@ model Company {
   artUser             String?
   artPass             String?
   industry            String
+  secondaryActivity   String?
+  activityCode        String?
   riskLevel           RiskLevel @default(MEDIUM)
   status              String   @default("Activa")
   safetyCompliance    Float    @default(0)
@@ -67,6 +283,10 @@ model Company {
   documents           Document[]
   ergonomicEvals      ErgonomicEvaluation[]
   cancerigenoEvals    CancerigenoEvaluation[]
+  investigations      Investigation[]
+  
+  // New Relations for Risk Module
+  establishments      Establishment[]
 }
 
 model CancerigenoEvaluation {
@@ -116,9 +336,12 @@ model Incident {
   severity    RiskLevel
   status      String   @default("Abierto")
   description String
+  details     Json     @default("{}")
   
   companyId   String
   company     Company  @relation(fields: [companyId], references: [id])
+  
+  investigation Investigation?
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -171,6 +394,20 @@ enum DocumentStatus {
   VIGENTE
   POR_VENCER
   VENCIDO
+  CERRADO
+}
+
+model Investigation {
+  id          String   @id @default(uuid())
+  incidentId  String   @unique
+  incident    Incident @relation(fields: [incidentId], references: [id])
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  status      String   @default("En Progreso") // En Progreso, Completada
+  cause       String?
+  actionPlan  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Document {

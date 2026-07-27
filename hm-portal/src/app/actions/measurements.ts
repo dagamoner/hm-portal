@@ -19,7 +19,23 @@ export async function createMeasurement(companyId: string, data: any) {
             }
         });
 
+        // Automatically create a Legal Document with 1-year expiration
+        const expirationDate = new Date();
+        expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+        
+        await prisma.document.create({
+            data: {
+                companyId,
+                title: `Protocolo SRT - ${data.type} (${data.area || 'General'})`,
+                category: 'LEGAL',
+                status: 'VIGENTE',
+                uploadDate: new Date(),
+                expirationDate
+            }
+        });
+
         revalidatePath(`/portal/empresas/${companyId}/mediciones`);
+        revalidatePath(`/portal/empresas/${companyId}/documentacion`);
         return record;
     } catch (error) {
         console.error("Error creating measurement:", error);

@@ -16,7 +16,23 @@ export async function createCancerigenoEvaluation(companyId: string, data: any) 
             }
         });
 
+        // Automatically create a Legal Document with 1-year expiration
+        const expirationDate = new Date();
+        expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+        
+        await prisma.document.create({
+            data: {
+                companyId,
+                title: `Declaración Cancerígenos SVCC (Res 81/19) - ${data.year}`,
+                category: 'LEGAL',
+                status: 'VIGENTE',
+                uploadDate: new Date(),
+                expirationDate
+            }
+        });
+
         revalidatePath(`/portal/empresas/${companyId}/cancerigenos`);
+        revalidatePath(`/portal/empresas/${companyId}/documentacion`);
         return evaluation;
     } catch (error) {
         console.error("Error creating cancerigeno evaluation:", error);

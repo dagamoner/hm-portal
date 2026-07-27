@@ -20,7 +20,23 @@ export async function createErgonomicEvaluation(companyId: string, data: any) {
             }
         });
 
+        // Automatically create a Legal Document with 1-year expiration
+        const expirationDate = new Date();
+        expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+        
+        await prisma.document.create({
+            data: {
+                companyId,
+                title: `Protocolo Ergonomía (Res 886/15) - ${data.jobPosition}`,
+                category: 'LEGAL',
+                status: 'VIGENTE',
+                uploadDate: new Date(),
+                expirationDate
+            }
+        });
+
         revalidatePath(`/portal/empresas/${companyId}/ergonomia`);
+        revalidatePath(`/portal/empresas/${companyId}/documentacion`);
         return record;
     } catch (error) {
         console.error("Error creating ergonomic evaluation:", error);

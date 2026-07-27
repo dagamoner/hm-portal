@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { 
     LayoutDashboard, FileText, Activity, Accessibility, Bug, AlertTriangle, 
     Search, ShieldAlert, Calendar, Truck, Server, Users, ClipboardCheck, 
-    History, GraduationCap
+    History, GraduationCap, TableProperties
 } from "lucide-react";
 
 export const MODULES = [
@@ -17,6 +17,7 @@ export const MODULES = [
     { name: "Incidentes", path: "/incidentes", icon: AlertTriangle },
     { name: "Investigación", path: "/investigacion", icon: Search },
     { name: "Riesgos Inher.", path: "/riesgos", icon: ShieldAlert },
+    { name: "Matriz Global", path: "/matriz", icon: TableProperties },
     { name: "Programa Anual", path: "/programa-anual", icon: Calendar },
     { name: "Vehículos", path: "/vehiculos", icon: Truck },
     { name: "Equipos y Activos", path: "/equipos", icon: Server },

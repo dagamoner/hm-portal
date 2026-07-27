@@ -37,10 +37,7 @@ export function PortalSidebar() {
           <span>Empresas</span>
         </Link>
 
-        <Link href="/portal/incidentes" className={getLinkClass("/portal/incidentes")}>
-          <ShieldAlert size={20} />
-          <span>Incidentes</span>
-        </Link>
+
         
         <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-6 mb-2 px-4">Configuración</div>
         <Link href="/portal/usuarios" className={getLinkClass("/portal/usuarios")}>

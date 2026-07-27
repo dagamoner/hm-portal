@@ -264,11 +264,20 @@ export default function CompaniesClient({ initialCompanies }) {
                                 <div className="space-y-6">
                                     <h4 className="text-[11px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-3">Identidad de la Empresa</h4>
                                     <div className="space-y-5">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-black uppercase text-slate-600 ml-1">Nombre de Fantasía</label>
-                                            <div className="relative group">
-                                                <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                                                <input required type="text" value={formData.name || ''} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold text-slate-700" placeholder="Ej: Aceros Industriales S.A." />
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-black uppercase text-slate-600 ml-1">Razón Social</label>
+                                                <div className="relative group">
+                                                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                                                    <input required type="text" value={formData.legalName || ''} onChange={(e) => setFormData({...formData, legalName: e.target.value})} className="w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold text-slate-700" placeholder="Ej: Aceros Industriales S.A." />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-black uppercase text-slate-600 ml-1">Nombre de Fantasía</label>
+                                                <div className="relative group">
+                                                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                                                    <input type="text" value={formData.name || ''} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold text-slate-700" placeholder="Ej: AcerosInd" />
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
@@ -280,8 +289,18 @@ export default function CompaniesClient({ initialCompanies }) {
                                                 </div>
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-xs font-black uppercase text-slate-600 ml-1">Sector</label>
-                                                <input required type="text" value={formData.industry || ''} onChange={(e) => setFormData({...formData, industry: e.target.value})} className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold" placeholder="Construcción" />
+                                                <label className="text-xs font-black uppercase text-slate-600 ml-1">Cod. Actividad</label>
+                                                <input type="text" value={formData.activityCode || ''} onChange={(e) => setFormData({...formData, activityCode: e.target.value})} className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold" placeholder="CIIU..." />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-black uppercase text-slate-600 ml-1">Actividad Principal</label>
+                                                <input required type="text" value={formData.industry || ''} onChange={(e) => setFormData({...formData, industry: e.target.value})} className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold" placeholder="Metalúrgica" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-black uppercase text-slate-600 ml-1">Act. Secundarias</label>
+                                                <input type="text" value={formData.secondaryActivity || ''} onChange={(e) => setFormData({...formData, secondaryActivity: e.target.value})} className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold" placeholder="Mantenimiento..." />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
@@ -307,9 +326,21 @@ export default function CompaniesClient({ initialCompanies }) {
                                                     <input required type="text" value={formData.workContact || ''} onChange={(e) => setFormData({...formData, workContact: e.target.value})} className="w-full pl-9 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold" placeholder="+54 9 11..." />
                                                 </div>
                                             </div>
+                                            {/* Empty column or other data */}
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
                                                 <label className="text-xs font-black uppercase text-slate-600 ml-1">Aseguradora ART</label>
                                                 <input required type="text" value={formData.insuranceART || ''} onChange={(e) => setFormData({...formData, insuranceART: e.target.value})} className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold" placeholder="Provincia ART" />
+                                            </div>
+                                            <div className="space-y-2 flex flex-col justify-end">
+                                                <label className="flex items-center gap-3 p-3.5 border border-slate-200 rounded-2xl cursor-pointer hover:bg-slate-50 transition-colors">
+                                                    <div className="relative flex items-center">
+                                                        <input type="checkbox" checked={formData.selfInsured || false} onChange={(e) => setFormData({...formData, selfInsured: e.target.checked})} className="peer sr-only" />
+                                                        <div className="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                                                    </div>
+                                                    <span className="text-xs font-black uppercase text-slate-600">Autoasegurado</span>
+                                                </label>
                                             </div>
                                         </div>
 
