@@ -32,6 +32,7 @@ export default function DocumentationClient({
 }) {
     const [selectedCategory, setSelectedCategory] = useState<DocumentCategory | 'TODOS'>('TODOS');
     const [searchQuery, setSearchQuery] = useState('');
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [isOptionsOpen, setIsOptionsOpen] = useState(false);
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     const [selectedUpdateDocId, setSelectedUpdateDocId] = useState<string | null>(null);
