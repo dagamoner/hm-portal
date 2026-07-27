@@ -482,5 +482,6 @@ export default function DocumentationClient({
                 </div>
             )}
         </div>
+        </div>
     );
 }
