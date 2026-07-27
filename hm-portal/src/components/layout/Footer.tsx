@@ -1,5 +1,6 @@
 import { Mail, MessageCircle } from "lucide-react";
 import Image from "next/image";
+import { LegalModals } from "../legal/LegalModals";
 
 export function Footer() {
   return (
@@ -40,10 +41,7 @@ export function Footer() {
           </div>
           <div>
             <h4 className="font-semibold mb-4 text-[var(--color-primary)]">Legal</h4>
-            <ul className="flex flex-col gap-2 text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">Términos y Condiciones</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Política de Privacidad</a></li>
-            </ul>
+            <LegalModals />
           </div>
         </div>
         <div className="mt-12 pt-8 border-t border-gray-700 text-center text-sm text-gray-500">
