@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { NextResponse, NextRequest } from "next/server";
 
 const secretKey = process.env.JWT_SECRET || "super_secret_mh_key_2026";
 const key = new TextEncoder().encode(secretKey);
@@ -31,7 +32,7 @@ export async function getSession() {
   }
 }
 
-export async function updateSession(request: any) {
+export async function updateSession(request: NextRequest) {
   const session = request.cookies.get("mh_session")?.value;
   if (!session) return;
 
