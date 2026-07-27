@@ -106,9 +106,9 @@ export function generateMeasurementReportPDF(mea: MeasurementRecord, companyName
         
         let currentY = finalY + 25;
         if (mea.details.diagnostico) {
-            doc.setFont(undefined, 'bold');
+            doc.setFont("helvetica", 'bold');
             doc.text('Diagnóstico General:', 14, currentY);
-            doc.setFont(undefined, 'normal');
+            doc.setFont("helvetica", 'normal');
             const lines = doc.splitTextToSize(mea.details.diagnostico, 180);
             doc.text(lines, 14, currentY + 6);
             currentY += 6 + (lines.length * 5);
@@ -116,9 +116,9 @@ export function generateMeasurementReportPDF(mea: MeasurementRecord, companyName
 
         if (mea.details.planAccion) {
             currentY += 5;
-            doc.setFont(undefined, 'bold');
+            doc.setFont("helvetica", 'bold');
             doc.text('Plan de Acción:', 14, currentY);
-            doc.setFont(undefined, 'normal');
+            doc.setFont("helvetica", 'normal');
             const lines = doc.splitTextToSize(mea.details.planAccion, 180);
             doc.text(lines, 14, currentY + 6);
         }
@@ -206,9 +206,9 @@ export function generateErgonomicsReportPDF(ev: any, companyName: string) {
         
         let currentY = finalY + 25;
         if (p4.diagnostico) {
-            doc.setFont(undefined, 'bold');
+            doc.setFont("helvetica", 'bold');
             doc.text('Diagnóstico General:', 14, currentY);
-            doc.setFont(undefined, 'normal');
+            doc.setFont("helvetica", 'normal');
             const lines = doc.splitTextToSize(p4.diagnostico, 180);
             doc.text(lines, 14, currentY + 6);
             currentY += 6 + (lines.length * 5);
@@ -216,9 +216,9 @@ export function generateErgonomicsReportPDF(ev: any, companyName: string) {
 
         if (p4.planAccion) {
             currentY += 5;
-            doc.setFont(undefined, 'bold');
+            doc.setFont("helvetica", 'bold');
             doc.text('Plan de Acción:', 14, currentY);
-            doc.setFont(undefined, 'normal');
+            doc.setFont("helvetica", 'normal');
             const lines = doc.splitTextToSize(p4.planAccion, 180);
             doc.text(lines, 14, currentY + 6);
         }
@@ -321,9 +321,9 @@ export function generateCancerigenosReportPDF(ev: any, companyName: string) {
         
         let currentY = finalY + 10;
         if (med.diagnostico) {
-            doc.setFont(undefined, 'bold');
+            doc.setFont("helvetica", 'bold');
             doc.text('Diagnóstico General:', 14, currentY);
-            doc.setFont(undefined, 'normal');
+            doc.setFont("helvetica", 'normal');
             const lines = doc.splitTextToSize(med.diagnostico, 180);
             doc.text(lines, 14, currentY + 6);
             currentY += 6 + (lines.length * 5);
@@ -331,9 +331,9 @@ export function generateCancerigenosReportPDF(ev: any, companyName: string) {
 
         if (med.planAccion) {
             currentY += 5;
-            doc.setFont(undefined, 'bold');
+            doc.setFont("helvetica", 'bold');
             doc.text('Plan de Acción:', 14, currentY);
-            doc.setFont(undefined, 'normal');
+            doc.setFont("helvetica", 'normal');
             const lines = doc.splitTextToSize(med.planAccion, 180);
             doc.text(lines, 14, currentY + 6);
         }
