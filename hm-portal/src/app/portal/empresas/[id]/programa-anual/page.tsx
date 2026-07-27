@@ -1,11 +1,21 @@
-export default function ProgramaAnualPage() {
+import { prisma } from "@/lib/prisma";
+import { getTrainingPlanData } from "@/app/actions/programa-anual";
+import ProgramaAnualClient from "./ProgramaAnualClient";
+import { notFound } from "next/navigation";
+
+export default async function ProgramaAnualPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  
+  const company = await prisma.company.findUnique({ where: { id } });
+  if (!company) notFound();
+
+  const topics = await getTrainingPlanData(id);
+
   return (
-    <div className="bg-white/60 backdrop-blur-xl p-12 rounded-[2.5rem] shadow-sm border border-white/50 text-center animate-fade-in mt-6">
-      <div className="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-inner">
-        <span className="text-3xl">🚧</span>
-      </div>
-      <h2 className="text-3xl font-black text-slate-800 mb-2">Módulo: programa-anual</h2>
-      <p className="text-slate-500 font-medium max-w-md mx-auto">Este módulo está en construcción. Aquí se implementará la gestión específica para esta entidad.</p>
-    </div>
+    <ProgramaAnualClient 
+      companyId={company.id}
+      companyName={company.name}
+      topics={topics}
+    />
   );
 }
