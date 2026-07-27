@@ -1,10 +1,16 @@
 import { Card, CardContent } from "@/components/ui/Card"
-import { Mail, MessageCircle } from "lucide-react"
+import { Mail, MessageCircle, ArrowLeft } from "lucide-react"
+import Link from "next/link"
 
 export default function Contacto() {
   return (
     <div className="w-full py-20 bg-[var(--color-background)] min-h-[70vh] flex flex-col justify-center">
       <div className="container mx-auto px-4 md:px-8">
+        <div className="max-w-2xl mx-auto mb-8 flex justify-center md:justify-start">
+          <Link href="/" className="inline-flex items-center gap-2 px-5 py-2.5 bg-white rounded-full text-sm font-medium text-slate-600 shadow-sm hover:shadow-md border border-slate-200 hover:bg-slate-50 transition-all duration-200">
+            <ArrowLeft size={16} /> Volver a la página principal
+          </Link>
+        </div>
         <div className="text-center max-w-2xl mx-auto mb-12">
           <h1 className="text-4xl font-bold text-[var(--color-secondary)] mb-4">Contáctanos</h1>
           <p className="text-[var(--color-muted-foreground)] text-lg">
