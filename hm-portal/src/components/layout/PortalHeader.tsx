@@ -1,5 +1,6 @@
-import { Bell, Search, LogOut } from "lucide-react"
+import { Search, LogOut } from "lucide-react"
 import { logout } from "@/app/actions/auth"
+import { NotificationBell } from "./NotificationBell"
 
 export function PortalHeader() {
   return (
@@ -16,10 +17,7 @@ export function PortalHeader() {
       </div>
       
       <div className="flex items-center gap-6">
-        <button className="p-3 text-slate-400 hover:bg-slate-100 rounded-xl transition-all relative">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full"></span>
-        </button>
+        <NotificationBell />
         <div className="h-10 w-px bg-slate-200/60 hidden sm:block"></div>
         <div className="flex items-center gap-4 group cursor-pointer">
           <div className="text-right hidden sm:block">
