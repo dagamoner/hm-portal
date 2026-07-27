@@ -46,7 +46,9 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
         </div>
         <div className="flex items-center gap-2 bg-white/60 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm border border-white/50">
             <Calendar className="w-4 h-4 text-indigo-500" />
-            <span className="text-xs font-bold text-slate-600 uppercase tracking-widest">Periodo: Jun 2025</span>
+            <span className="text-xs font-bold text-slate-600 uppercase tracking-widest">
+              Periodo: {new Date().toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }).replace('.', '')}
+            </span>
         </div>
       </div>
 
