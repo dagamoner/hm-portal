@@ -3,9 +3,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
     Search, Filter, Link as LinkIcon, Download, Eye, Trash2, Plus, 
-    FileText, Activity, Users, Shield, File, ChevronDown
+    FileText, Activity, Users, Shield, File, ChevronDown, UploadCloud
 } from 'lucide-react';
-import { deleteDocument, createDocument } from '@/app/actions/documents';
+import { deleteDocument, createDocument, updateDocumentFile } from '@/app/actions/documents';
 import { DocumentCategory, DocumentStatus } from '@prisma/client';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -34,6 +34,8 @@ export default function DocumentationClient({
     const [searchQuery, setSearchQuery] = useState('');
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [selectedUpdateDocId, setSelectedUpdateDocId] = useState<string | null>(null);
 
     const filteredDocs = documents.filter(doc => {
         if (selectedCategory !== 'TODOS' && doc.category !== selectedCategory) return false;
@@ -275,13 +277,27 @@ export default function DocumentationClient({
                                         <FileText className="w-5 h-5" />
                                     </div>
                                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all">
-                                            <Download className="w-4 h-4" />
+                                        {doc.fileUrl && (
+                                            <>
+                                                <a href={doc.fileUrl} download={doc.title} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all" title="Descargar documento">
+                                                    <Download className="w-4 h-4" />
+                                                </a>
+                                                <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all" title="Ver documento">
+                                                    <Eye className="w-4 h-4" />
+                                                </a>
+                                            </>
+                                        )}
+                                        <button 
+                                            onClick={() => {
+                                                setSelectedUpdateDocId(doc.id);
+                                                setIsUpdateModalOpen(true);
+                                            }}
+                                            className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all" 
+                                            title="Reemplazar archivo"
+                                        >
+                                            <UploadCloud className="w-4 h-4" />
                                         </button>
-                                        <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all">
-                                            <Eye className="w-4 h-4" />
-                                        </button>
-                                        <button onClick={() => handleDelete(doc.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
+                                        <button onClick={() => handleDelete(doc.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Eliminar documento">
                                             <Trash2 className="w-4 h-4" />
                                         </button>
                                     </div>
@@ -382,6 +398,16 @@ export default function DocumentationClient({
                                         />
                                     </div>
                                 </div>
+                                
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Archivo</label>
+                                    <input 
+                                        type="file" 
+                                        name="file" 
+                                        accept="*/*"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                    />
+                                </div>
 
                                 <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
                                     <button 
@@ -403,7 +429,58 @@ export default function DocumentationClient({
                     </div>
                 </div>
             )}
-        </div>
+
+            {/* Modal de Reemplazo de Archivo */}
+            {isUpdateModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100">
+                        <div className="p-8">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-2xl font-black text-slate-800">Reemplazar Archivo</h3>
+                                <button onClick={() => setIsUpdateModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
+                            
+                            <form action={async (formData) => {
+                                if (selectedUpdateDocId) {
+                                    await updateDocumentFile(selectedUpdateDocId, companyId, formData);
+                                    setIsUpdateModalOpen(false);
+                                    setSelectedUpdateDocId(null);
+                                }
+                            }} className="space-y-5">
+                                
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nuevo Archivo</label>
+                                    <input 
+                                        type="file" 
+                                        name="file" 
+                                        accept="*/*"
+                                        required
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                    />
+                                </div>
+
+                                <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setIsUpdateModalOpen(false)}
+                                        className="px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-xl transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button 
+                                        type="submit"
+                                        className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-md shadow-indigo-600/20 transition-all"
+                                    >
+                                        Actualizar Archivo
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

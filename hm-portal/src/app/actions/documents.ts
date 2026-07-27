@@ -22,7 +22,16 @@ export async function createDocument(formData: FormData) {
     const category = formData.get("category") as 'LEGAL' | 'PERSONAL' | 'ACTIVOS' | 'PROCEDIMIENTOS';
     const companyId = formData.get("companyId") as string;
     const expirationDateStr = formData.get("expirationDate") as string;
-    const fileUrl = formData.get("fileUrl") as string || null;
+    
+    // Process file upload if present
+    const file = formData.get("file") as File | null;
+    let fileUrl = null;
+    
+    if (file && file.size > 0) {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const base64 = buffer.toString('base64');
+      fileUrl = `data:${file.type || 'application/octet-stream'};base64,${base64}`;
+    }
 
     let expirationDate = null;
     let status: 'VIGENTE' | 'POR_VENCER' | 'VENCIDO' = 'VIGENTE';
@@ -56,6 +65,30 @@ export async function createDocument(formData: FormData) {
   } catch (error) {
     console.error("Error creating document:", error);
     return { error: "Ocurrió un error al cargar el documento." };
+  }
+}
+
+export async function updateDocumentFile(id: string, companyId: string, formData: FormData) {
+  try {
+    const file = formData.get("file") as File | null;
+    if (!file || file.size === 0) {
+      return { error: "No se seleccionó ningún archivo válido." };
+    }
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const base64 = buffer.toString('base64');
+    const fileUrl = `data:${file.type || 'application/octet-stream'};base64,${base64}`;
+
+    await prisma.document.update({
+      where: { id },
+      data: { fileUrl, uploadDate: new Date() } // Update date when file changes
+    });
+
+    revalidatePath(`/portal/empresas/${companyId}/documentacion`);
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating document file:", error);
+    return { error: "Ocurrió un error al reemplazar el archivo." };
   }
 }
 
