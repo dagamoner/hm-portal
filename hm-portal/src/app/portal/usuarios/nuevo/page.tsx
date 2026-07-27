@@ -32,7 +32,10 @@ export default async function NuevoUsuarioPage() {
         {/* Decorative corner */}
         <div className="absolute -top-12 -right-12 w-32 h-32 bg-indigo-50 rounded-full blur-3xl opacity-60"></div>
         
-        <form action={createUser} className="space-y-8 relative z-10">
+        <form action={async (formData) => {
+          "use server";
+          await createUser(formData);
+        }} className="space-y-8 relative z-10">
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6">
