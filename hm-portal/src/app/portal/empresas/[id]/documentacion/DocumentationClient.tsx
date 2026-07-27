@@ -32,10 +32,10 @@ export default function DocumentationClient({
 }) {
     const [selectedCategory, setSelectedCategory] = useState<DocumentCategory | 'TODOS'>('TODOS');
     const [searchQuery, setSearchQuery] = useState('');
-    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [isOptionsOpen, setIsOptionsOpen] = useState(false);
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     const [selectedUpdateDocId, setSelectedUpdateDocId] = useState<string | null>(null);
+    const [uploadMethod, setUploadMethod] = useState<'file' | 'link'>('file');
 
     const filteredDocs = documents.filter(doc => {
         if (selectedCategory !== 'TODOS' && doc.category !== selectedCategory) return false;
@@ -279,9 +279,11 @@ export default function DocumentationClient({
                                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         {doc.fileUrl && (
                                             <>
-                                                <a href={doc.fileUrl} download={doc.title} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all" title="Descargar documento">
-                                                    <Download className="w-4 h-4" />
-                                                </a>
+                                                {!doc.fileUrl.startsWith('http') && (
+                                                    <a href={doc.fileUrl} download={doc.title} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all" title="Descargar documento">
+                                                        <Download className="w-4 h-4" />
+                                                    </a>
+                                                )}
                                                 <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all" title="Ver documento">
                                                     <Eye className="w-4 h-4" />
                                                 </a>
@@ -400,13 +402,42 @@ export default function DocumentationClient({
                                 </div>
                                 
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Archivo</label>
-                                    <input 
-                                        type="file" 
-                                        name="file" 
-                                        accept="*/*"
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                                    />
+                                    <div className="flex gap-4 mb-3">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input 
+                                                type="radio" 
+                                                checked={uploadMethod === 'file'}
+                                                onChange={() => setUploadMethod('file')}
+                                                className="text-indigo-600 focus:ring-indigo-500"
+                                            />
+                                            <span className="text-sm font-bold text-slate-600">Subir Archivo</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input 
+                                                type="radio" 
+                                                checked={uploadMethod === 'link'}
+                                                onChange={() => setUploadMethod('link')}
+                                                className="text-indigo-600 focus:ring-indigo-500"
+                                            />
+                                            <span className="text-sm font-bold text-slate-600">Enlace (Google Drive, etc)</span>
+                                        </label>
+                                    </div>
+
+                                    {uploadMethod === 'file' ? (
+                                        <input 
+                                            type="file" 
+                                            name="file" 
+                                            accept="*/*"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                        />
+                                    ) : (
+                                        <input 
+                                            type="url" 
+                                            name="driveUrl" 
+                                            placeholder="https://drive.google.com/..."
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                        />
+                                    )}
                                 </div>
 
                                 <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
@@ -451,14 +482,44 @@ export default function DocumentationClient({
                             }} className="space-y-5">
                                 
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nuevo Archivo</label>
-                                    <input 
-                                        type="file" 
-                                        name="file" 
-                                        accept="*/*"
-                                        required
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                                    />
+                                    <div className="flex gap-4 mb-3">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input 
+                                                type="radio" 
+                                                checked={uploadMethod === 'file'}
+                                                onChange={() => setUploadMethod('file')}
+                                                className="text-indigo-600 focus:ring-indigo-500"
+                                            />
+                                            <span className="text-sm font-bold text-slate-600">Subir Archivo</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input 
+                                                type="radio" 
+                                                checked={uploadMethod === 'link'}
+                                                onChange={() => setUploadMethod('link')}
+                                                className="text-indigo-600 focus:ring-indigo-500"
+                                            />
+                                            <span className="text-sm font-bold text-slate-600">Enlace (Google Drive, etc)</span>
+                                        </label>
+                                    </div>
+
+                                    {uploadMethod === 'file' ? (
+                                        <input 
+                                            type="file" 
+                                            name="file" 
+                                            accept="*/*"
+                                            required
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                        />
+                                    ) : (
+                                        <input 
+                                            type="url" 
+                                            name="driveUrl" 
+                                            placeholder="https://drive.google.com/..."
+                                            required
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                        />
+                                    )}
                                 </div>
 
                                 <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">

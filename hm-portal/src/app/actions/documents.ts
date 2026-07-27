@@ -21,13 +21,14 @@ export async function createDocument(formData: FormData) {
     const title = formData.get("title") as string;
     const category = formData.get("category") as 'LEGAL' | 'PERSONAL' | 'ACTIVOS' | 'PROCEDIMIENTOS';
     const companyId = formData.get("companyId") as string;
-    const expirationDateStr = formData.get("expirationDate") as string;
-    
-    // Process file upload if present
+    // Process file upload or drive link
     const file = formData.get("file") as File | null;
+    const driveUrl = formData.get("driveUrl") as string | null;
     let fileUrl = null;
     
-    if (file && file.size > 0) {
+    if (driveUrl && driveUrl.trim() !== '') {
+      fileUrl = driveUrl.trim();
+    } else if (file && file.size > 0) {
       const buffer = Buffer.from(await file.arrayBuffer());
       const base64 = buffer.toString('base64');
       fileUrl = `data:${file.type || 'application/octet-stream'};base64,${base64}`;
@@ -71,13 +72,18 @@ export async function createDocument(formData: FormData) {
 export async function updateDocumentFile(id: string, companyId: string, formData: FormData) {
   try {
     const file = formData.get("file") as File | null;
-    if (!file || file.size === 0) {
-      return { error: "No se seleccionó ningún archivo válido." };
-    }
+    const driveUrl = formData.get("driveUrl") as string | null;
+    let fileUrl = null;
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const base64 = buffer.toString('base64');
-    const fileUrl = `data:${file.type || 'application/octet-stream'};base64,${base64}`;
+    if (driveUrl && driveUrl.trim() !== '') {
+      fileUrl = driveUrl.trim();
+    } else if (file && file.size > 0) {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const base64 = buffer.toString('base64');
+      fileUrl = `data:${file.type || 'application/octet-stream'};base64,${base64}`;
+    } else {
+      return { error: "No se seleccionó ningún archivo o enlace válido." };
+    }
 
     await prisma.document.update({
       where: { id },
