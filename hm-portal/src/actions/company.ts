@@ -1,6 +1,7 @@
 "use server"
 
 import { prisma } from "@/lib/prisma";
+import { RiskLevel } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -8,7 +9,7 @@ export async function createCompany(formData: FormData) {
   const name = formData.get("name") as string;
   const taxId = formData.get("taxId") as string;
   const industry = formData.get("industry") as string;
-  const riskLevel = formData.get("riskLevel") as string;
+  const riskLevel = (formData.get("riskLevel") as RiskLevel) || undefined;
   const address = formData.get("address") as string;
 
   if (!name || !taxId) {
