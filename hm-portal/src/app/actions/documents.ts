@@ -21,6 +21,7 @@ export async function createDocument(formData: FormData) {
     const title = formData.get("title") as string;
     const category = formData.get("category") as 'LEGAL' | 'PERSONAL' | 'ACTIVOS' | 'PROCEDIMIENTOS';
     const companyId = formData.get("companyId") as string;
+    const expirationDateStr = formData.get("expirationDate") as string;
     // Process file upload or drive link
     const file = formData.get("file") as File | null;
     const driveUrl = formData.get("driveUrl") as string | null;
