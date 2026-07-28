@@ -1,11 +1,31 @@
-export default function EquiposPage() {
+import { prisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
+import EquiposClient from "./EquiposClient";
+import { getEquipments } from "@/app/actions/equipos";
+
+export default async function EquiposPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+
+  const company = await prisma.company.findUnique({
+    where: { id }
+  });
+
+  if (!company) {
+    notFound();
+  }
+
+  const initialEquipments = await getEquipments(id);
+
   return (
-    <div className="bg-white/60 backdrop-blur-xl p-12 rounded-[2.5rem] shadow-sm border border-white/50 text-center animate-fade-in mt-6">
-      <div className="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-inner">
-        <span className="text-3xl">🚧</span>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Gestión de Activos y Mantenimiento Predictivo</h1>
+          <p className="text-slate-500 text-sm mt-1">Directorio de maquinaria y equipos - {company.name}</p>
+        </div>
       </div>
-      <h2 className="text-3xl font-black text-slate-800 mb-2">Módulo: equipos</h2>
-      <p className="text-slate-500 font-medium max-w-md mx-auto">Este módulo está en construcción. Aquí se implementará la gestión específica para esta entidad.</p>
+      
+      <EquiposClient companyId={id} initialEquipments={initialEquipments} />
     </div>
   );
 }

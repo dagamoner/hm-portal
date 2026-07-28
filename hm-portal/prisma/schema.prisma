@@ -230,8 +230,11 @@ model ImprovementAction {
 
 model Worker {
   id               String   @id @default(uuid())
-  establishmentId  String
-  establishment    Establishment @relation(fields: [establishmentId], references: [id], onDelete: Cascade)
+  establishmentId  String?
+  establishment    Establishment? @relation(fields: [establishmentId], references: [id], onDelete: Cascade)
+  
+  companyId        String?
+  company          Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
   
   firstName        String
   lastName         String
@@ -244,6 +247,9 @@ model Worker {
   functionalData   Json?    // Apto, restricciones (NO DATOS CLÍNICOS)
   laborData        Json?    // EPP, capacitaciones, turnos, etc.
   exposures        Json?    // Relación con agentes de riesgo específicos
+  
+  safetyScore      Int      @default(100)
+  permits          PermitToWork[]
   
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -287,6 +293,17 @@ model Company {
   
   // New Relations for Risk Module
   establishments      Establishment[]
+  
+  // New Relation for Vehicle Module
+  vehicles            Vehicle[]
+  
+  // New Relation for Equipment Module
+  equipments          Equipment[]
+  
+  // New Relation for Personal & PTW Module
+  workers             Worker[]
+  permits             PermitToWork[]
+  auditLogs           AuditLog[]
 }
 
 model CancerigenoEvaluation {
@@ -424,4 +441,89 @@ model Document {
   
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
+}
+
+model Vehicle {
+  id          String   @id @default(uuid())
+  type        String   
+  brand       String
+  model       String
+  plate       String
+  mileage     Int?
+  hours       Int?
+  year        Int
+  status      String   @default("Disponible")
+  
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Equipment {
+  id          String   @id @default(uuid())
+  name        String
+  category    String   
+  status      String   @default("Operativo") 
+  hours       Int      @default(0)
+  
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  
+  interventions Intervention[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Intervention {
+  id          String   @id @default(uuid())
+  type        String   
+  date        DateTime
+  description String
+  
+  equipmentId String
+  equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+}
+
+model PermitToWork {
+  id              String   @id @default(uuid())
+  workerId        String
+  worker          Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  taskDescription String
+  hazards         Json     @default("[]") 
+  ppe             Json     @default("[]") 
+  preventions     Json     @default("[]") 
+  
+  issueDate       DateTime @default(now())
+  expirationDate  DateTime
+  
+  status          String   @default("Vigente") 
+  signatureId     String?  
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  timestamp   DateTime @default(now())
+  
+  userId      String?
+  userName    String
+  userRole    String
+  
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  module      String
+  action      String   // CREAR, MODIFICAR, ELIMINAR, LOGIN, ACCESO_DENEGADO
+  target      String
+  details     Json?    
 }
