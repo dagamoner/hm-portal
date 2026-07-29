@@ -2,27 +2,32 @@
 
 import { prisma } from "@/lib/prisma";
 
-export async function logAction(data: {
-  userId?: string;
-  userName: string;
-  userRole: string;
-  companyId?: string;
-  module: string;
-  action: 'CREAR' | 'MODIFICAR' | 'ELIMINAR' | 'LOGIN' | 'ACCESO_DENEGADO';
-  target: string;
-  details?: any;
-}) {
+export async function logAction(
+  module: string,
+  action: 'CREAR' | 'MODIFICAR' | 'ELIMINAR' | 'LOGIN' | 'ACCESO_DENEGADO',
+  target: string,
+  details?: any,
+  companyId?: string
+) {
   try {
-    await prisma.auditLog.create({
+    // Determine severity
+    let severity = 'INFO';
+    if (action === 'ACCESO_DENEGADO' || action === 'ELIMINAR') {
+      severity = 'CRITICAL';
+    } else if (action === 'MODIFICAR') {
+      severity = 'WARNING';
+    }
+
+    return await prisma.auditLog.create({
       data: {
-        userId: data.userId,
-        userName: data.userName,
-        userRole: data.userRole,
-        companyId: data.companyId,
-        module: data.module,
-        action: data.action,
-        target: data.target,
-        details: data.details || {}
+        userName: 'Dante Moner', // TODO: Replace with real auth user
+        userRole: 'Admin',       // TODO: Replace with real auth role
+        module,
+        action,
+        target,
+        severity,
+        details: details || {},
+        companyId
       }
     });
   } catch (error) {

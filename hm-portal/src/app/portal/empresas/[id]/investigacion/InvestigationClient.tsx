@@ -4,27 +4,39 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, Cpu, Download, Save, CheckCircle, Activity, FileText } from 'lucide-react';
 import { startOrUpdateInvestigation } from '@/app/actions/investigations';
 import { useRouter, useSearchParams } from 'next/navigation';
+import IshikawaWizard from './IshikawaWizard';
+import ArbolCausasWizard from './ArbolCausasWizard';
+import RcaWizard from './RcaWizard';
+import ScatWizard from './ScatWizard';
+import TripodWizard from './TripodWizard';
+import HeinrichWizard from './HeinrichWizard';
+import AmfeWizard from './AmfeWizard';
+import EstadisticoWizard from './EstadisticoWizard';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const METHODOLOGIES = [
-    { id: 'ishikawa', name: 'Diagrama de Ishikawa', disabled: true },
-    { id: 'arbol', name: 'Árbol de Causas', disabled: true },
+    { id: 'ishikawa', name: 'Diagrama de Ishikawa', disabled: false },
+    { id: 'arbol', name: 'Árbol de Causas', disabled: false },
     { id: '5porques', name: '5 Porqués', disabled: false },
-    { id: 'rca', name: 'RCA (Root Cause Analysis)', disabled: true },
-    { id: 'scat', name: 'Técnica SCAT (DuPont)', disabled: true },
-    { id: 'tripod', name: 'Tripod Beta', disabled: true },
-    { id: 'heinrich', name: 'Método de Heinrich', disabled: true },
-    { id: 'amfe', name: 'AMFE (FMEA)', disabled: true },
-    { id: 'estadistico', name: 'Análisis Estadístico', disabled: true },
+    { id: 'rca', name: 'RCA (Root Cause Analysis)', disabled: false },
+    { id: 'scat', name: 'Técnica SCAT (DuPont)', disabled: false },
+    { id: 'tripod', name: 'Tripod Beta', disabled: false },
+    { id: 'heinrich', name: 'Método de Heinrich', disabled: false },
+    { id: 'amfe', name: 'AMFE (FMEA)', disabled: false },
+    { id: 'estadistico', name: 'Análisis Estadístico e Histórico', disabled: false },
 ];
 
 export default function InvestigationClient({
     investigations,
     incidents,
-    companyId
+    companyId,
+    company
 }: {
     investigations: any[],
     incidents: any[],
-    companyId: string
+    companyId: string,
+    company?: any
 }) {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -37,11 +49,12 @@ export default function InvestigationClient({
     const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
     
     // Metodología
-    const [selectedMethod, setSelectedMethod] = useState('5porques');
+    const [selectedMethod, setSelectedMethod] = useState('ishikawa');
 
     // Form fields (para 5 porqués y plan de acción heredado)
     const [cause, setCause] = useState('');
     const [actionPlan, setActionPlan] = useState('');
+    const [analysisData, setAnalysisData] = useState<any>({});
     const [isSaving, setIsSaving] = useState(false);
 
     // Initial load from URL param if exists
@@ -59,9 +72,13 @@ export default function InvestigationClient({
             if (existingInv) {
                 setCause(existingInv.cause || '');
                 setActionPlan(existingInv.actionPlan || '');
+                setAnalysisData(existingInv.analysisData || {});
+                if (existingInv.methodology) setSelectedMethod(existingInv.methodology);
             } else {
                 setCause('');
                 setActionPlan('');
+                setAnalysisData({});
+                setSelectedMethod('ishikawa'); // Default for new
             }
         }
     }, [selectedIncidentId, investigations]);
@@ -81,15 +98,44 @@ export default function InvestigationClient({
     const activeInvestigation = investigations.find(i => i.incidentId === selectedIncidentId);
     const isCompleted = activeInvestigation?.status === 'Completada';
 
-    const handleSave = async (complete: boolean = false) => {
+    // Para 5 Porqués (Legacy handler)
+    const handleSaveLegacy = async (complete: boolean = false) => {
         if (!selectedIncidentId) return;
         setIsSaving(true);
         try {
             await startOrUpdateInvestigation(companyId, selectedIncidentId, {
                 cause,
                 actionPlan,
+                methodology: selectedMethod,
                 status: complete ? 'Completada' : 'En Progreso'
             });
+            alert(complete ? 'Investigación completada y documento legal generado' : 'Avances guardados correctamente');
+            router.refresh();
+        } catch (error) {
+            alert('Error al guardar la investigación');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // Para Ishikawa y otras complejas
+    const handleSaveAdvanced = async (data: any, complete: boolean = false) => {
+        if (!selectedIncidentId) return;
+        setIsSaving(true);
+        try {
+            await startOrUpdateInvestigation(companyId, selectedIncidentId, {
+                cause: data.cause || "",
+                actionPlan: data.actionPlan || "",
+                methodology: data.methodology || selectedMethod,
+                analysisData: data,
+                status: complete ? 'Completada' : 'En Progreso'
+            });
+            
+            // Update local state to reflect changes without full reload delay
+            setCause(data.cause || "");
+            setActionPlan(data.actionPlan || "");
+            setAnalysisData(data);
+            
             alert(complete ? 'Investigación completada y documento legal generado' : 'Avances guardados correctamente');
             router.refresh();
         } catch (error) {
@@ -117,6 +163,283 @@ export default function InvestigationClient({
             case 'CRITICAL': return 'CRÍTICO';
             default: return level;
         }
+    };
+
+    const handleExportPDF = () => {
+        if (!activeIncident) {
+            alert('Seleccione un incidente para exportar');
+            return;
+        }
+
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.width;
+        
+        // Colores y estilos
+        const primaryColor = [107, 33, 168]; // Purple-800
+        const secondaryColor = [71, 85, 105]; // Slate-600
+        
+        // Logo / Cabecera
+        doc.setFillColor(248, 250, 252);
+        doc.rect(0, 0, pageWidth, 40, 'F');
+        
+        doc.setFontSize(22);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INFORME DE INVESTIGACIÓN', pageWidth / 2, 20, { align: 'center' });
+        
+        doc.setFontSize(12);
+        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+        doc.text(company?.name?.toUpperCase() || 'EMPRESA NO DEFINIDA', pageWidth / 2, 28, { align: 'center' });
+        doc.setFontSize(10);
+        doc.text('Sistema de Gestión SST', pageWidth / 2, 34, { align: 'center' });
+
+        // Datos del Incidente
+        doc.setFontSize(14);
+        doc.setTextColor(15, 23, 42); // Slate-900
+        doc.text('DATOS DEL INCIDENTE', 14, 55);
+        
+        autoTable(doc, {
+            startY: 60,
+            theme: 'grid',
+            headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105], fontStyle: 'bold' },
+            bodyStyles: { textColor: [15, 23, 42] },
+            body: [
+                ['ID', `INC-${activeIncident.id.substring(0, 8).toUpperCase()}`],
+                ['Título', activeIncident.title],
+                ['Fecha', new Date(activeIncident.date).toLocaleDateString()],
+                ['Ubicación', activeIncident.location],
+                ['Severidad', getSeverityText(activeIncident.severity)],
+                ['Descripción', activeIncident.description]
+            ],
+            columnStyles: {
+                0: { cellWidth: 40, fontStyle: 'bold' }
+            }
+        });
+
+        const methodologyName = METHODOLOGIES.find(m => m.id === selectedMethod)?.name || 'Desconocida';
+        let currentY = (doc as any).lastAutoTable.finalY + 15;
+
+        doc.setFontSize(14);
+        doc.text(`ANÁLISIS DE CAUSAS: ${methodologyName.toUpperCase()}`, 14, currentY);
+        currentY += 10;
+
+        if (selectedMethod === 'ishikawa' && analysisData) {
+            autoTable(doc, {
+                startY: currentY,
+                theme: 'grid',
+                headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105] },
+                body: [
+                    [{ content: '1. Efecto / Problema', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [analysisData.efecto || 'No especificado'],
+                    [{ content: '2. 6M (Causas)', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [`Mano de Obra:\n${analysisData.manoDeObra || 'N/A'}`],
+                    [`Maquinaria:\n${analysisData.maquinaria || 'N/A'}`],
+                    [`Métodos:\n${analysisData.metodos || 'N/A'}`],
+                    [`Materiales:\n${analysisData.materiales || 'N/A'}`],
+                    [`Medio Ambiente:\n${analysisData.medioAmbiente || 'N/A'}`],
+                    [`Medición:\n${analysisData.medicion || 'N/A'}`],
+                    [{ content: '3. 5 Porqués (Causa Raíz)', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [analysisData.cincoPorques || 'No especificado'],
+                    [{ content: '4. Plan de Acción (CAPA)', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [analysisData.planAccion || 'No especificado']
+                ]
+            });
+        } else if (selectedMethod === 'arbol' && analysisData) {
+            autoTable(doc, {
+                startY: currentY,
+                theme: 'grid',
+                headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105] },
+                body: [
+                    [{ content: '1. Hecho Final / Lesión', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [analysisData.hechoFinal || 'No especificado'],
+                    [{ content: '2. Causas Inmediatas', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [`Condiciones Inseguras:\n${analysisData.condicionesInseguras || 'N/A'}`],
+                    [`Actos Inseguros:\n${analysisData.actosInseguros || 'N/A'}`],
+                    [{ content: '3. Causas Básicas o Subyacentes', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [`Factores Personales:\n${analysisData.factoresPersonales || 'N/A'}`],
+                    [`Factores del Trabajo:\n${analysisData.factoresTrabajo || 'N/A'}`],
+                    [{ content: '4. Causa Raíz Principal', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [analysisData.causaRaiz || 'No especificado'],
+                    [{ content: '5. Plan de Acción (CAPA)', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [`Inmediatas:\n${analysisData.medidasInmediatas || 'N/A'}`],
+                    [`Largo Plazo:\n${analysisData.medidasLargoPlazo || 'N/A'}`]
+                ]
+            });
+        } else if (selectedMethod === 'rca' && analysisData) {
+            autoTable(doc, {
+                startY: currentY,
+                theme: 'grid',
+                headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105] },
+                body: [
+                    [{ content: '1. Hecho Inicial', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [analysisData.hechoInicial || 'No especificado'],
+                    [{ content: '2. 5 Porqués (Iteración)', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [`1º Por qué:\n${analysisData.porque1 || 'N/A'}`],
+                    [`2º Por qué:\n${analysisData.porque2 || 'N/A'}`],
+                    [`3º Por qué:\n${analysisData.porque3 || 'N/A'}`],
+                    [`4º Por qué:\n${analysisData.porque4 || 'N/A'}`],
+                    [`5º Por qué:\n${analysisData.porque5 || 'N/A'}`],
+                    [{ content: '3. Categorización Causal', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [`Inmediatas:\n${analysisData.causasInmediatas || 'N/A'}`],
+                    [`Subyacentes:\n${analysisData.causasSubyacentes || 'N/A'}`],
+                    [`Raíz:\n${analysisData.causasRaiz || 'N/A'}`],
+                    [{ content: '4. Plan de Acción (CAPA)', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [`Inmediatas:\n${analysisData.accionesInmediatas || 'N/A'}`],
+                    [`Preventivas:\n${analysisData.accionesPreventivas || 'N/A'}`]
+                ]
+            });
+        } else if (selectedMethod === 'scat' && analysisData) {
+            autoTable(doc, {
+                startY: currentY,
+                theme: 'grid',
+                headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105] },
+                body: [
+                    [{ content: '1. Pérdida y Contacto', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [`Pérdida (Loss):\n${analysisData.perdida || 'N/A'}`],
+                    [`Incidente / Evento:\n${analysisData.contacto || 'N/A'}`],
+                    [{ content: '2. Causas Inmediatas', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [`Actos Subestándar:\n${analysisData.actosSubestandar || 'N/A'}`],
+                    [`Condiciones Subestándar:\n${analysisData.condicionesSubestandar || 'N/A'}`],
+                    [{ content: '3. Causas Básicas / Raíz', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [`Factores Personales:\n${analysisData.factoresPersonales || 'N/A'}`],
+                    [`Factores del Trabajo:\n${analysisData.factoresTrabajo || 'N/A'}`],
+                    [{ content: '4. Falta de Control del Sistema', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [analysisData.faltaControl || 'No especificado'],
+                    [{ content: '5. Plan de Medidas Correctivas Directas', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [analysisData.medidasCorrectivas || 'No especificado']
+                ]
+            });
+        } else if (selectedMethod === 'tripod' && analysisData) {
+            const bodyData: any[] = [
+                [{ content: '1. El Trío del Evento', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                [`Peligro (Hazard):\n${analysisData.peligro || 'N/A'}`],
+                [`Objeto (Target):\n${analysisData.objeto || 'N/A'}`],
+                [`Evento (Event):\n${analysisData.evento || 'N/A'}`],
+                [{ content: '2. Análisis de Barreras y Ruta Causal', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }]
+            ];
+
+            if (analysisData.barreras && analysisData.barreras.length > 0) {
+                analysisData.barreras.forEach((b: any, index: number) => {
+                    bodyData.push([`Barrera #${index + 1}: ${b.nombre || 'Sin nombre'} (${b.estado || 'Sin estado'})`]);
+                    if (b.estado === 'Falló' || b.estado === 'Ausente' || b.estado === 'Inadecuada') {
+                        bodyData.push([`  - Causa Inmediata: ${b.causaInmediata || 'N/A'}`]);
+                        bodyData.push([`  - Precondición: ${b.precondicion || 'N/A'}`]);
+                        bodyData.push([`  - Causa Latente: ${b.causaLatente || 'N/A'}`]);
+                        bodyData.push([`  - GFT: ${b.gft || 'N/A'}`]);
+                    }
+                });
+            } else {
+                bodyData.push(['No se registraron barreras.']);
+            }
+
+            bodyData.push([{ content: '3. Medidas Correctivas', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }]);
+            bodyData.push([analysisData.medidasCorrectivas || 'No especificado']);
+
+            autoTable(doc, {
+                startY: currentY,
+                theme: 'grid',
+                headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105] },
+                body: bodyData
+            });
+        } else if (selectedMethod === 'heinrich' && analysisData) {
+            autoTable(doc, {
+                startY: currentY,
+                theme: 'grid',
+                headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105] },
+                body: [
+                    [{ content: '1. La Cadena Causal de 5 Fichas de Dominó', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [`Ficha 1 - Ancestros y Entorno Social:\n${analysisData.ficha1Entorno || 'N/A'}`],
+                    [`Ficha 2 - Falta Personal / Defecto de la Persona:\n${analysisData.ficha2Defecto || 'N/A'}`],
+                    [`Ficha 3 - Acto Inseguro o Condición Insegura:\n${analysisData.ficha3ActoCondicion || 'N/A'}`],
+                    [`Ficha 4 - Accidente:\n${analysisData.ficha4Accidente || 'N/A'}`],
+                    [`Ficha 5 - Lesión:\n${analysisData.ficha5Lesion || 'N/A'}`],
+                    [{ content: '2. Análisis de Interrupción y Pirámide', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [`Punto de Interrupción Sugerido:\n${analysisData.puntoInterrupcion || 'N/A'}`],
+                    [`Análisis Estadístico bajo Pirámide (1:29:300):\n${analysisData.analisisPiramide || 'N/A'}`],
+                    [{ content: '3. Planes de Acción (CAPA)', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [analysisData.medidasCorrectivas || 'No especificado']
+                ]
+            });
+        } else if (selectedMethod === 'amfe' && analysisData) {
+            const bodyData: any[] = [
+                [{ content: '1. Modos de Falla, Efectos y NPR', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }]
+            ];
+
+            if (analysisData.modosFalla && analysisData.modosFalla.length > 0) {
+                analysisData.modosFalla.forEach((f: any, index: number) => {
+                    bodyData.push([`Falla #${index + 1}: ${f.componente || 'Sin componente'} - ${f.modoFalla || 'Sin falla'}`]);
+                    bodyData.push([`  - Efecto: ${f.efecto || 'N/A'}`]);
+                    bodyData.push([`  - Causa Raíz: ${f.causaRaiz || 'N/A'}`]);
+                    bodyData.push([`  - S: ${f.severidad} | O: ${f.ocurrencia} | D: ${f.deteccion} | NPR: ${f.npr}`]);
+                    bodyData.push([`  - Acciones: ${f.medidasCorrectivas || 'N/A'}`]);
+                });
+            } else {
+                bodyData.push(['No se registraron modos de falla.']);
+            }
+
+            autoTable(doc, {
+                startY: currentY,
+                theme: 'grid',
+                headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105] },
+                body: bodyData
+            });
+        } else if (selectedMethod === 'estadistico' && analysisData) {
+            autoTable(doc, {
+                startY: currentY,
+                theme: 'grid',
+                headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105] },
+                body: [
+                    [{ content: '1. Recopilación e Ingesta de Datos', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [`Ubicación / Sector: ${analysisData.ubicacionSector || 'N/A'}`],
+                    [`Hora / Turno: ${analysisData.horaTurno || 'N/A'}`],
+                    [`Agente Material: ${analysisData.agenteMaterial || 'N/A'}`],
+                    [`Parte del Cuerpo Afectada: ${analysisData.parteCuerpo || 'N/A'}`],
+                    [`Perfil del Trabajador: ${analysisData.perfilTrabajador || 'N/A'}`],
+                    [{ content: '2. Procesamiento: Patrones y Correlación', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [`Análisis de Pareto: ${analysisData.analisisPareto || 'N/A'}`],
+                    [`Correlación Temporal: ${analysisData.correlacionTemporal || 'N/A'}`],
+                    [`Desviación de Tendencia: ${analysisData.desviacionTendencia || 'N/A'}`],
+                    [{ content: '3. Diagnóstico: Modelos Predictivos', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [`Factores Críticos: ${analysisData.factoresCriticos || 'N/A'}`],
+                    [`Proyección de Riesgo: ${analysisData.proyeccionRiesgo || 'N/A'}`],
+                    [{ content: '4. Plan de Acción: Medidas Cuantitativas', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [`Intervención Focalizada: ${analysisData.intervencionFocalizada || 'N/A'}`],
+                    [`Modificación de Indicadores: ${analysisData.modificacionIndicadores || 'N/A'}`],
+                    [`Seguimiento KPI: ${analysisData.seguimientoKPI || 'N/A'}`]
+                ]
+            });
+        } else if (selectedMethod === '5porques') {
+            autoTable(doc, {
+                startY: currentY,
+                theme: 'grid',
+                headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105] },
+                body: [
+                    [{ content: 'Causa Raíz (5 Porqués)', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [cause || 'No especificado'],
+                    [{ content: 'Plan de Acción', styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }],
+                    [actionPlan || 'No especificado']
+                ]
+            });
+        } else {
+            doc.setFontSize(10);
+            doc.text('No hay datos de análisis disponibles.', 14, currentY);
+        }
+
+        currentY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 15 : currentY + 10;
+        
+        doc.setFontSize(10);
+        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+        doc.text(`Estado del Análisis: ${isCompleted ? 'COMPLETADO' : 'EN PROGRESO'}`, 14, currentY);
+        
+        // Footer (Page numbers)
+        const pageCount = doc.getNumberOfPages();
+        for(let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.text(`Página ${i} de ${pageCount}`, pageWidth / 2, doc.internal.pageSize.height - 10, { align: 'center' });
+        }
+
+        doc.save(`Investigacion_${activeIncident.id.substring(0, 8)}.pdf`);
     };
 
     return (
@@ -228,9 +551,11 @@ export default function InvestigationClient({
                                 <Cpu className="w-4 h-4" />
                                 {activeIncident ? `INVESTIGACIÓN: ${METHODOLOGIES.find(m => m.id === selectedMethod)?.name}` : 'RESULTADOS DEL ANÁLISIS TÉCNICO'}
                             </h3>
-                            <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-colors">
+                            <button 
+                                onClick={handleExportPDF}
+                                className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-colors"
+                            >
                                 <Download className="w-4 h-4" /> Exportar
-                                <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                             </button>
                         </div>
 
@@ -239,6 +564,70 @@ export default function InvestigationClient({
                                 <div className="h-full flex items-center justify-start text-slate-600 font-medium p-4">
                                     Error de conexión. (Seleccione un incidente para comenzar)
                                 </div>
+                            ) : selectedMethod === 'ishikawa' ? (
+                                <IshikawaWizard
+                                  incident={activeIncident}
+                                  initialData={analysisData}
+                                  isCompleted={isCompleted}
+                                  isSaving={isSaving}
+                                  onSave={handleSaveAdvanced}
+                                />
+                            ) : selectedMethod === 'arbol' ? (
+                                <ArbolCausasWizard
+                                  incident={activeIncident}
+                                  initialData={analysisData}
+                                  isCompleted={isCompleted}
+                                  isSaving={isSaving}
+                                  onSave={handleSaveAdvanced}
+                                />
+                            ) : selectedMethod === 'rca' ? (
+                                <RcaWizard
+                                  incident={activeIncident}
+                                  initialData={analysisData}
+                                  isCompleted={isCompleted}
+                                  isSaving={isSaving}
+                                  onSave={handleSaveAdvanced}
+                                />
+                            ) : selectedMethod === 'scat' ? (
+                                <ScatWizard
+                                  incident={activeIncident}
+                                  initialData={analysisData}
+                                  isCompleted={isCompleted}
+                                  isSaving={isSaving}
+                                  onSave={handleSaveAdvanced}
+                                />
+                            ) : selectedMethod === 'tripod' ? (
+                                <TripodWizard
+                                  incident={activeIncident}
+                                  initialData={analysisData}
+                                  isCompleted={isCompleted}
+                                  isSaving={isSaving}
+                                  onSave={handleSaveAdvanced}
+                                />
+                            ) : selectedMethod === 'heinrich' ? (
+                                <HeinrichWizard
+                                  incident={activeIncident}
+                                  initialData={analysisData}
+                                  isCompleted={isCompleted}
+                                  isSaving={isSaving}
+                                  onSave={handleSaveAdvanced}
+                                />
+                            ) : selectedMethod === 'amfe' ? (
+                                <AmfeWizard
+                                  incident={activeIncident}
+                                  initialData={analysisData}
+                                  isCompleted={isCompleted}
+                                  isSaving={isSaving}
+                                  onSave={handleSaveAdvanced}
+                                />
+                            ) : selectedMethod === 'estadistico' ? (
+                                <EstadisticoWizard
+                                  incident={activeIncident}
+                                  initialData={analysisData}
+                                  isCompleted={isCompleted}
+                                  isSaving={isSaving}
+                                  onSave={handleSaveAdvanced}
+                                />
                             ) : selectedMethod === '5porques' ? (
                                 <div className="space-y-6 pb-6">
                                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6">
@@ -280,7 +669,7 @@ export default function InvestigationClient({
                                         ) : (
                                             <>
                                                 <button 
-                                                    onClick={() => handleSave(false)}
+                                                    onClick={() => handleSaveLegacy(false)}
                                                     disabled={isSaving}
                                                     className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-6 py-3 rounded-xl font-bold tracking-widest uppercase text-xs flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
                                                 >
@@ -289,7 +678,7 @@ export default function InvestigationClient({
                                                 <button 
                                                     onClick={() => {
                                                         if(confirm('Al completar la investigación, se generará un documento legal y no podrá ser editada. ¿Desea continuar?')) {
-                                                            handleSave(true);
+                                                            handleSaveLegacy(true);
                                                         }
                                                     }}
                                                     disabled={isSaving || !cause || !actionPlan}

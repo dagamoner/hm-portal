@@ -33,20 +33,23 @@ export async function getInvestigationByIncident(incidentId: string) {
 export async function startOrUpdateInvestigation(
     companyId: string, 
     incidentId: string, 
-    data: { cause?: string, actionPlan?: string, status?: string }
+    data: { cause?: string, actionPlan?: string, status?: string, methodology?: string, analysisData?: any }
 ) {
     try {
         const investigation = await prisma.investigation.upsert({
             where: { incidentId },
             update: {
-                ...data
+                ...data,
+                analysisData: data.analysisData !== undefined ? data.analysisData : undefined
             },
             create: {
                 companyId,
                 incidentId,
                 cause: data.cause || "",
                 actionPlan: data.actionPlan || "",
-                status: data.status || "En Progreso"
+                status: data.status || "En Progreso",
+                methodology: data.methodology || "5porques",
+                analysisData: data.analysisData || {}
             }
         });
 

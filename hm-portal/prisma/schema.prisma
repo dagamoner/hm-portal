@@ -421,8 +421,10 @@ model Investigation {
   companyId   String
   company     Company  @relation(fields: [companyId], references: [id])
   status      String   @default("En Progreso") // En Progreso, Completada
+  methodology String   @default("5porques")
   cause       String?
   actionPlan  String?
+  analysisData Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -525,5 +527,6 @@ model AuditLog {
   module      String
   action      String   // CREAR, MODIFICAR, ELIMINAR, LOGIN, ACCESO_DENEGADO
   target      String
+  severity    String   @default("INFO") // INFO, WARNING, CRITICAL
   details     Json?    
 }

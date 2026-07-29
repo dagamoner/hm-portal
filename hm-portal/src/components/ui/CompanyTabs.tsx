@@ -22,8 +22,7 @@ export const MODULES = [
     { name: "Vehículos", path: "/vehiculos", icon: Truck },
     { name: "Equipos y Activos", path: "/equipos", icon: Server },
     { name: "Personal", path: "/personal", icon: Users },
-    { name: "Auditorías", path: "/auditorias", icon: ClipboardCheck },
-    { name: "Log Auditoría", path: "/log-auditoria", icon: History },
+    { name: "Visitas", path: "/visitas", icon: ClipboardCheck },
     { name: "Capacitaciones", path: "/capacitaciones", icon: GraduationCap },
 ];
 

@@ -29,7 +29,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
             </Link>
             <Link href="/portal/settings/log-auditoria" className={getLinkClass("/portal/settings/log-auditoria")}>
               <ShieldAlert size={20} />
-              <span>Log Auditoría</span>
+              <span>Auditorías del sistema</span>
             </Link>
           </nav>
         </div>

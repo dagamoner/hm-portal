@@ -66,3 +66,45 @@ export async function deleteUser(id: string) {
     return { error: "Ocurrió un error al eliminar el usuario." };
   }
 }
+
+export async function getUsersWithAuditStats() {
+  try {
+    const users = await prisma.user.findMany({
+      include: { company: true },
+      orderBy: { name: 'asc' }
+    });
+
+    const enrichedUsers = await Promise.all(users.map(async (user) => {
+      const lastLoginLog = await prisma.auditLog.findFirst({
+        where: {
+          action: 'LOGIN',
+          userName: user.name
+        },
+        orderBy: { timestamp: 'desc' }
+      });
+      
+      const actionsCount = await prisma.auditLog.count({
+        where: {
+          userName: user.name
+        }
+      });
+
+      // Active if logged in within last 30 days
+      const isActive = lastLoginLog 
+        ? (new Date().getTime() - new Date(lastLoginLog.timestamp).getTime()) < 30 * 24 * 60 * 60 * 1000 
+        : false;
+
+      return {
+        ...user,
+        lastLogin: lastLoginLog?.timestamp || null,
+        totalActions: actionsCount,
+        isActive
+      };
+    }));
+
+    return enrichedUsers;
+  } catch (error) {
+    console.error("Error fetching users with stats:", error);
+    return [];
+  }
+}
