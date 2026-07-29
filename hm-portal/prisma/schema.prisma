@@ -69,6 +69,7 @@ model Establishment {
   
   sectors          Sector[]
   workers          Worker[]
+  visits           Visit[]
   
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -290,6 +291,9 @@ model Company {
   ergonomicEvals      ErgonomicEvaluation[]
   cancerigenoEvals    CancerigenoEvaluation[]
   investigations      Investigation[]
+  visits              Visit[]
+  visitFindings       VisitFinding[]
+  checklistTemplates  ChecklistTemplate[]
   
   // New Relations for Risk Module
   establishments      Establishment[]
@@ -530,3 +534,62 @@ model AuditLog {
   severity    String   @default("INFO") // INFO, WARNING, CRITICAL
   details     Json?    
 }
+
+// ==========================================
+// VISITS AND INSPECTIONS MODULE
+// ==========================================
+
+model Visit {
+  id                 String   @id @default(uuid())
+  establishmentId    String
+  establishment      Establishment @relation(fields: [establishmentId], references: [id], onDelete: Cascade)
+  companyId          String
+  company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  date               DateTime
+  visitNumber        Int?
+  inspectorName      String
+  
+  observations       String?
+  recommendedTrainings String?
+  
+  checklistData      Json?
+  
+  findings           VisitFinding[]
+  
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model VisitFinding {
+  id                 String   @id @default(uuid())
+  visitId            String
+  visit              Visit    @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  companyId          String
+  company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  description        String
+  hazardLevel        String?  // Ej. Alto, Medio, Bajo
+  status             String   @default("ABIERTO") // ABIERTO, EN_PROGRESO, CERRADO
+  deadline           DateTime?
+  actionPlan         String?
+  resolutionDate     DateTime?
+  
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model ChecklistTemplate {
+  id                 String   @id @default(uuid())
+  companyId          String?  // Si es null, es global para el sistema. Si tiene valor, es un template custom de la empresa.
+  company            Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  name               String   // "Establecimiento General", "Obra Construcción"
+  type               String   // "ESTABLECIMIENTO", "OBRA"
+  
+  categories         Json     // Array of categories with items
+  
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+

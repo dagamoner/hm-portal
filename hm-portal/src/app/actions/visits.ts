@@ -1,0 +1,134 @@
+'use server';
+
+import { prisma } from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
+
+// =====================================
+// ESTABLISHMENTS (For visits)
+// =====================================
+
+export async function getEstablishments(companyId: string) {
+  try {
+    return await prisma.establishment.findMany({
+      where: { companyId },
+      orderBy: { name: 'asc' }
+    });
+  } catch (error) {
+    console.error('Error fetching establishments:', error);
+    throw new Error('No se pudieron obtener los establecimientos');
+  }
+}
+
+// =====================================
+// VISITS
+// =====================================
+
+export async function getVisits(companyId: string) {
+  try {
+    return await prisma.visit.findMany({
+      where: { companyId },
+      include: {
+        establishment: true,
+        findings: true
+      },
+      orderBy: { date: 'desc' }
+    });
+  } catch (error) {
+    console.error('Error fetching visits:', error);
+    throw new Error('No se pudieron obtener las visitas');
+  }
+}
+
+export async function getVisitById(id: string) {
+  try {
+    return await prisma.visit.findUnique({
+      where: { id },
+      include: {
+        establishment: true,
+        findings: true
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching visit:', error);
+    throw new Error('No se pudo obtener la visita');
+  }
+}
+
+export async function createVisit(companyId: string, data: any) {
+  try {
+    const visit = await prisma.visit.create({
+      data: {
+        companyId,
+        establishmentId: data.establishmentId,
+        date: new Date(data.date),
+        visitNumber: data.visitNumber ? parseInt(data.visitNumber) : null,
+        inspectorName: data.inspectorName,
+        observations: data.observations,
+        recommendedTrainings: data.recommendedTrainings,
+        checklistData: data.checklistData,
+        // Create findings directly if passed
+        findings: data.findings && data.findings.length > 0 ? {
+          create: data.findings.map((finding: any) => ({
+            companyId,
+            description: finding.description,
+            hazardLevel: finding.hazardLevel || 'Medio',
+            deadline: finding.deadline ? new Date(finding.deadline) : null
+          }))
+        } : undefined
+      }
+    });
+    
+    revalidatePath(`/portal/empresas/${companyId}/visitas`);
+    return visit;
+  } catch (error) {
+    console.error('Error creating visit:', error);
+    throw new Error('Error al crear el acta de visita');
+  }
+}
+
+// =====================================
+// FINDINGS (DESVÍOS)
+// =====================================
+
+export async function getFindings(companyId: string) {
+  try {
+    return await prisma.visitFinding.findMany({
+      where: { companyId },
+      include: {
+        visit: {
+          include: {
+            establishment: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  } catch (error) {
+    console.error('Error fetching findings:', error);
+    throw new Error('No se pudieron obtener los desvíos');
+  }
+}
+
+export async function updateFindingStatus(id: string, status: string, actionPlan?: string) {
+  try {
+    const data: any = { status };
+    if (actionPlan) data.actionPlan = actionPlan;
+    if (status === 'CERRADO') data.resolutionDate = new Date();
+    
+    const finding = await prisma.visitFinding.update({
+      where: { id },
+      data,
+      include: {
+        visit: true
+      }
+    });
+    
+    if (finding.companyId) {
+      revalidatePath(`/portal/empresas/${finding.companyId}/visitas`);
+    }
+    return finding;
+  } catch (error) {
+    console.error('Error updating finding:', error);
+    throw new Error('Error al actualizar el estado del desvío');
+  }
+}

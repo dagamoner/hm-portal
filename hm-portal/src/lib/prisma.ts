@@ -7,8 +7,8 @@ const connectionString = `${process.env.DATABASE_URL}`
 const pool = new Pool({ connectionString })
 const adapter = new PrismaPg(pool)
 
-const globalForPrisma = globalThis as unknown as { prisma3: PrismaClient }
+const globalForPrisma = globalThis as unknown as { prisma4: PrismaClient }
 
-export const prisma = globalForPrisma.prisma3 || new PrismaClient({ adapter })
+export const prisma = globalForPrisma.prisma4 || new PrismaClient({ adapter })
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma3 = prisma
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma4 = prisma
