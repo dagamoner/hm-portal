@@ -5,12 +5,21 @@ import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth";
 
 export async function getCompanies() {
-  await requireAuth(undefined, ['ADMIN']); // Only ADMIN can view all companies
+  const user = await requireAuth(); 
+  
   try {
-    const companies = await prisma.company.findMany({
-      orderBy: { name: 'asc' }
-    });
-    return companies;
+    if (user.role === 'ADMIN') {
+      const companies = await prisma.company.findMany({
+        orderBy: { name: 'asc' }
+      });
+      return companies;
+    } else {
+      if (!user.companyId) return [];
+      const company = await prisma.company.findUnique({
+        where: { id: user.companyId }
+      });
+      return company ? [company] : [];
+    }
   } catch (error) {
     console.error("Error fetching companies:", error);
     return [];
