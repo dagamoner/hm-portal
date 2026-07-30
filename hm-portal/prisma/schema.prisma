@@ -251,6 +251,7 @@ model Worker {
   
   safetyScore      Int      @default(100)
   permits          PermitToWork[]
+  trainingRecords  TrainingRecord[]
   
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -308,6 +309,11 @@ model Company {
   workers             Worker[]
   permits             PermitToWork[]
   auditLogs           AuditLog[]
+  
+  // New Relations for Training Module
+  trainingPlans       TrainingPlan[]
+  trainings           Training[]
+  trainingRecords     TrainingRecord[]
 }
 
 model CancerigenoEvaluation {
@@ -593,3 +599,63 @@ model ChecklistTemplate {
   updatedAt          DateTime @updatedAt
 }
 
+// ==========================================
+// CAPACITACIONES Y COMPETENCIAS MODULE
+// ==========================================
+
+model TrainingPlan {
+  id          String   @id @default(uuid())
+  year        Int
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  trainings   Training[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([companyId, year])
+}
+
+model Training {
+  id              String   @id @default(uuid())
+  planId          String
+  plan            TrainingPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  title           String
+  description     String?
+  monthIndex      Int      // 1-12
+  type            String   // Operativo, Gerencial, Salud, Ingeniería
+  priority        String   // Obligatoria, Recomendada
+  externalLink    String?  // Google Form URL
+  status          String   @default("Bloqueada") // Bloqueada, Pendiente, En Progreso, Completada
+  
+  records         TrainingRecord[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model TrainingRecord {
+  id              String   @id @default(uuid())
+  trainingId      String
+  training        Training @relation(fields: [trainingId], references: [id], onDelete: Cascade)
+  workerId        String
+  worker          Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  completed       Boolean  @default(false)
+  approved        Boolean?
+  score           Float?
+  certificateId   String?  // Ej: 6B11DO-CE000006
+  completionDate  DateTime?
+  expirationDate  DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([trainingId, workerId])
+}

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { Search, Plus, AlertTriangle, X, Eye, FileText, Calendar, MapPin, Activity, CheckCircle, ShieldAlert } from 'lucide-react';
-import { createIncident, updateIncidentStatus } from '@/app/actions/incidents';
+import { Search, Plus, AlertTriangle, X, Eye, FileText, Calendar, MapPin, Activity, CheckCircle, ShieldAlert, Edit, Trash2 } from 'lucide-react';
+import { createIncident, updateIncidentStatus, updateIncident, deleteIncident } from '@/app/actions/incidents';
 import { useRouter } from 'next/navigation';
 
 export default function IncidentsClient({
@@ -16,6 +16,7 @@ export default function IncidentsClient({
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedIncident, setSelectedIncident] = useState<any | null>(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     
     // New Incident State
     const [title, setTitle] = useState('');
@@ -96,6 +97,59 @@ export default function IncidentsClient({
         }
     };
 
+    const handleUpdate = async () => {
+        if (!title || !location || !description || !dateStr || !selectedIncident) return;
+        setIsSaving(true);
+        try {
+            const dateObj = new Date(dateStr);
+            const details = { incidentType, bodyPart, machinery, witnesses };
+
+            await updateIncident(selectedIncident.id, companyId, { 
+                title, location, description, severity, date: dateObj, details
+            });
+            setIsEditing(false);
+            setSelectedIncident({...selectedIncident, title, location, description, severity, date: dateObj, details});
+            router.refresh();
+        } catch (error) {
+            alert('Error al actualizar el incidente');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!selectedIncident) return;
+        if (!confirm('¿Está seguro de eliminar este incidente? Esta acción no se puede deshacer.')) return;
+        
+        try {
+            await deleteIncident(selectedIncident.id, companyId);
+            setSelectedIncident(null);
+            setIsEditing(false);
+            router.refresh();
+        } catch (error) {
+            alert('Error al eliminar el incidente');
+        }
+    };
+
+    const startEdit = () => {
+        if(!selectedIncident) return;
+        setTitle(selectedIncident.title);
+        // format date for datetime-local: YYYY-MM-DDThh:mm
+        const d = new Date(selectedIncident.date);
+        const tzOffset = d.getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(d.getTime() - tzOffset)).toISOString().slice(0, 16);
+        setDateStr(localISOTime);
+        setLocation(selectedIncident.location);
+        setDescription(selectedIncident.description);
+        setSeverity(selectedIncident.severity);
+        setIncidentType(selectedIncident.details?.incidentType || '');
+        setBodyPart(selectedIncident.details?.bodyPart || '');
+        setMachinery(selectedIncident.details?.machinery || '');
+        setWitnesses(selectedIncident.details?.witnesses || '');
+        setIsEditing(true);
+        setIsCreating(false);
+    };
+
     const handleStatusChange = async (id: string, newStatus: string) => {
         try {
             await updateIncidentStatus(id, companyId, newStatus);
@@ -140,7 +194,12 @@ export default function IncidentsClient({
                     <p className="text-slate-500 font-medium mt-1">Gestiona y analiza incidentes laborales con IA.</p>
                 </div>
                 <button 
-                    onClick={() => { setIsCreating(true); setSelectedIncident(null); }}
+                    onClick={() => { 
+                        setIsCreating(true); 
+                        setIsEditing(false);
+                        setSelectedIncident(null); 
+                        setTitle(''); setDateStr(''); setLocation(''); setDescription(''); setSeverity('LOW'); setIncidentType(''); setBodyPart(''); setMachinery(''); setWitnesses('');
+                    }}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold tracking-widest uppercase text-xs flex items-center gap-2 shadow-xl shadow-blue-600/20 transition-all active:scale-95"
                 >
                     <Plus className="w-4 h-4" /> Nuevo Reporte
@@ -171,7 +230,7 @@ export default function IncidentsClient({
                         filteredIncidents.map((inc) => (
                             <div 
                                 key={inc.id}
-                                onClick={() => { setSelectedIncident(inc); setIsCreating(false); }}
+                                onClick={() => { setSelectedIncident(inc); setIsCreating(false); setIsEditing(false); }}
                                 className={`p-5 rounded-2xl border cursor-pointer transition-all ${selectedIncident?.id === inc.id ? 'bg-blue-50 border-blue-200 shadow-md shadow-blue-500/10' : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'}`}
                             >
                                 <div className="flex justify-between items-start mb-3">
@@ -199,14 +258,14 @@ export default function IncidentsClient({
 
                 {/* Columna Derecha: Detalles o Formulario */}
                 <div className="w-full lg:w-2/3 bg-white border border-slate-200 rounded-[2rem] shadow-sm flex flex-col overflow-hidden h-full">
-                    {isCreating ? (
+                    {isCreating || isEditing ? (
                         <div className="p-8 flex flex-col h-full overflow-y-auto custom-scrollbar">
                             <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-100">
                                 <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                                    <Plus className="w-6 h-6 text-blue-600" />
-                                    Nuevo Reporte de Incidente
+                                    {isEditing ? <Edit className="w-6 h-6 text-blue-600" /> : <Plus className="w-6 h-6 text-blue-600" />}
+                                    {isEditing ? 'Editar Incidente' : 'Nuevo Reporte de Incidente'}
                                 </h3>
-                                <button onClick={() => setIsCreating(false)} className="p-2 hover:bg-slate-50 rounded-full text-slate-400">
+                                <button onClick={() => { setIsCreating(false); setIsEditing(false); }} className="p-2 hover:bg-slate-50 rounded-full text-slate-400">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
@@ -317,13 +376,21 @@ export default function IncidentsClient({
                                 </div>
                             </div>
                             
-                            <div className="pt-6 border-t border-slate-100 mt-auto flex justify-end">
+                            <div className="pt-6 border-t border-slate-100 mt-auto flex justify-end gap-3">
+                                {isEditing && (
+                                    <button 
+                                        onClick={() => setIsEditing(false)}
+                                        className="text-slate-500 font-bold px-6 py-4 rounded-2xl hover:bg-slate-50 transition-colors uppercase text-xs tracking-widest"
+                                    >
+                                        Cancelar
+                                    </button>
+                                )}
                                 <button 
-                                    onClick={handleCreate}
+                                    onClick={isEditing ? handleUpdate : handleCreate}
                                     disabled={isSaving || !title || !location || !description || !dateStr}
                                     className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black tracking-widest uppercase text-xs flex items-center gap-2 shadow-xl shadow-blue-600/20 transition-all active:scale-95 disabled:opacity-50"
                                 >
-                                    {isSaving ? 'Guardando...' : 'Registrar Incidente'}
+                                    {isSaving ? 'Guardando...' : (isEditing ? 'Actualizar Incidente' : 'Registrar Incidente')}
                                 </button>
                             </div>
                         </div>
@@ -376,6 +443,12 @@ export default function IncidentsClient({
                                                 Reabrir Incidente
                                             </button>
                                         )}
+                                        <button onClick={startEdit} className="text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg transition-colors border border-blue-200 flex items-center gap-1">
+                                            <Edit className="w-3.5 h-3.5" /> Editar
+                                        </button>
+                                        <button onClick={handleDelete} className="text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-lg transition-colors border border-rose-200 flex items-center gap-1">
+                                            <Trash2 className="w-3.5 h-3.5" /> Eliminar
+                                        </button>
                                     </div>
                                 </div>
                             </div>

@@ -58,3 +58,44 @@ export async function updateIncidentStatus(id: string, companyId: string, status
         throw new Error("Failed to update incident status");
     }
 }
+
+export async function updateIncident(id: string, companyId: string, data: {
+    title: string,
+    location: string,
+    description: string,
+    severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL',
+    date: Date,
+    details: any
+}) {
+    try {
+        const incident = await prisma.incident.update({
+            where: { id },
+            data: {
+                title: data.title,
+                location: data.location,
+                description: data.description,
+                severity: data.severity,
+                date: data.date,
+                details: data.details || {}
+            }
+        });
+        revalidatePath(`/portal/empresas/${companyId}/incidentes`);
+        return incident;
+    } catch (error) {
+        console.error("Error updating incident:", error);
+        throw new Error("Failed to update incident");
+    }
+}
+
+export async function deleteIncident(id: string, companyId: string) {
+    try {
+        await prisma.incident.delete({
+            where: { id }
+        });
+        revalidatePath(`/portal/empresas/${companyId}/incidentes`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error deleting incident:", error);
+        throw new Error("Failed to delete incident");
+    }
+}
