@@ -8,7 +8,7 @@ export async function getCompanies() {
   const user = await requireAuth(); 
   
   try {
-    if (user.role === 'ADMIN') {
+    if (['ADMIN', 'MANAGER', 'INSPECTOR'].includes(user.role)) {
       const companies = await prisma.company.findMany({
         orderBy: { name: 'asc' }
       });

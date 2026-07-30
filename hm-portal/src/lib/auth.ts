@@ -66,8 +66,8 @@ export async function requireAuth(companyId?: string, allowedRoles?: string[]) {
   }
 
   // IDOR / Company validation
-  // ADMIN has universal access
-  if (user.role !== 'ADMIN') {
+  // Internal roles (ADMIN, MANAGER, INSPECTOR) have universal access
+  if (!['ADMIN', 'MANAGER', 'INSPECTOR'].includes(user.role)) {
     if (companyId && user.companyId !== companyId) {
       throw new Error("Acceso denegado. No perteneces a esta empresa.");
     }
