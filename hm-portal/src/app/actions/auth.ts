@@ -24,10 +24,41 @@ export async function login(formData: FormData) {
       return { error: "Credenciales inválidas" };
     }
 
+    // A. Verificar si la cuenta está bloqueada
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      return { error: "Tu cuenta ha sido bloqueada temporalmente por demasiados intentos fallidos. Intenta de nuevo en 24 horas." };
+    }
+
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       await new Promise(r => setTimeout(r, 1500)); // Anti-bruteforce delay
-      return { error: "Credenciales inválidas" };
+      
+      // B. Incrementar intentos fallidos
+      const newFailedLogins = (user.failedLogins || 0) + 1;
+      let lockedUntil = null;
+      
+      if (newFailedLogins >= 5) {
+        lockedUntil = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      }
+      
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { failedLogins: newFailedLogins, lockedUntil }
+      });
+      
+      if (lockedUntil) {
+        return { error: "Demasiados intentos fallidos. Tu cuenta ha sido bloqueada por 24 horas." };
+      }
+      
+      return { error: `Credenciales inválidas. Te quedan ${5 - newFailedLogins} intento(s).` };
+    }
+
+    // C. Resetear intentos si el login es exitoso
+    if (user.failedLogins > 0 || user.lockedUntil) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { failedLogins: 0, lockedUntil: null }
+      });
     }
 
     // Create session

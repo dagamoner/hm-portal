@@ -35,6 +35,10 @@ model User {
   
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id])
+  
+  // Security fields for brute-force mitigation
+  failedLogins Int       @default(0)
+  lockedUntil  DateTime?
 }
 
 // ==========================================
