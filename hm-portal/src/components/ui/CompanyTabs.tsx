@@ -6,10 +6,11 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { 
     LayoutDashboard, FileText, Activity, Accessibility, Bug, AlertTriangle, 
     Search, ShieldAlert, Calendar, Truck, Server, Users, ClipboardCheck, 
-    History, GraduationCap, TableProperties
+    History, GraduationCap, TableProperties, Siren
 } from "lucide-react";
 
 export const MODULES = [
+    { name: "Emergencias", path: "/emergencias", icon: Siren },
     { name: "Documentación", path: "/documentacion", icon: FileText },
     { name: "Mediciones y Prot.", path: "/mediciones", icon: Activity },
     { name: "Ergonomía", path: "/ergonomia", icon: Accessibility },

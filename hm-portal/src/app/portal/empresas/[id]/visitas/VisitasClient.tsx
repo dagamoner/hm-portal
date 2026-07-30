@@ -6,22 +6,26 @@ import VisitaWizard from './VisitaWizard';
 import DashboardCards from './components/DashboardCards';
 import FindingsList from './components/FindingsList';
 import VisitsList from './components/VisitsList';
+import PlantillasClient from './components/PlantillasClient';
 import { useAuth } from '@/components/providers/AuthProvider';
 
 export default function VisitasClient({ 
   company, 
   establishments,
   initialVisits,
-  initialFindings
+  initialFindings,
+  initialTemplates = []
 }: { 
   company: any;
   establishments: any[];
   initialVisits: any[];
   initialFindings: any[];
+  initialTemplates?: any[];
 }) {
   const { canEdit, isClient } = useAuth();
   const [activeTab, setActiveTab] = useState<'visitas' | 'desvios'>('visitas');
   const [isCreating, setIsCreating] = useState(false);
+  const [isManagingTemplates, setIsManagingTemplates] = useState(false);
   const [visits, setVisits] = useState(initialVisits);
   const [findings, setFindings] = useState(initialFindings);
 
@@ -70,6 +74,16 @@ export default function VisitasClient({
     );
   }
 
+  if (isManagingTemplates) {
+    return (
+      <PlantillasClient 
+        companyId={company.id} 
+        initialTemplates={initialTemplates} 
+        onBack={() => setIsManagingTemplates(false)} 
+      />
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Header */}
@@ -85,7 +99,7 @@ export default function VisitasClient({
           <div className="flex items-center gap-3">
             <button 
               className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm transition-all"
-              onClick={() => alert("Configuración de plantillas en desarrollo")}
+              onClick={() => setIsManagingTemplates(true)}
             >
               <Settings className="w-4 h-4" /> Plantillas
             </button>

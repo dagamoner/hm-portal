@@ -260,6 +260,7 @@ model Worker {
   safetyScore      Int      @default(100)
   permits          PermitToWork[]
   trainingRecords  TrainingRecord[]
+  brigadeMembers   BrigadeMember[]
   
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -322,6 +323,12 @@ model Company {
   trainingPlans       TrainingPlan[]
   trainings           Training[]
   trainingRecords     TrainingRecord[]
+  
+  // New Relations for Emergency Module
+  emergencyPlans      EmergencyPlan[]
+  emergencyDrills     EmergencyDrill[]
+  brigadeMembers      BrigadeMember[]
+  emergencyEquipments EmergencyEquipment[]
 }
 
 model CancerigenoEvaluation {
@@ -666,4 +673,93 @@ model TrainingRecord {
   updatedAt       DateTime @updatedAt
   
   @@unique([trainingId, workerId])
+}
+
+// ==========================================
+// EMERGENCIAS Y SIMULACROS MODULE
+// ==========================================
+
+model EmergencyPlan {
+  id              String   @id @default(uuid())
+  title           String
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  establishmentId String?
+  
+  // JSON fields for structured data
+  riskScenarios   Json     @default("[]") // Matriz de Escenarios de Riesgo
+  evacuationRoutes Json     @default("[]") // Planos y rutas de escape
+  protocols       Json     @default("[]") // Protocolos Operativos Normalizados (PON)
+  
+  lastUpdated     DateTime @default(now())
+  status          String   @default("Vigente") // Vigente, En Revisión, Obsoleto
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model EmergencyDrill {
+  id              String   @id @default(uuid())
+  title           String
+  type            String   // Parcial, General, Gabinete, Campo
+  date            DateTime
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  // Tiempos y métricas
+  targetTimeStr   String?
+  actualTimeStr   String?
+  evacuatedCount  Int?
+  expectedCount   Int?
+  
+  // Hallazgos y reportes
+  findings        Json     @default("[]") // Checklist de observaciones
+  observations    String?
+  status          String   @default("Programado") // Programado, Realizado, Cancelado
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model BrigadeMember {
+  id              String   @id @default(uuid())
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  workerId        String
+  worker          Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  
+  role            String   // Líder, Jefe Evacuación, Primeros Auxilios, Extinción, etc.
+  shift           String?
+  area            String?
+  
+  medicalAptitudeDate DateTime?
+  medicalAptitudeStatus String? // Apto, Vencido, Restringido
+  
+  competenceMatrix Json     @default("[]") // Habilidades validadas/vencidas
+  
+  status          String   @default("Activo") // Activo, Inactivo
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([workerId, companyId])
+}
+
+model EmergencyEquipment {
+  id              String   @id @default(uuid())
+  name            String
+  type            String   // Extintor, Red de Incendio, Botiquín, DEA, etc.
+  location        String
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  status          String   @default("Operativo") // Operativo, En Mantenimiento, Vencido
+  lastInspection  DateTime?
+  nextInspection  DateTime?
+  expirationDate  DateTime? // Caducidad del agente extintor, insumos, etc.
+  
+  details         Json     @default("{}") // Capacidad, agente, pruebas hidráulicas
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
