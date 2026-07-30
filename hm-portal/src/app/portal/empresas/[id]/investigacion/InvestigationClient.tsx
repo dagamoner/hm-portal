@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, Cpu, Download, Save, CheckCircle, Activity, FileText } from 'lucide-react';
 import { startOrUpdateInvestigation } from '@/app/actions/investigations';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/components/providers/AuthProvider';
 import IshikawaWizard from './IshikawaWizard';
 import ArbolCausasWizard from './ArbolCausasWizard';
 import RcaWizard from './RcaWizard';
@@ -39,6 +40,7 @@ export default function InvestigationClient({
     company?: any
 }) {
     const router = useRouter();
+    const { isClient } = useAuth();
     const searchParams = useSearchParams();
     
     // Tabs superior
@@ -97,6 +99,7 @@ export default function InvestigationClient({
     const activeIncident = incidents.find(i => i.id === selectedIncidentId);
     const activeInvestigation = investigations.find(i => i.incidentId === selectedIncidentId);
     const isCompleted = activeInvestigation?.status === 'Completada';
+    const isReadOnly = isCompleted || isClient;
 
     // Para 5 Porqués (Legacy handler)
     const handleSaveLegacy = async (complete: boolean = false) => {
@@ -568,7 +571,7 @@ export default function InvestigationClient({
                                 <IshikawaWizard
                                   incident={activeIncident}
                                   initialData={analysisData}
-                                  isCompleted={isCompleted}
+                                  isCompleted={isReadOnly}
                                   isSaving={isSaving}
                                   onSave={handleSaveAdvanced}
                                 />
@@ -576,7 +579,7 @@ export default function InvestigationClient({
                                 <ArbolCausasWizard
                                   incident={activeIncident}
                                   initialData={analysisData}
-                                  isCompleted={isCompleted}
+                                  isCompleted={isReadOnly}
                                   isSaving={isSaving}
                                   onSave={handleSaveAdvanced}
                                 />
@@ -584,7 +587,7 @@ export default function InvestigationClient({
                                 <RcaWizard
                                   incident={activeIncident}
                                   initialData={analysisData}
-                                  isCompleted={isCompleted}
+                                  isCompleted={isReadOnly}
                                   isSaving={isSaving}
                                   onSave={handleSaveAdvanced}
                                 />
@@ -592,7 +595,7 @@ export default function InvestigationClient({
                                 <ScatWizard
                                   incident={activeIncident}
                                   initialData={analysisData}
-                                  isCompleted={isCompleted}
+                                  isCompleted={isReadOnly}
                                   isSaving={isSaving}
                                   onSave={handleSaveAdvanced}
                                 />
@@ -600,7 +603,7 @@ export default function InvestigationClient({
                                 <TripodWizard
                                   incident={activeIncident}
                                   initialData={analysisData}
-                                  isCompleted={isCompleted}
+                                  isCompleted={isReadOnly}
                                   isSaving={isSaving}
                                   onSave={handleSaveAdvanced}
                                 />
@@ -608,7 +611,7 @@ export default function InvestigationClient({
                                 <HeinrichWizard
                                   incident={activeIncident}
                                   initialData={analysisData}
-                                  isCompleted={isCompleted}
+                                  isCompleted={isReadOnly}
                                   isSaving={isSaving}
                                   onSave={handleSaveAdvanced}
                                 />
@@ -616,7 +619,7 @@ export default function InvestigationClient({
                                 <AmfeWizard
                                   incident={activeIncident}
                                   initialData={analysisData}
-                                  isCompleted={isCompleted}
+                                  isCompleted={isReadOnly}
                                   isSaving={isSaving}
                                   onSave={handleSaveAdvanced}
                                 />
@@ -624,7 +627,7 @@ export default function InvestigationClient({
                                 <EstadisticoWizard
                                   incident={activeIncident}
                                   initialData={analysisData}
-                                  isCompleted={isCompleted}
+                                  isCompleted={isReadOnly}
                                   isSaving={isSaving}
                                   onSave={handleSaveAdvanced}
                                 />
@@ -666,7 +669,7 @@ export default function InvestigationClient({
                                             <div className="bg-green-50 text-green-700 px-6 py-3 rounded-xl font-bold flex items-center gap-2 w-full justify-center">
                                                 <CheckCircle className="w-5 h-5" /> Investigación Completada
                                             </div>
-                                        ) : (
+                                        ) : !isClient ? (
                                             <>
                                                 <button 
                                                     onClick={() => handleSaveLegacy(false)}
@@ -687,7 +690,7 @@ export default function InvestigationClient({
                                                     <CheckCircle className="w-4 h-4" /> Completar Investigación
                                                 </button>
                                             </>
-                                        )}
+                                        ) : null}
                                     </div>
                                 </div>
                             ) : (

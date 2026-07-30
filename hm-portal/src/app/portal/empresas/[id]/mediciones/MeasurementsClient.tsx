@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { generateMeasurementReportPDF } from '@/lib/pdfGenerator';
 import { createMeasurement, deleteMeasurement } from '@/app/actions/measurements';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 export type MeasurementRecord = {
     id: string;
@@ -30,6 +31,7 @@ export default function MeasurementsClient({
     companyId: string,
     companyName: string
 }) {
+    const { isClient } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -127,12 +129,14 @@ export default function MeasurementsClient({
                     </h2>
                     <p className="text-slate-500 font-medium mt-1">Gestión de protocolos oficiales 84/12, 85/12 y 900/15.</p>
                 </div>
-                <button 
-                    onClick={() => setIsModalOpen(true)}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl font-black tracking-widest uppercase text-xs flex items-center gap-3 shadow-2xl transition-all active:scale-95"
-                >
-                    <Plus className="w-4 h-4" /> Nuevo Protocolo Oficial
-                </button>
+                {!isClient && (
+                    <button 
+                        onClick={() => setIsModalOpen(true)}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl font-black tracking-widest uppercase text-xs flex items-center gap-3 shadow-2xl transition-all active:scale-95"
+                    >
+                        <Plus className="w-4 h-4" /> Nuevo Protocolo Oficial
+                    </button>
+                )}
             </div>
 
             <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">

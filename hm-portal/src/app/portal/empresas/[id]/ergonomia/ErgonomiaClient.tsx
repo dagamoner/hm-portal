@@ -7,6 +7,7 @@ import {
 import { createErgonomicEvaluation } from '@/app/actions/ergonomics';
 import { riskFactors, factorQuestions } from './ergonomicsData';
 import { generateErgonomicsReportPDF } from '@/lib/pdfGenerator';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 export default function ErgonomiaClient({ 
     evaluations, 
@@ -17,6 +18,7 @@ export default function ErgonomiaClient({
     companyId: string,
     companyName: string
 }) {
+    const { isClient } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [isWizardOpen, setIsWizardOpen] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
@@ -123,12 +125,14 @@ export default function ErgonomiaClient({
                         Gestión del Programa PEI bajo Res. SRT 886/2015 para {companyName}.
                     </p>
                 </div>
-                <button 
-                    onClick={() => setIsWizardOpen(true)}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-2xl font-black tracking-widest uppercase text-xs flex items-center gap-3 shadow-xl shadow-emerald-600/20 transition-all active:scale-95"
-                >
-                    <Plus className="w-4 h-4" /> INICIAR EVALUACIÓN PEI
-                </button>
+                {!isClient && (
+                    <button 
+                        onClick={() => setIsWizardOpen(true)}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-2xl font-black tracking-widest uppercase text-xs flex items-center gap-3 shadow-xl shadow-emerald-600/20 transition-all active:scale-95"
+                    >
+                        <Plus className="w-4 h-4" /> INICIAR EVALUACIÓN PEI
+                    </button>
+                )}
             </div>
 
             <div className="flex flex-col lg:flex-row gap-8 items-start">

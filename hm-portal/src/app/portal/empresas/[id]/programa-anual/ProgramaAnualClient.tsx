@@ -7,6 +7,7 @@ import autoTable from "jspdf-autotable";
 import { TrainingTopic } from "@/app/actions/programa-anual";
 import { createDocument } from "@/app/actions/documents";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 interface Props {
   companyId: string;
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export default function ProgramaAnualClient({ companyId, companyName, topics }: Props) {
+  const { isClient } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
@@ -195,19 +197,21 @@ export default function ProgramaAnualClient({ companyId, companyName, topics }: 
           </h2>
           <p className="text-slate-500 mt-1">Generación automática del plan basado en los riesgos inherentes de la empresa.</p>
         </div>
-        <button 
-          onClick={generateAndUploadPDF}
-          disabled={isGenerating || success}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all shadow-md ${success ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200'}`}
-        >
-          {isGenerating ? (
-            <><Loader2 className="w-5 h-5 animate-spin" /> Generando...</>
-          ) : success ? (
-            <><CheckCircle className="w-5 h-5" /> ¡Guardado en Documentación!</>
-          ) : (
-            <><Download className="w-5 h-5" /> Generar y Descargar PDF</>
-          )}
-        </button>
+        {!isClient && (
+          <button 
+            onClick={generateAndUploadPDF}
+            disabled={isGenerating || success}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all shadow-md ${success ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200'}`}
+          >
+            {isGenerating ? (
+              <><Loader2 className="w-5 h-5 animate-spin" /> Generando...</>
+            ) : success ? (
+              <><CheckCircle className="w-5 h-5" /> ¡Guardado en Documentación!</>
+            ) : (
+              <><Download className="w-5 h-5" /> Generar y Descargar PDF</>
+            )}
+          </button>
+        )}
       </div>
 
       <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6">

@@ -52,15 +52,13 @@ export default function PersonalClient({ companyId, initialWorkers }: { companyI
             className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
           />
         </div>
-        {!isClient && (
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center space-x-2 w-full md:w-auto justify-center"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Generar Perfiles Operativos</span>
-          </button>
-        )}
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center space-x-2 w-full md:w-auto justify-center"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Generar Perfiles Operativos</span>
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

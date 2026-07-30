@@ -8,6 +8,7 @@ import { ESOP_AGENTS } from '@/lib/esopData';
 import { createCancerigenoEvaluation } from '@/app/actions/cancerigenos';
 import { useRouter } from 'next/navigation';
 import { generateCancerigenosReportPDF } from '@/lib/pdfGenerator';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 export default function CancerigenosClient({ 
     presentaciones, 
@@ -18,6 +19,7 @@ export default function CancerigenosClient({
     companyId: string,
     companyName: string
 }) {
+    const { isClient } = useAuth();
     const router = useRouter();
     const [isCreating, setIsCreating] = useState(false);
     const [step, setStep] = useState(1);
@@ -77,12 +79,14 @@ export default function CancerigenosClient({
                             Vigilancia de Agentes Críticos - Res. SRT 81/2019.
                         </p>
                     </div>
-                    <button 
-                        onClick={() => setIsCreating(true)}
-                        className="bg-rose-600 hover:bg-rose-700 text-white px-8 py-4 rounded-2xl font-black tracking-widest uppercase text-xs flex items-center gap-3 shadow-xl shadow-rose-600/20 transition-all active:scale-95"
-                    >
-                        <Plus className="w-4 h-4" /> NUEVA PRESENTACIÓN ANUAL
-                    </button>
+                    {!isClient && (
+                        <button 
+                            onClick={() => setIsCreating(true)}
+                            className="bg-rose-600 hover:bg-rose-700 text-white px-8 py-4 rounded-2xl font-black tracking-widest uppercase text-xs flex items-center gap-3 shadow-xl shadow-rose-600/20 transition-all active:scale-95"
+                        >
+                            <Plus className="w-4 h-4" /> NUEVA PRESENTACIÓN ANUAL
+                        </button>
+                    )}
                 </div>
                 <div className="flex flex-col lg:flex-row gap-8 items-start">
                     <div className="w-full lg:w-80 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-6 flex-shrink-0">
@@ -127,12 +131,14 @@ export default function CancerigenosClient({
                             Vigilancia de Agentes Críticos - Res. SRT 81/2019.
                         </p>
                     </div>
-                    <button 
-                        onClick={() => setIsCreating(true)}
-                        className="bg-rose-600 hover:bg-rose-700 text-white px-8 py-4 rounded-2xl font-black tracking-widest uppercase text-xs flex items-center gap-3 shadow-xl shadow-rose-600/20 transition-all active:scale-95"
-                    >
-                        <Plus className="w-4 h-4" /> NUEVA PRESENTACIÓN ANUAL
-                    </button>
+                    {!isClient && (
+                        <button 
+                            onClick={() => setIsCreating(true)}
+                            className="bg-rose-600 hover:bg-rose-700 text-white px-8 py-4 rounded-2xl font-black tracking-widest uppercase text-xs flex items-center gap-3 shadow-xl shadow-rose-600/20 transition-all active:scale-95"
+                        >
+                            <Plus className="w-4 h-4" /> NUEVA PRESENTACIÓN ANUAL
+                        </button>
+                    )}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {presentaciones.map((p: any) => (
