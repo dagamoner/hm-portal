@@ -27,6 +27,8 @@ export async function createUser(formData: FormData) {
     const name = formData.get("name") as string;
     const role = formData.get("role") as 'ADMIN' | 'MANAGER' | 'INSPECTOR' | 'CLIENT';
     const companyId = formData.get("companyId") as string;
+    const dni = formData.get("dni") as string;
+    const phone = formData.get("phone") as string;
 
     const existingUser = await prisma.user.findUnique({ where: { username } });
     if (existingUser) {
@@ -42,6 +44,8 @@ export async function createUser(formData: FormData) {
         name,
         role: role || 'CLIENT',
         companyId: companyId || null,
+        dni: dni || null,
+        phone: phone || null,
       }
     });
     
@@ -68,6 +72,63 @@ export async function deleteUser(id: string) {
   } catch (error) {
     console.error("Error deleting user:", error);
     return { error: "Ocurrió un error al eliminar el usuario." };
+  }
+}
+
+export async function updateUser(id: string, formData: FormData) {
+  await requireAuth(undefined, ['ADMIN']);
+  try {
+    const name = formData.get("name") as string;
+    const role = formData.get("role") as 'ADMIN' | 'MANAGER' | 'INSPECTOR' | 'CLIENT';
+    const companyId = formData.get("companyId") as string;
+    const dni = formData.get("dni") as string;
+    const phone = formData.get("phone") as string;
+
+    // Default main admin can't have its role changed
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (user?.username === 'admin' && role !== 'ADMIN') {
+      return { error: "No se puede cambiar el rol del administrador principal." };
+    }
+
+    await prisma.user.update({
+      where: { id },
+      data: {
+        name,
+        role,
+        companyId: companyId || null,
+        dni: dni || null,
+        phone: phone || null,
+      }
+    });
+    
+    revalidatePath("/portal/usuarios");
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return { error: "Ocurrió un error al actualizar el usuario." };
+  }
+}
+
+export async function resetUserPassword(id: string, newPassword?: string) {
+  await requireAuth(undefined, ['ADMIN']);
+  try {
+    // If not provided, generate a random 8 char password
+    const passwordToSet = newPassword || Math.random().toString(36).slice(-8);
+    const hashedPassword = await bcrypt.hash(passwordToSet, 10);
+
+    await prisma.user.update({
+      where: { id },
+      data: {
+        password: hashedPassword,
+        failedLogins: 0,
+        lockedUntil: null
+      }
+    });
+
+    return { success: true, newPassword: passwordToSet };
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    return { error: "Ocurrió un error al restablecer la contraseña." };
   }
 }
 

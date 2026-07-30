@@ -1,30 +1,54 @@
 "use client";
 
 import React, { useState, useTransition } from 'react';
-import { Users, Plus, Search, CheckCircle2, Trash2, Key, User, Building2, Building, ShieldAlert } from 'lucide-react';
-import { createUser, deleteUser } from '@/app/actions/users';
+import { Users, Plus, Search, CheckCircle2, Trash2, Key, User, Building2, Building, ShieldAlert, Edit2, Phone, CreditCard, RefreshCw } from 'lucide-react';
+import { createUser, deleteUser, updateUser, resetUserPassword } from '@/app/actions/users';
 
 // @ts-ignore
 export default function UsersClient({ initialUsers, companies }) {
     const [users, setUsers] = useState(initialUsers);
     const [searchTerm, setSearchTerm] = useState('');
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    
+    // Modals state
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState<any | null>(null);
+    const [userToReset, setUserToReset] = useState<any | null>(null);
+    const [resetSuccessData, setResetSuccessData] = useState<{username: string, newPassword: string} | null>(null);
+
     const [error, setError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
 
     const [formData, setFormData] = useState({
-        username: '', password: '', name: '', role: 'CLIENT', companyId: ''
+        id: '', username: '', password: '', name: '', role: 'CLIENT', companyId: '', dni: '', phone: ''
     });
 
-    const handleSave = async (e: React.FormEvent) => {
+    const openCreate = () => {
+        setFormData({ id: '', username: '', password: '', name: '', role: 'CLIENT', companyId: '', dni: '', phone: '' });
+        setError(null);
+        setIsCreateModalOpen(true);
+    };
+
+    const openEdit = (u: any) => {
+        setFormData({
+            id: u.id,
+            username: u.username,
+            password: '', // Edit doesn't change password directly here
+            name: u.name,
+            role: u.role,
+            companyId: u.companyId || '',
+            dni: u.dni || '',
+            phone: u.phone || ''
+        });
+        setError(null);
+        setIsEditModalOpen(true);
+    };
+
+    const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
-        
         const data = new FormData();
-        Object.entries(formData).forEach(([key, value]) => {
-            data.append(key, value);
-        });
+        Object.entries(formData).forEach(([key, value]) => data.append(key, value));
 
         startTransition(async () => {
             const res = await createUser(data);
@@ -32,6 +56,22 @@ export default function UsersClient({ initialUsers, companies }) {
                 window.location.reload(); 
             } else {
                 setError(res.error || 'Error al crear usuario');
+            }
+        });
+    };
+
+    const handleEdit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+        const data = new FormData();
+        Object.entries(formData).forEach(([key, value]) => data.append(key, value));
+
+        startTransition(async () => {
+            const res = await updateUser(formData.id, data);
+            if (res.success) {
+                window.location.reload(); 
+            } else {
+                setError(res.error || 'Error al actualizar usuario');
             }
         });
     };
@@ -46,6 +86,20 @@ export default function UsersClient({ initialUsers, companies }) {
                 alert(res.error);
             }
             setUserToDelete(null);
+        });
+    };
+
+    const confirmReset = () => {
+        if (!userToReset) return;
+        startTransition(async () => {
+            const res = await resetUserPassword(userToReset.id);
+            if (res.success) {
+                setResetSuccessData({ username: userToReset.username, newPassword: res.newPassword! });
+                setUserToReset(null);
+            } else {
+                alert(res.error);
+                setUserToReset(null);
+            }
         });
     };
 
@@ -76,7 +130,7 @@ export default function UsersClient({ initialUsers, companies }) {
                     <p className="text-slate-500 mt-1">Genera y administra credenciales de acceso para tu equipo y clientes.</p>
                 </div>
                 <button 
-                    onClick={() => { setFormData({ username: '', password: '', name: '', role: 'CLIENT', companyId: '' }); setIsModalOpen(true); setError(null); }}
+                    onClick={openCreate}
                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all active:scale-95"
                 >
                     <Plus className="w-5 h-5" /> Nuevo Usuario
@@ -106,7 +160,8 @@ export default function UsersClient({ initialUsers, companies }) {
                         <thead className="text-slate-500 uppercase text-[10px] font-black tracking-widest border-b border-slate-200">
                             <tr>
                                 <th className="px-6 py-5">Usuario</th>
-                                <th className="px-6 py-5">Rol</th>
+                                <th className="px-6 py-5">Rol / Creación</th>
+                                <th className="px-6 py-5">Contacto</th>
                                 <th className="px-6 py-5">Empresa Asignada</th>
                                 <th className="px-6 py-5 text-right">Acciones</th>
                             </tr>
@@ -126,7 +181,17 @@ export default function UsersClient({ initialUsers, companies }) {
                                         </div>
                                     </td>
                                     <td className="px-6 py-5">
-                                        {getRoleBadge(user.role)}
+                                        <div className="flex flex-col gap-2 items-start">
+                                            {getRoleBadge(user.role)}
+                                            <span className="text-xs text-slate-500">{new Date(user.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-5">
+                                        <div className="flex flex-col gap-1 text-xs text-slate-600">
+                                            {user.dni ? <div className="flex items-center gap-1"><CreditCard className="w-3 h-3 text-slate-400"/> {user.dni}</div> : null}
+                                            {user.phone ? <div className="flex items-center gap-1"><Phone className="w-3 h-3 text-slate-400"/> {user.phone}</div> : null}
+                                            {!user.dni && !user.phone && <span className="text-slate-400 italic">Sin datos</span>}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-5">
                                         {user.company ? (
@@ -139,15 +204,31 @@ export default function UsersClient({ initialUsers, companies }) {
                                         )}
                                     </td>
                                     <td className="px-6 py-5 text-right">
-                                        {user.username !== 'admin' && (
+                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button 
-                                                onClick={() => setUserToDelete(user)}
-                                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all bg-white shadow-sm border border-slate-100 opacity-0 group-hover:opacity-100"
-                                                title="Eliminar"
+                                                onClick={() => openEdit(user)}
+                                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all bg-white shadow-sm border border-slate-100"
+                                                title="Editar Usuario"
                                             >
-                                                <Trash2 className="w-4 h-4" />
+                                                <Edit2 className="w-4 h-4" />
                                             </button>
-                                        )}
+                                            <button 
+                                                onClick={() => setUserToReset(user)}
+                                                className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all bg-white shadow-sm border border-slate-100"
+                                                title="Restablecer Contraseña"
+                                            >
+                                                <RefreshCw className="w-4 h-4" />
+                                            </button>
+                                            {user.username !== 'admin' && (
+                                                <button 
+                                                    onClick={() => setUserToDelete(user)}
+                                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all bg-white shadow-sm border border-slate-100"
+                                                    title="Eliminar"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -156,48 +237,69 @@ export default function UsersClient({ initialUsers, companies }) {
                 </div>
             </div>
 
-            {/* Modal de Alta */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-                    <div className="relative bg-white/90 backdrop-blur-2xl border border-white rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
-                        <div className="p-8 border-b border-slate-100">
-                            <h3 className="text-2xl font-black text-slate-800">Generador de Usuarios</h3>
-                            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Crea nuevas credenciales de acceso</p>
+            {/* Modal de Alta / Edición */}
+            {(isCreateModalOpen || isEditModalOpen) && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm min-h-[100vh]" onClick={() => isCreateModalOpen ? setIsCreateModalOpen(false) : setIsEditModalOpen(false)}></div>
+                    <div className="relative bg-white/90 backdrop-blur-2xl border border-white rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden flex flex-col my-8">
+                        <div className="p-6 border-b border-slate-100">
+                            <h3 className="text-2xl font-black text-slate-800">{isCreateModalOpen ? 'Generador de Usuarios' : 'Editar Usuario'}</h3>
+                            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">
+                                {isCreateModalOpen ? 'Crea nuevas credenciales de acceso' : 'Modifica los datos del usuario'}
+                            </p>
                         </div>
 
-                        <form onSubmit={handleSave} className="p-8 space-y-5">
+                        <form onSubmit={isCreateModalOpen ? handleCreate : handleEdit} className="p-6 space-y-4">
                             {error && (
-                                <div className="p-4 bg-red-50 text-red-600 text-sm font-bold rounded-2xl flex items-center gap-2 border border-red-100">
+                                <div className="p-3 bg-red-50 text-red-600 text-sm font-bold rounded-2xl flex items-center gap-2 border border-red-100">
                                     <ShieldAlert className="w-5 h-5" /> {error}
                                 </div>
                             )}
 
-                            <div className="space-y-2">
+                            <div className="space-y-1">
                                 <label className="text-xs font-black uppercase text-slate-600 ml-1">Nombre Completo</label>
                                 <div className="relative">
                                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                                    <input required type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-slate-700 shadow-sm" placeholder="Ej: Juan Pérez" />
+                                    <input required type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-slate-700 shadow-sm" placeholder="Ej: Juan Pérez" />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
+                                <div className="space-y-1">
                                     <label className="text-xs font-black uppercase text-slate-600 ml-1">Usuario de Ingreso</label>
-                                    <input required type="text" value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-slate-700 shadow-sm" placeholder="jperez" />
+                                    <input required type="text" value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} disabled={isEditModalOpen} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-slate-700 shadow-sm disabled:bg-slate-50 disabled:text-slate-400" placeholder="jperez" />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-black uppercase text-slate-600 ml-1">Contraseña</label>
+                                {isCreateModalOpen && (
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-black uppercase text-slate-600 ml-1">Contraseña</label>
+                                        <div className="relative">
+                                            <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                            <input required type="password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="w-full pl-9 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-slate-700 shadow-sm" placeholder="••••••••" />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-black uppercase text-slate-600 ml-1">DNI / Documento</label>
                                     <div className="relative">
-                                        <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                        <input required type="password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="w-full pl-9 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-slate-700 shadow-sm" placeholder="••••••••" />
+                                        <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                        <input type="text" value={formData.dni} onChange={(e) => setFormData({...formData, dni: e.target.value})} className="w-full pl-9 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-slate-700 shadow-sm" placeholder="Opcional" />
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-black uppercase text-slate-600 ml-1">Teléfono</label>
+                                    <div className="relative">
+                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                        <input type="text" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full pl-9 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-slate-700 shadow-sm" placeholder="Opcional" />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="space-y-1">
                                 <label className="text-xs font-black uppercase text-slate-600 ml-1">Rol en el Sistema</label>
-                                <select value={formData.role} onChange={(e) => setFormData({...formData, role: e.target.value})} className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-slate-700 shadow-sm appearance-none">
+                                <select value={formData.role} onChange={(e) => setFormData({...formData, role: e.target.value})} disabled={isEditModalOpen && formData.username === 'admin'} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-slate-700 shadow-sm appearance-none disabled:bg-slate-50 disabled:text-slate-400">
                                     <option value="CLIENT">Cliente (Solo ve su empresa)</option>
                                     <option value="INSPECTOR">Inspector (Registra datos operativos)</option>
                                     <option value="MANAGER">Gerente HSE (Acceso Global Operativo)</option>
@@ -206,11 +308,11 @@ export default function UsersClient({ initialUsers, companies }) {
                             </div>
 
                             {formData.role === 'CLIENT' && (
-                                <div className="space-y-2">
-                                    <label className="text-xs font-black uppercase text-slate-600 ml-1">Asignar a Empresa (Obligatorio para Clientes)</label>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-black uppercase text-slate-600 ml-1">Asignar a Empresa (Obligatorio)</label>
                                     <div className="relative">
                                         <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                                        <select required value={formData.companyId} onChange={(e) => setFormData({...formData, companyId: e.target.value})} className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-slate-700 shadow-sm appearance-none">
+                                        <select required value={formData.companyId} onChange={(e) => setFormData({...formData, companyId: e.target.value})} className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-slate-700 shadow-sm appearance-none">
                                             <option value="">Seleccione una empresa...</option>
                                             {companies.map((c: any) => (
                                                 <option key={c.id} value={c.id}>{c.name}</option>
@@ -220,10 +322,10 @@ export default function UsersClient({ initialUsers, companies }) {
                                 </div>
                             )}
 
-                            <div className="mt-8 flex gap-4 pt-6">
-                                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 text-sm font-black text-slate-500 uppercase tracking-widest hover:bg-slate-100 rounded-2xl transition-all">Cancelar</button>
-                                <button type="submit" disabled={isPending} className="flex-1 py-4 bg-indigo-600 text-white text-sm font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-50">
-                                    {isPending ? 'Creando...' : 'Crear Usuario'}
+                            <div className="mt-6 flex gap-4 pt-4">
+                                <button type="button" onClick={() => isCreateModalOpen ? setIsCreateModalOpen(false) : setIsEditModalOpen(false)} className="flex-1 py-3 text-sm font-black text-slate-500 uppercase tracking-widest hover:bg-slate-100 rounded-2xl transition-all">Cancelar</button>
+                                <button type="submit" disabled={isPending} className="flex-1 py-3 bg-indigo-600 text-white text-sm font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-50">
+                                    {isPending ? 'Guardando...' : (isCreateModalOpen ? 'Crear Usuario' : 'Guardar')}
                                 </button>
                             </div>
                         </form>
@@ -247,6 +349,46 @@ export default function UsersClient({ initialUsers, companies }) {
                             <button onClick={() => setUserToDelete(null)} className="flex-1 py-4 text-sm font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 rounded-2xl transition-all border border-slate-200">Cancelar</button>
                             <button onClick={confirmDelete} disabled={isPending} className="flex-1 py-4 text-sm font-black text-white bg-red-600 uppercase tracking-widest hover:bg-red-700 rounded-2xl transition-all shadow-lg shadow-red-600/20 disabled:opacity-50">{isPending ? 'Borrando...' : 'Eliminar'}</button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Reset Password */}
+            {userToReset && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setUserToReset(null)}></div>
+                    <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden p-8 text-center border border-slate-100">
+                        <div className="w-20 h-20 bg-amber-50 text-amber-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner border border-amber-100">
+                            <RefreshCw className="w-10 h-10" />
+                        </div>
+                        <h3 className="text-2xl font-black text-slate-800 mb-3">¿Regenerar Contraseña?</h3>
+                        <p className="text-slate-500 text-sm leading-relaxed mb-8">
+                            Se generará una nueva contraseña segura para el usuario <span className="font-bold text-slate-800">@{userToReset.username}</span> y se desbloqueará su cuenta si estaba restringida.
+                        </p>
+                        <div className="flex gap-4">
+                            <button onClick={() => setUserToReset(null)} className="flex-1 py-4 text-sm font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 rounded-2xl transition-all border border-slate-200">Cancelar</button>
+                            <button onClick={confirmReset} disabled={isPending} className="flex-1 py-4 text-sm font-black text-white bg-amber-500 uppercase tracking-widest hover:bg-amber-600 rounded-2xl transition-all shadow-lg shadow-amber-500/20 disabled:opacity-50">{isPending ? 'Procesando...' : 'Confirmar'}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Contraseña Regenerada (Success) */}
+            {resetSuccessData && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"></div>
+                    <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden p-8 text-center border border-slate-100">
+                        <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner border border-emerald-100">
+                            <CheckCircle2 className="w-10 h-10" />
+                        </div>
+                        <h3 className="text-2xl font-black text-slate-800 mb-3">Contraseña Actualizada</h3>
+                        <p className="text-slate-500 text-sm leading-relaxed mb-4">
+                            Copia esta nueva contraseña y envíasela a <strong>@{resetSuccessData.username}</strong> por un canal seguro.
+                        </p>
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-8 select-all">
+                            <span className="font-mono text-2xl tracking-wider font-bold text-slate-800">{resetSuccessData.newPassword}</span>
+                        </div>
+                        <button onClick={() => setResetSuccessData(null)} className="w-full py-4 text-sm font-black text-white bg-indigo-600 uppercase tracking-widest hover:bg-indigo-700 rounded-2xl transition-all shadow-lg shadow-indigo-600/20">Entendido</button>
                     </div>
                 </div>
             )}

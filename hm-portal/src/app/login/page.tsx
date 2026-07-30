@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Mail } from "lucide-react";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -145,6 +145,19 @@ export default function LoginPage() {
 
             <SubmitButton />
           </form>
+          
+          <div className="mt-8 text-center pt-6 border-t border-slate-100">
+            <p className="text-xs text-slate-500 mb-4">
+              En caso de olvido o pérdida de usuario y/o contraseña, contáctese con el administrador.
+            </p>
+            <a 
+              href="mailto:mhhigieneyseguridad@gmail.com"
+              className="inline-flex items-center justify-center w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 transition-colors shadow-sm"
+              title="Enviar correo al administrador"
+            >
+              <Mail className="w-5 h-5" />
+            </a>
+          </div>
         </motion.div>
       </div>
     </div>

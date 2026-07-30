@@ -59,6 +59,32 @@ export default async function NuevoUsuarioPage() {
               </div>
 
               <div>
+                <label htmlFor="dni" className="block text-sm font-bold text-slate-700 mb-1.5">
+                  DNI / Documento
+                </label>
+                <input
+                  id="dni"
+                  name="dni"
+                  type="text"
+                  placeholder="Opcional"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium text-slate-900 placeholder:font-normal"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="phone" className="block text-sm font-bold text-slate-700 mb-1.5">
+                  Teléfono
+                </label>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="text"
+                  placeholder="Opcional"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium text-slate-900 placeholder:font-normal"
+                />
+              </div>
+
+              <div>
                 <label htmlFor="username" className="block text-sm font-bold text-slate-700 mb-1.5">
                   Nombre de Usuario
                 </label>
