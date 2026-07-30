@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { 
-    FileText, Activity, Accessibility, Bug, AlertTriangle, 
+    LayoutDashboard, FileText, Activity, Accessibility, Bug, AlertTriangle, 
     Search, ShieldAlert, Calendar, Truck, Server, Users, ClipboardCheck, 
     History, GraduationCap, TableProperties
 } from "lucide-react";
@@ -27,12 +28,18 @@ export const MODULES = [
 
 export function CompanyTabs({ companyId }: { companyId: string }) {
     const pathname = usePathname();
+    const { isClient } = useAuth();
+
+    const tabsToRender = [
+        ...(isClient ? [] : [{ name: "Dashboard 365", path: "", icon: LayoutDashboard }]),
+        ...MODULES
+    ];
 
     return (
         <div className="w-full bg-white/60 backdrop-blur-md border-b border-white/50 sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="flex space-x-1 overflow-x-auto custom-scrollbar py-3">
-                    {MODULES.map((module) => {
+                    {tabsToRender.map((module) => {
                         const href = `/portal/empresas/${companyId}${module.path}`;
                         const isActive = pathname === href;
                         return (
