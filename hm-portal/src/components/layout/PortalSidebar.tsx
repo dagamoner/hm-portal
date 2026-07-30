@@ -7,7 +7,7 @@ import { useAuth } from "@/components/providers/AuthProvider"
 
 export function PortalSidebar() {
   const pathname = usePathname();
-  const { isAdmin, isManager } = useAuth();
+  const { isAdmin, isManager, isClient, user } = useAuth();
 
   const getLinkClass = (path: string) => {
     const isActive = pathname.startsWith(path);
@@ -38,6 +38,13 @@ export function PortalSidebar() {
           <Link href="/portal/empresas" className={getLinkClass("/portal/empresas")}>
             <Building2 size={20} />
             <span>Empresas</span>
+          </Link>
+        )}
+
+        {(isClient && user?.companyId) && (
+          <Link href={`/portal/empresas/${user.companyId}`} className={getLinkClass(`/portal/empresas/${user.companyId}`)}>
+            <Building2 size={20} />
+            <span>Mi Empresa</span>
           </Link>
         )}
 
