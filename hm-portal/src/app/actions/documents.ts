@@ -5,8 +5,8 @@ import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth";
 
 export async function getDocumentsByCompany(companyId: string) {
-  await requireAuth(companyId);
   try {
+    await requireAuth(companyId);
     const documents = await prisma.document.findMany({
       where: { companyId },
       orderBy: { uploadDate: 'desc' }
@@ -20,8 +20,8 @@ export async function getDocumentsByCompany(companyId: string) {
 
 export async function createDocument(formData: FormData) {
   const companyId = formData.get("companyId") as string;
-  await requireAuth(companyId, ['ADMIN', 'MANAGER']);
   try {
+    await requireAuth(companyId, ['ADMIN', 'MANAGER']);
     const title = formData.get("title") as string;
     const category = formData.get("category") as 'LEGAL' | 'PERSONAL' | 'ACTIVOS' | 'PROCEDIMIENTOS';
     const expirationDateStr = formData.get("expirationDate") as string;
@@ -74,8 +74,8 @@ export async function createDocument(formData: FormData) {
 }
 
 export async function updateDocumentFile(id: string, companyId: string, formData: FormData) {
-  await requireAuth(companyId, ['ADMIN', 'MANAGER']);
   try {
+    await requireAuth(companyId, ['ADMIN', 'MANAGER']);
     const file = formData.get("file") as File | null;
     const driveUrl = formData.get("driveUrl") as string | null;
     let fileUrl = null;
@@ -104,8 +104,8 @@ export async function updateDocumentFile(id: string, companyId: string, formData
 }
 
 export async function deleteDocument(id: string, companyId: string) {
-  await requireAuth(companyId, ['ADMIN', 'MANAGER']);
   try {
+    await requireAuth(companyId, ['ADMIN', 'MANAGER']);
     await prisma.document.delete({ where: { id } });
     revalidatePath(`/portal/empresas/${companyId}/documentacion`);
     return { success: true };

@@ -58,10 +58,10 @@ export async function getVehicleDiagnosis(vehicleId: string) {
     // AI Predictive Diagnosis Engine (Rule-based)
     
     // 1. Checklist Predictivo (basado en tipo)
-    let checklist = [];
-    let rules = [];
-    let reqs = [];
-    let priority = [];
+    const checklist = [];
+    const rules = [];
+    const reqs = [];
+    const priority = [];
 
     const isHeavy = ['Autoelevador', 'Maquinaria', 'Tractor', 'Excavadora'].includes(vehicle.type);
     const usage = vehicle.mileage || vehicle.hours || 0;

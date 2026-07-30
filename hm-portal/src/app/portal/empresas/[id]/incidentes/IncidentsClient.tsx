@@ -104,9 +104,15 @@ export default function IncidentsClient({
             const dateObj = new Date(dateStr);
             const details = { incidentType, bodyPart, machinery, witnesses };
 
-            await updateIncident(selectedIncident.id, companyId, { 
+            const res = await updateIncident(selectedIncident.id, companyId, { 
                 title, location, description, severity, date: dateObj, details
-            });
+            }) as any;
+            
+            if (res && res.error) {
+                alert(res.error);
+                return;
+            }
+            
             setIsEditing(false);
             setSelectedIncident({...selectedIncident, title, location, description, severity, date: dateObj, details});
             router.refresh();
@@ -122,7 +128,11 @@ export default function IncidentsClient({
         if (!confirm('¿Está seguro de eliminar este incidente? Esta acción no se puede deshacer.')) return;
         
         try {
-            await deleteIncident(selectedIncident.id, companyId);
+            const res = await deleteIncident(selectedIncident.id, companyId) as any;
+            if (res && res.error) {
+                alert(res.error);
+                return;
+            }
             setSelectedIncident(null);
             setIsEditing(false);
             router.refresh();
@@ -152,7 +162,11 @@ export default function IncidentsClient({
 
     const handleStatusChange = async (id: string, newStatus: string) => {
         try {
-            await updateIncidentStatus(id, companyId, newStatus);
+            const res = await updateIncidentStatus(id, companyId, newStatus) as any;
+            if (res && res.error) {
+                alert(res.error);
+                return;
+            }
             if (selectedIncident && selectedIncident.id === id) {
                 setSelectedIncident({ ...selectedIncident, status: newStatus });
             }

@@ -5,8 +5,8 @@ import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth";
 
 export async function createCancerigenoEvaluation(companyId: string, data: any) {
-    await requireAuth(companyId, ['ADMIN', 'MANAGER']);
     try {
+      await requireAuth(companyId, ['ADMIN', 'MANAGER']);
         const evaluation = await prisma.cancerigenoEvaluation.create({
             data: {
                 companyId,
@@ -36,21 +36,21 @@ export async function createCancerigenoEvaluation(companyId: string, data: any) 
         revalidatePath(`/portal/empresas/${companyId}/cancerigenos`);
         revalidatePath(`/portal/empresas/${companyId}/documentacion`);
         return evaluation;
-    } catch (error) {
-        console.error("Error creating cancerigeno evaluation:", error);
-        throw new Error("Failed to create cancerigeno evaluation");
+    } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }
 
 export async function getCancerigenoEvaluations(companyId: string) {
-    await requireAuth(companyId);
     try {
+      await requireAuth(companyId);
         return await prisma.cancerigenoEvaluation.findMany({
             where: { companyId },
             orderBy: { year: 'desc' }
         });
-    } catch (error) {
-        console.error("Error fetching cancerigeno evaluations:", error);
-        throw new Error("Failed to fetch cancerigeno evaluations");
+    } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }

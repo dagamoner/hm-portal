@@ -30,9 +30,9 @@ function flattenMatrix(company: any) {
                         } else {
                             task.hazards.forEach((haz: any) => {
                                 const ev = haz.evaluations?.[0];
-                                let p = ev?.probability || 0;
-                                let s = ev?.severity || 0;
-                                let r = p * s;
+                                const p = ev?.probability || 0;
+                                const s = ev?.severity || 0;
+                                const r = p * s;
                                 let level = '-';
                                 let color = 'text-slate-500';
                                 

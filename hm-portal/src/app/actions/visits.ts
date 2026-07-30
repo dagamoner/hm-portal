@@ -13,10 +13,10 @@ export async function getEstablishments(companyId: string) {
       where: { companyId },
       orderBy: { name: 'asc' }
     });
-  } catch (error) {
-    console.error('Error fetching establishments:', error);
-    throw new Error('No se pudieron obtener los establecimientos');
-  }
+  } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
+    }
 }
 
 // =====================================
@@ -33,10 +33,10 @@ export async function getVisits(companyId: string) {
       },
       orderBy: { date: 'desc' }
     });
-  } catch (error) {
-    console.error('Error fetching visits:', error);
-    throw new Error('No se pudieron obtener las visitas');
-  }
+  } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
+    }
 }
 
 export async function getVisitById(id: string) {
@@ -48,10 +48,10 @@ export async function getVisitById(id: string) {
         findings: true
       }
     });
-  } catch (error) {
-    console.error('Error fetching visit:', error);
-    throw new Error('No se pudo obtener la visita');
-  }
+  } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
+    }
 }
 
 export async function createVisit(companyId: string, data: any) {
@@ -80,10 +80,10 @@ export async function createVisit(companyId: string, data: any) {
     
     revalidatePath(`/portal/empresas/${companyId}/visitas`);
     return visit;
-  } catch (error) {
-    console.error('Error creating visit:', error);
-    throw new Error('Error al crear el acta de visita');
-  }
+  } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
+    }
 }
 
 // =====================================
@@ -103,10 +103,10 @@ export async function getFindings(companyId: string) {
       },
       orderBy: { createdAt: 'desc' }
     });
-  } catch (error) {
-    console.error('Error fetching findings:', error);
-    throw new Error('No se pudieron obtener los desvíos');
-  }
+  } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
+    }
 }
 
 export async function updateFindingStatus(id: string, status: string, actionPlan?: string) {
@@ -127,8 +127,8 @@ export async function updateFindingStatus(id: string, status: string, actionPlan
       revalidatePath(`/portal/empresas/${finding.companyId}/visitas`);
     }
     return finding;
-  } catch (error) {
-    console.error('Error updating finding:', error);
-    throw new Error('Error al actualizar el estado del desvío');
-  }
+  } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
+    }
 }

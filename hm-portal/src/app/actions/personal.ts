@@ -111,9 +111,9 @@ export async function getPTWSuggestions(taskDescription: string) {
   // Simulating an AI assistant analyzing the task to suggest hazards and PPE
   const text = taskDescription.toLowerCase();
   
-  let hazards: string[] = [];
-  let ppe: string[] = ["Casco de seguridad", "Calzado de seguridad", "Lentes de seguridad", "Guantes de trabajo"];
-  let preventions: string[] = ["Charla de seguridad de 5 minutos", "Demarcación del área de trabajo"];
+  const hazards: string[] = [];
+  const ppe: string[] = ["Casco de seguridad", "Calzado de seguridad", "Lentes de seguridad", "Guantes de trabajo"];
+  const preventions: string[] = ["Charla de seguridad de 5 minutos", "Demarcación del área de trabajo"];
 
   if (text.includes("altura") || text.includes("techo") || text.includes("andamio")) {
     hazards.push("Caída a distinto nivel", "Caída de objetos", "Vientos fuertes");

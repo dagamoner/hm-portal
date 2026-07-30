@@ -12,9 +12,9 @@ export async function getInvestigations(companyId: string) {
             },
             orderBy: { createdAt: 'desc' }
         });
-    } catch (error) {
-        console.error("Error fetching investigations:", error);
-        throw new Error("Failed to fetch investigations");
+    } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }
 
@@ -24,9 +24,9 @@ export async function getInvestigationByIncident(incidentId: string) {
             where: { incidentId },
             include: { incident: true }
         });
-    } catch (error) {
-        console.error("Error fetching investigation:", error);
-        throw new Error("Failed to fetch investigation");
+    } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }
 
@@ -80,8 +80,8 @@ export async function startOrUpdateInvestigation(
         revalidatePath(`/portal/empresas/${companyId}/incidentes`);
         
         return investigation;
-    } catch (error) {
-        console.error("Error saving investigation:", error);
-        throw new Error("Failed to save investigation");
+    } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }

@@ -13,8 +13,8 @@ export async function createIncident(companyId: string, data: {
     date: Date,
     details: any
 }) {
-    await requireAuth(companyId);
     try {
+      await requireAuth(companyId);
         const incident = await prisma.incident.create({
             data: {
                 companyId,
@@ -32,28 +32,28 @@ export async function createIncident(companyId: string, data: {
 
         revalidatePath(`/portal/empresas/${companyId}/incidentes`);
         return incident;
-    } catch (error) {
-        console.error("Error creating incident:", error);
-        throw new Error("Failed to create incident");
+    } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }
 
 export async function getIncidents(companyId: string) {
-    await requireAuth(companyId);
     try {
+      await requireAuth(companyId);
         return await prisma.incident.findMany({
             where: { companyId },
             orderBy: { date: 'desc' }
         });
-    } catch (error) {
-        console.error("Error fetching incidents:", error);
-        throw new Error("Failed to fetch incidents");
+    } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }
 
 export async function updateIncidentStatus(id: string, companyId: string, status: string) {
-    await requireAuth(companyId);
     try {
+      await requireAuth(companyId);
         const incident = await prisma.incident.update({
             where: { id },
             data: { status }
@@ -63,9 +63,9 @@ export async function updateIncidentStatus(id: string, companyId: string, status
         
         revalidatePath(`/portal/empresas/${companyId}/incidentes`);
         return incident;
-    } catch (error) {
-        console.error("Error updating incident status:", error);
-        throw new Error("Failed to update incident status");
+    } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }
 
@@ -77,8 +77,8 @@ export async function updateIncident(id: string, companyId: string, data: {
     date: Date,
     details: any
 }) {
-    await requireAuth(companyId);
     try {
+      await requireAuth(companyId);
         const incident = await prisma.incident.update({
             where: { id },
             data: {
@@ -95,9 +95,9 @@ export async function updateIncident(id: string, companyId: string, data: {
         
         revalidatePath(`/portal/empresas/${companyId}/incidentes`);
         return incident;
-    } catch (error) {
-        console.error("Error updating incident:", error);
-        throw new Error("Failed to update incident");
+    } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }
 
@@ -112,8 +112,8 @@ export async function deleteIncident(id: string, companyId: string) {
         
         revalidatePath(`/portal/empresas/${companyId}/incidentes`);
         return { success: true };
-    } catch (error) {
-        console.error("Error deleting incident:", error);
-        throw new Error("Failed to delete incident");
+    } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }

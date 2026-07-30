@@ -69,7 +69,7 @@ export async function getTrainingPlanData(companyId: string): Promise<TrainingTo
     ];
 
     // Temas base obligatorios
-    let topics: TrainingTopic[] = [
+    const topics: TrainingTopic[] = [
       { month: "ENERO", theme: "Prevención de estrés térmico", target: "Operativo", typeInternal: true, typeExternal: false },
       { month: "FEBRERO", theme: "Criterios de selección y mantenimiento de EPP específicos", target: "Operativo", typeInternal: true, typeExternal: false },
       { month: "MARZO", theme: "Seguridad en el uso de herramientas neumáticas y manuales portátiles", target: "Operativo", typeInternal: true, typeExternal: false },

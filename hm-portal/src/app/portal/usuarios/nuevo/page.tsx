@@ -138,7 +138,7 @@ export default async function NuevoUsuarioPage() {
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
-              <p className="text-xs text-slate-500 mt-2">Si el rol es "Cliente", debes asignarlo obligatoriamente a una empresa para que pueda ver sus datos.</p>
+              <p className="text-xs text-slate-500 mt-2">Si el rol es &quot;Cliente&quot;, debes asignarlo obligatoriamente a una empresa para que pueda ver sus datos.</p>
             </div>
           </div>
 

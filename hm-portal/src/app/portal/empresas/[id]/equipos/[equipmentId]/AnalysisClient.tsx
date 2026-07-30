@@ -78,7 +78,7 @@ export default function AnalysisClient({ equipment, analysis, companyId }: { equ
       headStyles: { fillColor: [59, 130, 246] }
     });
 
-    let currentY = (doc as any).lastAutoTable.finalY + 15;
+    const currentY = (doc as any).lastAutoTable.finalY + 15;
     
     doc.setFontSize(14);
     doc.setTextColor(0);

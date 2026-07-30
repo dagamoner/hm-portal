@@ -37,9 +37,9 @@ export async function createMeasurement(companyId: string, data: any) {
         revalidatePath(`/portal/empresas/${companyId}/mediciones`);
         revalidatePath(`/portal/empresas/${companyId}/documentacion`);
         return record;
-    } catch (error) {
-        console.error("Error creating measurement:", error);
-        throw new Error("Failed to create measurement");
+    } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }
 
@@ -49,9 +49,9 @@ export async function getMeasurements(companyId: string) {
             where: { companyId },
             orderBy: { date: 'desc' }
         });
-    } catch (error) {
-        console.error("Error fetching measurements:", error);
-        throw new Error("Failed to fetch measurements");
+    } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }
 
@@ -61,8 +61,8 @@ export async function deleteMeasurement(id: string, companyId: string) {
             where: { id }
         });
         revalidatePath(`/portal/empresas/${companyId}/mediciones`);
-    } catch (error) {
-        console.error("Error deleting measurement:", error);
-        throw new Error("Failed to delete measurement");
+    } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }

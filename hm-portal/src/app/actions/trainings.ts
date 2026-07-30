@@ -9,8 +9,8 @@ import { requireAuth } from '@/lib/auth';
 // ==========================================
 
 export async function getTrainingPlans(companyId: string) {
-  await requireAuth(companyId);
   try {
+    await requireAuth(companyId);
     return await prisma.trainingPlan.findMany({
       where: { companyId },
       include: {
@@ -22,15 +22,15 @@ export async function getTrainingPlans(companyId: string) {
       },
       orderBy: { year: 'desc' }
     });
-  } catch (error) {
-    console.error('Error fetching training plans:', error);
-    throw new Error('No se pudieron obtener los planes de capacitación');
-  }
+  } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
+    }
 }
 
 export async function getTrainingPlanByYear(companyId: string, year: number) {
-  await requireAuth(companyId);
   try {
+    await requireAuth(companyId);
     return await prisma.trainingPlan.findUnique({
       where: {
         companyId_year: {
@@ -47,15 +47,15 @@ export async function getTrainingPlanByYear(companyId: string, year: number) {
         }
       }
     });
-  } catch (error) {
-    console.error('Error fetching training plan:', error);
-    throw new Error('No se pudo obtener el plan de capacitación');
-  }
+  } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
+    }
 }
 
 export async function createTrainingPlan(companyId: string, year: number) {
-  await requireAuth(companyId, ['ADMIN', 'MANAGER']);
   try {
+    await requireAuth(companyId, ['ADMIN', 'MANAGER']);
     const existing = await getTrainingPlanByYear(companyId, year);
     if (existing) return existing;
 
@@ -67,10 +67,10 @@ export async function createTrainingPlan(companyId: string, year: number) {
     });
     
     return plan;
-  } catch (error) {
-    console.error('Error creating training plan:', error);
-    throw new Error('No se pudo crear el plan de capacitación');
-  }
+  } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
+    }
 }
 
 // ==========================================
@@ -78,8 +78,8 @@ export async function createTrainingPlan(companyId: string, year: number) {
 // ==========================================
 
 export async function createTraining(companyId: string, data: any) {
-  await requireAuth(companyId, ['ADMIN', 'MANAGER']);
   try {
+    await requireAuth(companyId, ['ADMIN', 'MANAGER']);
     const training = await prisma.training.create({
       data: {
         companyId,
@@ -96,15 +96,15 @@ export async function createTraining(companyId: string, data: any) {
     
     revalidatePath(`/portal/empresas/${companyId}/capacitaciones`);
     return training;
-  } catch (error) {
-    console.error('Error creating training:', error);
-    throw new Error('No se pudo crear la capacitación');
-  }
+  } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
+    }
 }
 
 export async function updateTraining(id: string, companyId: string, data: any) {
-  await requireAuth(companyId, ['ADMIN', 'MANAGER']);
   try {
+    await requireAuth(companyId, ['ADMIN', 'MANAGER']);
     const training = await prisma.training.update({
       where: { id },
       data
@@ -112,24 +112,24 @@ export async function updateTraining(id: string, companyId: string, data: any) {
     
     revalidatePath(`/portal/empresas/${companyId}/capacitaciones`);
     return training;
-  } catch (error) {
-    console.error('Error updating training:', error);
-    throw new Error('No se pudo actualizar la capacitación');
-  }
+  } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
+    }
 }
 
 export async function deleteTraining(id: string, companyId: string) {
-  await requireAuth(companyId, ['ADMIN', 'MANAGER']);
   try {
+    await requireAuth(companyId, ['ADMIN', 'MANAGER']);
     await prisma.training.delete({
       where: { id }
     });
     
     revalidatePath(`/portal/empresas/${companyId}/capacitaciones`);
-  } catch (error) {
-    console.error('Error deleting training:', error);
-    throw new Error('No se pudo eliminar la capacitación');
-  }
+  } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
+    }
 }
 
 export async function getTrainingDetails(id: string) {
@@ -149,10 +149,10 @@ export async function getTrainingDetails(id: string) {
         plan: true
       }
     });
-  } catch (error) {
-    console.error('Error fetching training details:', error);
-    throw new Error('No se pudo obtener los detalles de la capacitación');
-  }
+  } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
+    }
 }
 
 // ==========================================
@@ -160,8 +160,8 @@ export async function getTrainingDetails(id: string) {
 // ==========================================
 
 export async function syncTrainingRecords(trainingId: string, companyId: string) {
-  await requireAuth(companyId, ['ADMIN', 'MANAGER']);
   try {
+    await requireAuth(companyId, ['ADMIN', 'MANAGER']);
     // 1. Get all workers for this company
     const workers = await prisma.worker.findMany({
       where: { companyId }
@@ -187,15 +187,15 @@ export async function syncTrainingRecords(trainingId: string, companyId: string)
     }
     
     return await getTrainingDetails(trainingId);
-  } catch (error) {
-    console.error('Error syncing training records:', error);
-    throw new Error('No se pudieron sincronizar los registros de la capacitación');
-  }
+  } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
+    }
 }
 
 export async function saveTrainingRecords(records: any[], companyId: string) {
-  await requireAuth(companyId, ['ADMIN', 'MANAGER']);
   try {
+    await requireAuth(companyId, ['ADMIN', 'MANAGER']);
     // We update each record sequentially or via transaction
     const updates = records.map(record => {
       return prisma.trainingRecord.update({
@@ -213,10 +213,10 @@ export async function saveTrainingRecords(records: any[], companyId: string) {
     
     await prisma.$transaction(updates);
     revalidatePath(`/portal/empresas/${companyId}/capacitaciones`);
-  } catch (error) {
-    console.error('Error saving training records:', error);
-    throw new Error('No se pudieron guardar los registros de la capacitación');
-  }
+  } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
+    }
 }
 
 // ==========================================
@@ -224,8 +224,8 @@ export async function saveTrainingRecords(records: any[], companyId: string) {
 // ==========================================
 
 export async function getTrainingDashboardStats(companyId: string) {
-  await requireAuth(companyId);
   try {
+    await requireAuth(companyId);
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1; // 1-12
     
@@ -242,7 +242,7 @@ export async function getTrainingDashboardStats(companyId: string) {
     
     if (!plan) return null;
     
-    let totalTrainings = plan.trainings.length;
+    const totalTrainings = plan.trainings.length;
     let completedTrainings = 0;
     
     // Unlocked trainings: monthIndex <= currentMonth

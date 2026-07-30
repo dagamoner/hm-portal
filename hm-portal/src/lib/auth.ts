@@ -53,7 +53,7 @@ export async function requireAuth(companyId?: string, allowedRoles?: string[]) {
   const session = await getSession();
   
   if (!session || !session.user) {
-    throw new Error("Unauthorized");
+    throw new Error("No autorizado. Debes iniciar sesión.");
   }
 
   const user = session.user;
@@ -61,7 +61,7 @@ export async function requireAuth(companyId?: string, allowedRoles?: string[]) {
   // Role validation
   if (allowedRoles && allowedRoles.length > 0) {
     if (!allowedRoles.includes(user.role)) {
-      throw new Error("Forbidden: Insufficient privileges");
+      throw new Error("Acceso denegado. No tienes los permisos necesarios para realizar esta acción.");
     }
   }
 
@@ -69,7 +69,7 @@ export async function requireAuth(companyId?: string, allowedRoles?: string[]) {
   // ADMIN has universal access
   if (user.role !== 'ADMIN') {
     if (companyId && user.companyId !== companyId) {
-      throw new Error("Forbidden: Access denied to this company's resources");
+      throw new Error("Acceso denegado. No perteneces a esta empresa.");
     }
   }
 

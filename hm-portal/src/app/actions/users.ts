@@ -72,8 +72,8 @@ export async function deleteUser(id: string) {
 }
 
 export async function getUsersWithAuditStats() {
-  await requireAuth(undefined, ['ADMIN']);
   try {
+    await requireAuth(undefined, ['ADMIN']);
     const users = await prisma.user.findMany({
       include: { company: true },
       orderBy: { name: 'asc' }

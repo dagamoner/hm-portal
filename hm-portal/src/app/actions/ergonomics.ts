@@ -38,9 +38,9 @@ export async function createErgonomicEvaluation(companyId: string, data: any) {
         revalidatePath(`/portal/empresas/${companyId}/ergonomia`);
         revalidatePath(`/portal/empresas/${companyId}/documentacion`);
         return record;
-    } catch (error) {
-        console.error("Error creating ergonomic evaluation:", error);
-        throw new Error("Failed to create ergonomic evaluation");
+    } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }
 
@@ -50,9 +50,9 @@ export async function getErgonomicEvaluations(companyId: string) {
             where: { companyId },
             orderBy: { date: 'desc' }
         });
-    } catch (error) {
-        console.error("Error fetching ergonomic evaluations:", error);
-        throw new Error("Failed to fetch ergonomic evaluations");
+    } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }
 
@@ -62,8 +62,8 @@ export async function deleteErgonomicEvaluation(id: string, companyId: string) {
             where: { id }
         });
         revalidatePath(`/portal/empresas/${companyId}/ergonomia`);
-    } catch (error) {
-        console.error("Error deleting ergonomic evaluation:", error);
-        throw new Error("Failed to delete ergonomic evaluation");
+    } catch (error: any) {
+        console.error("Action Error:", error);
+        return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }
