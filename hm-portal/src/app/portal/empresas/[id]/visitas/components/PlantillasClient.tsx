@@ -15,6 +15,16 @@ export default function PlantillasClient({ companyId, initialTemplates, onBack }
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const DEFAULT_TYPES = [
+    "ESTABLECIMIENTO", "OBRA", "MAQUINARIA", "VEHICULOS", 
+    "HERRAMIENTAS_MANUALES", "HERRAMIENTAS_ELECTRICAS", "ESCALERAS", "CALIDAD",
+    "EXTINTORES", "BOTIQUINES", "DEAS", "CAMILLAS", "COLLARINES", 
+    "BIE_BOCA_DE_INCENDIO", "MANGUERA_INCENDIO"
+  ];
+
+  const [customType, setCustomType] = useState("");
+  const [isAddingCustomType, setIsAddingCustomType] = useState(false);
+
   // Default structure for new templates
   const handleCreateNew = () => {
     setEditingTemplate({
@@ -27,6 +37,7 @@ export default function PlantillasClient({ companyId, initialTemplates, onBack }
         }
       ]
     });
+    setIsAddingCustomType(false);
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -91,6 +102,41 @@ export default function PlantillasClient({ companyId, initialTemplates, onBack }
     setEditingTemplate({ ...editingTemplate, categories: newCategories });
   };
 
+  const handleTypeChange = (newType: string) => {
+    if (newType === "CUSTOM") {
+      setIsAddingCustomType(true);
+      setEditingTemplate({ ...editingTemplate, type: "" });
+      return;
+    }
+    
+    setIsAddingCustomType(false);
+    
+    // Auto-inject Location for specific types
+    const typesRequiringLocation = ["EXTINTORES", "BOTIQUINES", "DEAS", "CAMILLAS", "COLLARINES", "BIE_BOCA_DE_INCENDIO", "MANGUERA_INCENDIO"];
+    let newCategories = [...editingTemplate.categories];
+    
+    if (typesRequiringLocation.includes(newType)) {
+      // Check if location already exists
+      const hasLocation = newCategories.some(c => c.items.some((i:any) => i.question === "Ubicación exacta del equipo"));
+      if (!hasLocation) {
+        newCategories.unshift({
+          name: "Datos de Identificación",
+          items: [{ question: "Ubicación exacta del equipo", type: "text" }]
+        });
+      }
+    }
+
+    setEditingTemplate({ ...editingTemplate, type: newType, categories: newCategories });
+  };
+
+  const confirmCustomType = () => {
+    if (customType.trim()) {
+      setEditingTemplate({ ...editingTemplate, type: customType.trim().toUpperCase() });
+      setIsAddingCustomType(false);
+      setCustomType("");
+    }
+  };
+
   if (editingTemplate) {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
@@ -134,20 +180,64 @@ export default function PlantillasClient({ companyId, initialTemplates, onBack }
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">Categoría General / Tipo</label>
-              <select
-                value={editingTemplate.type}
-                onChange={(e) => setEditingTemplate({ ...editingTemplate, type: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 transition-all outline-none bg-white"
-              >
-                <option value="ESTABLECIMIENTO">Establecimiento Genérico</option>
-                <option value="OBRA">Obra en Construcción</option>
-                <option value="MAQUINARIA">Maquinaria Pesada</option>
-                <option value="VEHICULOS">Vehículos y Flota</option>
-                <option value="HERRAMIENTAS_MANUALES">Herramientas Manuales</option>
-                <option value="HERRAMIENTAS_ELECTRICAS">Herramientas Eléctricas</option>
-                <option value="ESCALERAS">Escaleras / Altura</option>
-                <option value="CALIDAD">Auditoría de Calidad</option>
-              </select>
+              {!isAddingCustomType ? (
+                <select
+                  value={DEFAULT_TYPES.includes(editingTemplate.type) ? editingTemplate.type : (editingTemplate.type ? editingTemplate.type : "ESTABLECIMIENTO")}
+                  onChange={(e) => handleTypeChange(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 transition-all outline-none bg-white"
+                >
+                  <optgroup label="Generales">
+                    <option value="ESTABLECIMIENTO">Establecimiento Genérico</option>
+                    <option value="OBRA">Obra en Construcción</option>
+                    <option value="MAQUINARIA">Maquinaria Pesada</option>
+                    <option value="VEHICULOS">Vehículos y Flota</option>
+                    <option value="HERRAMIENTAS_MANUALES">Herramientas Manuales</option>
+                    <option value="HERRAMIENTAS_ELECTRICAS">Herramientas Eléctricas</option>
+                    <option value="ESCALERAS">Escaleras / Altura</option>
+                    <option value="CALIDAD">Auditoría de Calidad</option>
+                  </optgroup>
+                  <optgroup label="Equipos de Emergencia (Autocompletan Ubicación)">
+                    <option value="EXTINTORES">Extintores</option>
+                    <option value="BOTIQUINES">Botiquines de Primeros Auxilios</option>
+                    <option value="DEAS">DEA's</option>
+                    <option value="CAMILLAS">Camillas</option>
+                    <option value="COLLARINES">Collarines</option>
+                    <option value="BIE_BOCA_DE_INCENDIO">Boca de Incendio Equipada (BIE)</option>
+                    <option value="MANGUERA_INCENDIO">Manguera de Incendio</option>
+                  </optgroup>
+                  {editingTemplate.type && !DEFAULT_TYPES.includes(editingTemplate.type) && (
+                    <optgroup label="Personalizado">
+                      <option value={editingTemplate.type}>{editingTemplate.type}</option>
+                    </optgroup>
+                  )}
+                  <optgroup label="Otro">
+                    <option value="CUSTOM">+ Crear nuevo tipo...</option>
+                  </optgroup>
+                </select>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customType}
+                    onChange={(e) => setCustomType(e.target.value)}
+                    className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 transition-all outline-none"
+                    placeholder="Ej. ANDAMIOS"
+                    autoFocus
+                  />
+                  <button 
+                    onClick={confirmCustomType}
+                    className="bg-indigo-600 text-white px-4 rounded-xl font-bold hover:bg-indigo-700"
+                  >
+                    OK
+                  </button>
+                  <button 
+                    onClick={() => setIsAddingCustomType(false)}
+                    className="bg-slate-100 text-slate-600 px-4 rounded-xl font-bold hover:bg-slate-200"
+                  >
+                    X
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
