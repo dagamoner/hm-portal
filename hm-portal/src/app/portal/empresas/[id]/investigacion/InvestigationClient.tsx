@@ -523,36 +523,38 @@ export default function InvestigationClient({
                 <div className="flex-1 flex flex-col gap-6 overflow-hidden">
                     
                     {/* Panel Superior: Metodología */}
-                    <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-                        <div className="flex items-start justify-between mb-4">
-                            <div>
-                                <h3 className="font-bold text-lg tracking-tight text-slate-800 flex items-center gap-2">
-                                    <Cpu className="w-5 h-5 text-purple-500" />
-                                    Metodología de Análisis
-                                </h3>
-                                <p className="text-slate-500 text-xs font-medium mt-1">Elija el paradigma técnico de investigación.</p>
+                    {!isClient && (
+                        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+                            <div className="flex items-start justify-between mb-4">
+                                <div>
+                                    <h3 className="font-bold text-lg tracking-tight text-slate-800 flex items-center gap-2">
+                                        <Cpu className="w-5 h-5 text-purple-500" />
+                                        Metodología de Análisis
+                                    </h3>
+                                    <p className="text-slate-500 text-xs font-medium mt-1">Elija el paradigma técnico de investigación.</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+                                {METHODOLOGIES.map(method => (
+                                    <button
+                                        key={method.id}
+                                        disabled={method.disabled}
+                                        onClick={() => setSelectedMethod(method.id)}
+                                        className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border ${
+                                            selectedMethod === method.id
+                                                ? 'bg-purple-50 border-purple-400 text-purple-700 shadow-sm'
+                                                : method.disabled
+                                                    ? 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed'
+                                                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                                        }`}
+                                    >
+                                        {method.name}
+                                    </button>
+                                ))}
                             </div>
                         </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
-                            {METHODOLOGIES.map(method => (
-                                <button
-                                    key={method.id}
-                                    disabled={method.disabled}
-                                    onClick={() => setSelectedMethod(method.id)}
-                                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border ${
-                                        selectedMethod === method.id
-                                            ? 'bg-purple-50 border-purple-400 text-purple-700 shadow-sm'
-                                            : method.disabled
-                                                ? 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed'
-                                                : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-                                    }`}
-                                >
-                                    {method.name}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                    )}
 
                     {/* Panel Inferior: Formulario / Resultados */}
                     <div className="flex-1 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col overflow-hidden">
