@@ -5,15 +5,17 @@ import { getSession } from "@/lib/auth";
 
 export async function logAction(
   module: string,
-  action: 'CREAR' | 'MODIFICAR' | 'ELIMINAR' | 'LOGIN' | 'ACCESO_DENEGADO',
+  action: 'CREAR' | 'MODIFICAR' | 'ELIMINAR' | 'LOGIN' | 'ACCESO_DENEGADO' | 'LOGIN_FALLIDO',
   target: string,
   details?: any,
-  companyId?: string
+  companyId?: string,
+  explicitUserName?: string,
+  explicitUserRole?: string
 ) {
   try {
     const session = await getSession();
-    const userName = session?.user?.name || session?.user?.username || 'Usuario Desconocido';
-    const userRole = session?.user?.role || 'User';
+    const userName = explicitUserName || session?.user?.name || session?.user?.username || 'Usuario Desconocido';
+    const userRole = explicitUserRole || session?.user?.role || 'User';
 
     // Determine severity
     let severity = 'INFO';

@@ -70,7 +70,7 @@ export async function login(formData: FormData) {
 
     // Log the action (need to import logAction at the top or dynamically)
     const { logAction } = await import("./auditoria");
-    await logAction('Acceso', 'LOGIN', 'Inicio de sesión', {}, user.companyId || undefined);
+    await logAction('Acceso', 'LOGIN', 'Inicio de sesión', {}, user.companyId || undefined, user.name || user.username, user.role);
 
   } catch (error) {
     return { error: "Ha ocurrido un error en el servidor" };

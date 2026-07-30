@@ -5,11 +5,12 @@ import { Search, Users as UsersIcon, UserCheck, Clock, Activity } from "lucide-r
 
 export default function UsersActivityClient({ users }: { users: any[] }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeSearchTerm, setActiveSearchTerm] = useState('');
   
   const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.role.toLowerCase().includes(searchTerm.toLowerCase())
+    user.name.toLowerCase().includes(activeSearchTerm.toLowerCase()) ||
+    user.username.toLowerCase().includes(activeSearchTerm.toLowerCase()) ||
+    user.role.toLowerCase().includes(activeSearchTerm.toLowerCase())
   );
 
   const totalUsers = users.length;
@@ -71,10 +72,14 @@ export default function UsersActivityClient({ users }: { users: any[] }) {
               placeholder="Buscar por nombre, usuario, rol..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && setActiveSearchTerm(searchTerm)}
               className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
             />
           </div>
-          <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+          <button 
+            onClick={() => setActiveSearchTerm(searchTerm)}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
             Buscar
           </button>
         </div>

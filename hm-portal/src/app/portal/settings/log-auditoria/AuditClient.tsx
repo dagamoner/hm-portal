@@ -7,6 +7,7 @@ import { Search, Filter, ShieldAlert, Activity, UserX, FileText } from "lucide-r
 export default function AuditClient({ initialLogs, currentTimeRange }: { initialLogs: any[], currentTimeRange: string }) {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeSearchTerm, setActiveSearchTerm] = useState('');
   const [selectedLog, setSelectedLog] = useState<any | null>(null);
 
   const [actionFilter, setActionFilter] = useState('');
@@ -18,11 +19,11 @@ export default function AuditClient({ initialLogs, currentTimeRange }: { initial
   };
 
   const filteredLogs = initialLogs.filter(log => {
-    const matchesSearch = log.userName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          log.module.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          log.target.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (log.company?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = log.userName.toLowerCase().includes(activeSearchTerm.toLowerCase()) || 
+                          log.action.toLowerCase().includes(activeSearchTerm.toLowerCase()) ||
+                          log.module.toLowerCase().includes(activeSearchTerm.toLowerCase()) ||
+                          log.target.toLowerCase().includes(activeSearchTerm.toLowerCase()) ||
+                          (log.company?.name || '').toLowerCase().includes(activeSearchTerm.toLowerCase());
     
     const matchesAction = actionFilter ? log.action === actionFilter : true;
     const matchesModule = moduleFilter ? log.module === moduleFilter : true;
@@ -120,10 +121,14 @@ export default function AuditClient({ initialLogs, currentTimeRange }: { initial
                 placeholder="Buscar por texto libre, usuario, ID..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && setActiveSearchTerm(searchTerm)}
                 className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
               />
             </div>
-            <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            <button 
+              onClick={() => setActiveSearchTerm(searchTerm)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            >
               Buscar
             </button>
           </div>
