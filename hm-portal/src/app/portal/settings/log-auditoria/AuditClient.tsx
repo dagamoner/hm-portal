@@ -112,15 +112,20 @@ export default function AuditClient({ initialLogs, currentTimeRange }: { initial
               </button>
             ))}
           </div>
-          <div className="relative w-full md:w-96 flex-shrink-0">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-            <input 
-              type="text" 
-              placeholder="Buscar por texto libre, usuario, ID..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-            />
+          <div className="flex w-full md:w-96 flex-shrink-0 gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <input 
+                type="text" 
+                placeholder="Buscar por texto libre, usuario, ID..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+              />
+            </div>
+            <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+              Buscar
+            </button>
           </div>
         </div>
 

@@ -68,6 +68,10 @@ export async function login(formData: FormData) {
     const cookieStore = await cookies();
     cookieStore.set("mh_session", session, { httpOnly: true, secure: process.env.NODE_ENV === "production" });
 
+    // Log the action (need to import logAction at the top or dynamically)
+    const { logAction } = await import("./auditoria");
+    await logAction('Acceso', 'LOGIN', 'Inicio de sesión', {}, user.companyId || undefined);
+
   } catch (error) {
     return { error: "Ha ocurrido un error en el servidor" };
   }

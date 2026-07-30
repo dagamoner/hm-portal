@@ -49,6 +49,9 @@ export async function createUser(formData: FormData) {
       }
     });
     
+    const { logAction } = await import("./auditoria");
+    await logAction('Usuarios', 'CREAR', `Usuario creado: ${username}`, { role }, companyId || undefined);
+
     revalidatePath("/portal/usuarios");
     return { success: true };
   } catch (error) {
@@ -67,6 +70,10 @@ export async function deleteUser(id: string) {
     }
 
     await prisma.user.delete({ where: { id } });
+    
+    const { logAction } = await import("./auditoria");
+    await logAction('Usuarios', 'ELIMINAR', `Usuario eliminado: ${user?.username || id}`, {}, user?.companyId || undefined);
+
     revalidatePath("/portal/usuarios");
     return { success: true };
   } catch (error) {
@@ -101,6 +108,9 @@ export async function updateUser(id: string, formData: FormData) {
       }
     });
     
+    const { logAction } = await import("./auditoria");
+    await logAction('Usuarios', 'MODIFICAR', `Usuario modificado: ${user?.username || id}`, { role }, companyId || undefined);
+
     revalidatePath("/portal/usuarios");
     return { success: true };
   } catch (error) {
