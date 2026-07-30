@@ -87,6 +87,11 @@ export default function InvestigationClient({
 
     const filteredIncidents = useMemo(() => {
         return incidents.filter((inc) => {
+            if (isClient) {
+                const hasInvestigation = investigations.some(i => i.incidentId === inc.id);
+                if (!hasInvestigation) return false;
+            }
+
             const searchLower = searchTerm.toLowerCase();
             return (
                 inc.title.toLowerCase().includes(searchLower) ||
@@ -94,7 +99,7 @@ export default function InvestigationClient({
                 inc.id.toLowerCase().includes(searchLower)
             );
         });
-    }, [incidents, searchTerm]);
+    }, [incidents, searchTerm, isClient, investigations]);
 
     const activeIncident = incidents.find(i => i.id === selectedIncidentId);
     const activeInvestigation = investigations.find(i => i.incidentId === selectedIncidentId);
@@ -449,15 +454,17 @@ export default function InvestigationClient({
         <div className="space-y-6 animate-fade-in pb-12 max-w-[1600px] mx-auto">
             {/* Top Tabs */}
             <div className="flex items-center gap-2 mb-6">
-                <button 
-                    onClick={() => setActiveTab('nueva')}
-                    className={`px-6 py-2.5 rounded-full font-bold text-sm transition-colors flex items-center gap-2 ${activeTab === 'nueva' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'}`}
-                >
-                    <span className="text-lg leading-none">+</span> Nueva Investigación
-                </button>
+                {!isClient && (
+                    <button 
+                        onClick={() => setActiveTab('nueva')}
+                        className={`px-6 py-2.5 rounded-full font-bold text-sm transition-colors flex items-center gap-2 ${activeTab === 'nueva' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'}`}
+                    >
+                        <span className="text-lg leading-none">+</span> Nueva Investigación
+                    </button>
+                )}
                 <button 
                     onClick={() => setActiveTab('historial')}
-                    className={`px-6 py-2.5 rounded-full font-bold text-sm transition-colors flex items-center gap-2 ${activeTab === 'historial' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'}`}
+                    className={`px-6 py-2.5 rounded-full font-bold text-sm transition-colors flex items-center gap-2 ${activeTab === 'historial' || isClient ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'}`}
                 >
                     <Activity className="w-4 h-4" /> Historial de Análisis
                 </button>
