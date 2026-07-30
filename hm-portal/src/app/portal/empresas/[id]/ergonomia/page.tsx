@@ -14,7 +14,7 @@ export default async function ErgonomiaPage({ params }: { params: Promise<{ id: 
     notFound();
   }
 
-  const evaluations = await getErgonomicEvaluations(id);
+  const evaluations = (await getErgonomicEvaluations(id)) as any;
 
   return (
     <div className="space-y-6">

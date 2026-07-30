@@ -6,21 +6,21 @@ import { redirect } from 'next/navigation';
 
 export default async function CapacitacionesPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const company = await getCompanyById(id);
+  const company = (await getCompanyById(id)) as any;
   
   if (!company) {
     redirect('/portal');
   }
 
   const currentYear = new Date().getFullYear();
-  let stats = await getTrainingDashboardStats(id);
-  let plans = await getTrainingPlans(id);
+  let stats = (await getTrainingDashboardStats(id)) as any;
+  let plans = (await getTrainingPlans(id)) as any;
 
   // Auto-create plan for current year if none exists
-  if (!plans.some(p => p.year === currentYear)) {
+  if (!plans.some((p: any) => p.year === currentYear)) {
     await createTrainingPlan(id, currentYear);
-    plans = await getTrainingPlans(id);
-    stats = await getTrainingDashboardStats(id);
+    plans = (await getTrainingPlans(id)) as any;
+    stats = (await getTrainingDashboardStats(id)) as any;
   }
 
   return (

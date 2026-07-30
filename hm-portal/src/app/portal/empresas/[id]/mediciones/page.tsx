@@ -14,7 +14,7 @@ export default async function MedicionesPage({ params }: { params: Promise<{ id:
     notFound();
   }
 
-  const measurements = await getMeasurements(id);
+  const measurements = (await getMeasurements(id)) as any;
 
   return (
     <div className="space-y-6">

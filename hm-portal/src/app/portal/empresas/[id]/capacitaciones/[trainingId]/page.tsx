@@ -8,12 +8,12 @@ import { ChevronLeft } from 'lucide-react';
 
 export default async function TrainingDetailPage({ params }: { params: Promise<{ id: string, trainingId: string }> }) {
   const { id, trainingId } = await params;
-  const company = await getCompanyById(id);
+  const company = (await getCompanyById(id)) as any;
   if (!company) redirect('/portal');
 
   // Sync workers to this training just in case there are new workers
-  const training = await syncTrainingRecords(trainingId, id);
-  if (!training) redirect(`/portal/empresas/${id}/capacitaciones`);
+  const training = (await syncTrainingRecords(trainingId, id)) as any;
+  if (!training || training.error) redirect(`/portal/empresas/${id}/capacitaciones`);
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6 animate-fade-in">

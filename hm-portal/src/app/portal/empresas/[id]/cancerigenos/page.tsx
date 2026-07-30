@@ -15,7 +15,7 @@ export default async function CancerigenosPage({ params }: { params: Promise<{ i
     notFound();
   }
 
-  const presentaciones = await getCancerigenoEvaluations(company.id);
+  const presentaciones = (await getCancerigenoEvaluations(company.id)) as any;
 
   return (
     <div className="space-y-6">

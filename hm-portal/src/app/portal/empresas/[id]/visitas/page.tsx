@@ -5,15 +5,15 @@ import VisitasClient from './VisitasClient';
 
 export default async function VisitasPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const company = await getCompanyById(id);
+  const company = (await getCompanyById(id)) as any;
   
   if (!company) {
     redirect('/portal/empresas');
   }
 
-  const establishments = await getEstablishments(company.id);
-  const visits = await getVisits(company.id);
-  const findings = await getFindings(company.id);
+  const establishments = (await getEstablishments(company.id)) as any;
+  const visits = (await getVisits(company.id)) as any;
+  const findings = (await getFindings(company.id)) as any;
 
   return (
     <VisitasClient 
