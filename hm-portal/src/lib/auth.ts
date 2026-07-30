@@ -48,3 +48,30 @@ export async function updateSession(request: NextRequest) {
   });
   return res;
 }
+
+export async function requireAuth(companyId?: string, allowedRoles?: string[]) {
+  const session = await getSession();
+  
+  if (!session || !session.user) {
+    throw new Error("Unauthorized");
+  }
+
+  const user = session.user;
+
+  // Role validation
+  if (allowedRoles && allowedRoles.length > 0) {
+    if (!allowedRoles.includes(user.role)) {
+      throw new Error("Forbidden: Insufficient privileges");
+    }
+  }
+
+  // IDOR / Company validation
+  // ADMIN has universal access
+  if (user.role !== 'ADMIN') {
+    if (companyId && user.companyId !== companyId) {
+      throw new Error("Forbidden: Access denied to this company's resources");
+    }
+  }
+
+  return user;
+}

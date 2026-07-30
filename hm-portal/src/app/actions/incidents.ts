@@ -2,6 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { logAction } from "@/app/actions/auditoria";
+import { requireAuth } from "@/lib/auth";
 
 export async function createIncident(companyId: string, data: { 
     title: string, 
@@ -11,6 +13,7 @@ export async function createIncident(companyId: string, data: {
     date: Date,
     details: any
 }) {
+    await requireAuth(companyId);
     try {
         const incident = await prisma.incident.create({
             data: {
@@ -25,6 +28,8 @@ export async function createIncident(companyId: string, data: {
             }
         });
 
+        await logAction('Incidentes', 'CREAR', `Incidente: ${incident.title}`, { id: incident.id, severity: incident.severity }, companyId);
+
         revalidatePath(`/portal/empresas/${companyId}/incidentes`);
         return incident;
     } catch (error) {
@@ -34,6 +39,7 @@ export async function createIncident(companyId: string, data: {
 }
 
 export async function getIncidents(companyId: string) {
+    await requireAuth(companyId);
     try {
         return await prisma.incident.findMany({
             where: { companyId },
@@ -46,11 +52,15 @@ export async function getIncidents(companyId: string) {
 }
 
 export async function updateIncidentStatus(id: string, companyId: string, status: string) {
+    await requireAuth(companyId);
     try {
         const incident = await prisma.incident.update({
             where: { id },
             data: { status }
         });
+        
+        await logAction('Incidentes', 'MODIFICAR', `Estado de Incidente: ${incident.title}`, { id: incident.id, status }, companyId);
+        
         revalidatePath(`/portal/empresas/${companyId}/incidentes`);
         return incident;
     } catch (error) {
@@ -67,6 +77,7 @@ export async function updateIncident(id: string, companyId: string, data: {
     date: Date,
     details: any
 }) {
+    await requireAuth(companyId);
     try {
         const incident = await prisma.incident.update({
             where: { id },
@@ -79,6 +90,9 @@ export async function updateIncident(id: string, companyId: string, data: {
                 details: data.details || {}
             }
         });
+        
+        await logAction('Incidentes', 'MODIFICAR', `Incidente: ${incident.title}`, { id: incident.id, severity: incident.severity }, companyId);
+        
         revalidatePath(`/portal/empresas/${companyId}/incidentes`);
         return incident;
     } catch (error) {
@@ -88,10 +102,14 @@ export async function updateIncident(id: string, companyId: string, data: {
 }
 
 export async function deleteIncident(id: string, companyId: string) {
+    await requireAuth(companyId, ['ADMIN', 'MANAGER']); // Only ADMIN/MANAGER can delete
     try {
         await prisma.incident.delete({
             where: { id }
         });
+        
+        await logAction('Incidentes', 'ELIMINAR', `Incidente ID: ${id}`, { id }, companyId);
+        
         revalidatePath(`/portal/empresas/${companyId}/incidentes`);
         return { success: true };
     } catch (error) {

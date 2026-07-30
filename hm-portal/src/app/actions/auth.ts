@@ -20,11 +20,13 @@ export async function login(formData: FormData) {
     });
 
     if (!user) {
+      await new Promise(r => setTimeout(r, 1500)); // Anti-bruteforce delay
       return { error: "Credenciales inválidas" };
     }
 
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
+      await new Promise(r => setTimeout(r, 1500)); // Anti-bruteforce delay
       return { error: "Credenciales inválidas" };
     }
 
@@ -33,7 +35,7 @@ export async function login(formData: FormData) {
     const session = await encrypt({ user, expires });
     
     const cookieStore = await cookies();
-    cookieStore.set("mh_session", session, { expires, httpOnly: true });
+    cookieStore.set("mh_session", session, { httpOnly: true, secure: process.env.NODE_ENV === "production" });
 
   } catch (error) {
     return { error: "Ha ocurrido un error en el servidor" };

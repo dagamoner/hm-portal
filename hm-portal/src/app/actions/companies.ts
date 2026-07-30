@@ -2,8 +2,10 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { requireAuth } from "@/lib/auth";
 
 export async function getCompanies() {
+  await requireAuth(undefined, ['ADMIN']); // Only ADMIN can view all companies
   try {
     const companies = await prisma.company.findMany({
       orderBy: { name: 'asc' }
@@ -16,6 +18,7 @@ export async function getCompanies() {
 }
 
 export async function getCompanyById(id: string) {
+  await requireAuth(id); // User must belong to this company (or be ADMIN)
   try {
     const company = await prisma.company.findUnique({
       where: { id }
@@ -28,6 +31,7 @@ export async function getCompanyById(id: string) {
 }
 
 export async function createCompany(formData: FormData) {
+  await requireAuth(undefined, ['ADMIN']); // Only ADMIN can create a new company
   try {
     await prisma.company.create({
       data: {
@@ -63,6 +67,7 @@ export async function createCompany(formData: FormData) {
 }
 
 export async function updateCompany(id: string, formData: FormData) {
+  await requireAuth(id, ['ADMIN', 'MANAGER']); // Only ADMIN/MANAGER can update company profile
   try {
     await prisma.company.update({
       where: { id },
@@ -99,6 +104,7 @@ export async function updateCompany(id: string, formData: FormData) {
 }
 
 export async function deleteCompany(id: string) {
+  await requireAuth(id, ['ADMIN']); // Only ADMIN can delete a company
   try {
     await prisma.company.delete({
       where: { id }

@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 
 export async function logAction(
   module: string,
@@ -10,6 +11,10 @@ export async function logAction(
   companyId?: string
 ) {
   try {
+    const session = await getSession();
+    const userName = session?.user?.name || session?.user?.username || 'Usuario Desconocido';
+    const userRole = session?.user?.role || 'User';
+
     // Determine severity
     let severity = 'INFO';
     if (action === 'ACCESO_DENEGADO' || action === 'ELIMINAR') {
@@ -20,8 +25,8 @@ export async function logAction(
 
     return await prisma.auditLog.create({
       data: {
-        userName: 'Dante Moner', // TODO: Replace with real auth user
-        userRole: 'Admin',       // TODO: Replace with real auth role
+        userName,
+        userRole,
         module,
         action,
         target,

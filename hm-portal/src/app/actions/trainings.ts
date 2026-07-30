@@ -2,12 +2,14 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { requireAuth } from '@/lib/auth';
 
 // ==========================================
 // TRAINING PLANS
 // ==========================================
 
 export async function getTrainingPlans(companyId: string) {
+  await requireAuth(companyId);
   try {
     return await prisma.trainingPlan.findMany({
       where: { companyId },
@@ -27,6 +29,7 @@ export async function getTrainingPlans(companyId: string) {
 }
 
 export async function getTrainingPlanByYear(companyId: string, year: number) {
+  await requireAuth(companyId);
   try {
     return await prisma.trainingPlan.findUnique({
       where: {
@@ -51,6 +54,7 @@ export async function getTrainingPlanByYear(companyId: string, year: number) {
 }
 
 export async function createTrainingPlan(companyId: string, year: number) {
+  await requireAuth(companyId, ['ADMIN', 'MANAGER']);
   try {
     const existing = await getTrainingPlanByYear(companyId, year);
     if (existing) return existing;
@@ -74,6 +78,7 @@ export async function createTrainingPlan(companyId: string, year: number) {
 // ==========================================
 
 export async function createTraining(companyId: string, data: any) {
+  await requireAuth(companyId, ['ADMIN', 'MANAGER']);
   try {
     const training = await prisma.training.create({
       data: {
@@ -98,6 +103,7 @@ export async function createTraining(companyId: string, data: any) {
 }
 
 export async function updateTraining(id: string, companyId: string, data: any) {
+  await requireAuth(companyId, ['ADMIN', 'MANAGER']);
   try {
     const training = await prisma.training.update({
       where: { id },
@@ -113,6 +119,7 @@ export async function updateTraining(id: string, companyId: string, data: any) {
 }
 
 export async function deleteTraining(id: string, companyId: string) {
+  await requireAuth(companyId, ['ADMIN', 'MANAGER']);
   try {
     await prisma.training.delete({
       where: { id }
@@ -127,6 +134,10 @@ export async function deleteTraining(id: string, companyId: string) {
 
 export async function getTrainingDetails(id: string) {
   try {
+    const trainingInfo = await prisma.training.findUnique({ where: { id }, select: { companyId: true }});
+    if (trainingInfo) {
+      await requireAuth(trainingInfo.companyId);
+    }
     return await prisma.training.findUnique({
       where: { id },
       include: {
@@ -149,6 +160,7 @@ export async function getTrainingDetails(id: string) {
 // ==========================================
 
 export async function syncTrainingRecords(trainingId: string, companyId: string) {
+  await requireAuth(companyId, ['ADMIN', 'MANAGER']);
   try {
     // 1. Get all workers for this company
     const workers = await prisma.worker.findMany({
@@ -182,6 +194,7 @@ export async function syncTrainingRecords(trainingId: string, companyId: string)
 }
 
 export async function saveTrainingRecords(records: any[], companyId: string) {
+  await requireAuth(companyId, ['ADMIN', 'MANAGER']);
   try {
     // We update each record sequentially or via transaction
     const updates = records.map(record => {
@@ -211,6 +224,7 @@ export async function saveTrainingRecords(records: any[], companyId: string) {
 // ==========================================
 
 export async function getTrainingDashboardStats(companyId: string) {
+  await requireAuth(companyId);
   try {
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1; // 1-12

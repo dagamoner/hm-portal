@@ -2,8 +2,10 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { requireAuth } from "@/lib/auth";
 
 export async function createCancerigenoEvaluation(companyId: string, data: any) {
+    await requireAuth(companyId, ['ADMIN', 'MANAGER']);
     try {
         const evaluation = await prisma.cancerigenoEvaluation.create({
             data: {
@@ -41,6 +43,7 @@ export async function createCancerigenoEvaluation(companyId: string, data: any) 
 }
 
 export async function getCancerigenoEvaluations(companyId: string) {
+    await requireAuth(companyId);
     try {
         return await prisma.cancerigenoEvaluation.findMany({
             where: { companyId },

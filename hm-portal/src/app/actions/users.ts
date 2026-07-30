@@ -3,8 +3,10 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
+import { requireAuth } from "@/lib/auth";
 
 export async function getUsers() {
+  await requireAuth(undefined, ['ADMIN']); // Only ADMIN can view all users
   try {
     const users = await prisma.user.findMany({
       include: { company: true },
@@ -18,6 +20,7 @@ export async function getUsers() {
 }
 
 export async function createUser(formData: FormData) {
+  await requireAuth(undefined, ['ADMIN']); // Only ADMIN can create users directly for now
   try {
     const username = formData.get("username") as string;
     const password = formData.get("password") as string;
@@ -51,6 +54,7 @@ export async function createUser(formData: FormData) {
 }
 
 export async function deleteUser(id: string) {
+  await requireAuth(undefined, ['ADMIN']); // Only ADMIN can delete a user
   try {
     // Avoid deleting the main admin
     const user = await prisma.user.findUnique({ where: { id } });
@@ -68,6 +72,7 @@ export async function deleteUser(id: string) {
 }
 
 export async function getUsersWithAuditStats() {
+  await requireAuth(undefined, ['ADMIN']);
   try {
     const users = await prisma.user.findMany({
       include: { company: true },
