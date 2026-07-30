@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Search, Plus, AlertTriangle, X, Eye, FileText, Calendar, MapPin, Activity, CheckCircle, ShieldAlert, Edit, Trash2 } from 'lucide-react';
 import { createIncident, updateIncidentStatus, updateIncident, deleteIncident } from '@/app/actions/incidents';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 export default function IncidentsClient({
     incidents,
@@ -13,6 +14,8 @@ export default function IncidentsClient({
     companyId: string
 }) {
     const router = useRouter();
+    const { canEdit, isClient } = useAuth();
+    
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedIncident, setSelectedIncident] = useState<any | null>(null);
     const [isCreating, setIsCreating] = useState(false);
@@ -207,17 +210,19 @@ export default function IncidentsClient({
                     <h2 className="text-3xl font-black text-slate-900 tracking-tight">Registro de Eventos</h2>
                     <p className="text-slate-500 font-medium mt-1">Gestiona y analiza incidentes laborales con IA.</p>
                 </div>
-                <button 
-                    onClick={() => { 
-                        setIsCreating(true); 
-                        setIsEditing(false);
-                        setSelectedIncident(null); 
-                        setTitle(''); setDateStr(''); setLocation(''); setDescription(''); setSeverity('LOW'); setIncidentType(''); setBodyPart(''); setMachinery(''); setWitnesses('');
-                    }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold tracking-widest uppercase text-xs flex items-center gap-2 shadow-xl shadow-blue-600/20 transition-all active:scale-95"
-                >
-                    <Plus className="w-4 h-4" /> Nuevo Reporte
-                </button>
+                {!isClient && (
+                    <button 
+                        onClick={() => { 
+                            setIsCreating(true); 
+                            setIsEditing(false);
+                            setSelectedIncident(null); 
+                            setTitle(''); setDateStr(''); setLocation(''); setDescription(''); setSeverity('LOW'); setIncidentType(''); setBodyPart(''); setMachinery(''); setWitnesses('');
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold tracking-widest uppercase text-xs flex items-center gap-2 shadow-xl shadow-blue-600/20 transition-all active:scale-95"
+                    >
+                        <Plus className="w-4 h-4" /> Nuevo Reporte
+                    </button>
+                )}
             </div>
 
             {/* Barra de Búsqueda */}
@@ -448,21 +453,29 @@ export default function IncidentsClient({
                                         >
                                             <Activity className="w-3.5 h-3.5" /> Investigación
                                         </button>
-                                        {selectedIncident.status !== 'Cerrado' ? (
-                                            <button onClick={() => handleStatusChange(selectedIncident.id, 'Cerrado')} className="text-xs font-bold bg-green-50 hover:bg-green-100 text-green-700 px-3 py-1.5 rounded-lg transition-colors border border-green-200">
-                                                Cerrar Incidente
-                                            </button>
-                                        ) : (
-                                            <button onClick={() => handleStatusChange(selectedIncident.id, 'En Investigación')} className="text-xs font-bold bg-orange-50 hover:bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg transition-colors border border-orange-200">
-                                                Reabrir Incidente
+                                        
+                                        {!isClient && (
+                                            <>
+                                                {selectedIncident.status !== 'Cerrado' ? (
+                                                    <button onClick={() => handleStatusChange(selectedIncident.id, 'Cerrado')} className="text-xs font-bold bg-green-50 hover:bg-green-100 text-green-700 px-3 py-1.5 rounded-lg transition-colors border border-green-200">
+                                                        Cerrar Incidente
+                                                    </button>
+                                                ) : (
+                                                    <button onClick={() => handleStatusChange(selectedIncident.id, 'En Investigación')} className="text-xs font-bold bg-orange-50 hover:bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg transition-colors border border-orange-200">
+                                                        Reabrir Incidente
+                                                    </button>
+                                                )}
+                                                <button onClick={startEdit} className="text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg transition-colors border border-blue-200 flex items-center gap-1">
+                                                    <Edit className="w-3.5 h-3.5" /> Editar
+                                                </button>
+                                            </>
+                                        )}
+                                        
+                                        {canEdit && (
+                                            <button onClick={handleDelete} className="text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-lg transition-colors border border-rose-200 flex items-center gap-1">
+                                                <Trash2 className="w-3.5 h-3.5" /> Eliminar
                                             </button>
                                         )}
-                                        <button onClick={startEdit} className="text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg transition-colors border border-blue-200 flex items-center gap-1">
-                                            <Edit className="w-3.5 h-3.5" /> Editar
-                                        </button>
-                                        <button onClick={handleDelete} className="text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-lg transition-colors border border-rose-200 flex items-center gap-1">
-                                            <Trash2 className="w-3.5 h-3.5" /> Eliminar
-                                        </button>
                                     </div>
                                 </div>
                             </div>

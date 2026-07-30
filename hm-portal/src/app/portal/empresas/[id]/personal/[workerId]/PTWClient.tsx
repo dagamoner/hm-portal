@@ -6,9 +6,11 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { issuePTW, getPTWSuggestions } from "@/app/actions/personal";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function PTWClient({ companyId, worker }: { companyId: string, worker: any }) {
   const router = useRouter();
+  const { isClient } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   
@@ -133,13 +135,15 @@ export default function PTWClient({ companyId, worker }: { companyId: string, wo
           <FileSignature className="w-5 h-5 text-slate-500" />
           <span>Historial de Permisos (PTW)</span>
         </h2>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center space-x-2 shadow-sm shadow-red-200"
-        >
-          <FileSignature className="w-4 h-4" />
-          <span>Emitir Nuevo PTW</span>
-        </button>
+        {!isClient && (
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center space-x-2 shadow-sm shadow-red-200"
+          >
+            <FileSignature className="w-4 h-4" />
+            <span>Emitir Nuevo PTW</span>
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-4">

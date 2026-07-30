@@ -10,6 +10,7 @@ import { DocumentCategory, DocumentStatus } from '@prisma/client';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 export type DocumentDTO = {
     id: string;
@@ -30,6 +31,7 @@ export default function DocumentationClient({
     companyId: string,
     companyName: string
 }) {
+    const { canEdit, isClient } = useAuth();
     const [selectedCategory, setSelectedCategory] = useState<DocumentCategory | 'TODOS'>('TODOS');
     const [searchQuery, setSearchQuery] = useState('');
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -173,13 +175,15 @@ export default function DocumentationClient({
                             </div>
                         )}
                     </div>
-                    <button 
-                        onClick={() => setIsUploadModalOpen(true)}
-                        className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-md shadow-indigo-600/20 hover:bg-indigo-700 transition-all flex items-center gap-2"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        CARGAR NUEVO DOCUMENTO
-                    </button>
+                    {!isClient && (
+                        <button 
+                            onClick={() => setIsUploadModalOpen(true)}
+                            className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-md shadow-indigo-600/20 hover:bg-indigo-700 transition-all flex items-center gap-2"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            CARGAR NUEVO DOCUMENTO
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -290,19 +294,23 @@ export default function DocumentationClient({
                                                 </a>
                                             </>
                                         )}
-                                        <button 
-                                            onClick={() => {
-                                                setSelectedUpdateDocId(doc.id);
-                                                setIsUpdateModalOpen(true);
-                                            }}
-                                            className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all" 
-                                            title="Reemplazar archivo"
-                                        >
-                                            <UploadCloud className="w-4 h-4" />
-                                        </button>
-                                        <button onClick={() => handleDelete(doc.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Eliminar documento">
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        {!isClient && (
+                                            <button 
+                                                onClick={() => {
+                                                    setSelectedUpdateDocId(doc.id);
+                                                    setIsUpdateModalOpen(true);
+                                                }}
+                                                className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all" 
+                                                title="Reemplazar archivo"
+                                            >
+                                                <UploadCloud className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                        {canEdit && (
+                                            <button onClick={() => handleDelete(doc.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Eliminar documento">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                                 
@@ -337,17 +345,19 @@ export default function DocumentationClient({
                     ))}
 
                     {/* Add New Placeholder */}
-                    <button 
-                        onClick={() => setIsUploadModalOpen(true)}
-                        className="bg-white/30 backdrop-blur-xl rounded-[2rem] border-2 border-dashed border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all min-h-[300px] flex flex-col items-center justify-center group"
-                    >
-                        <div className="w-12 h-12 bg-white rounded-2xl shadow-sm text-slate-400 group-hover:text-indigo-500 flex items-center justify-center mb-4 transition-colors">
-                            <Plus className="w-6 h-6" />
-                        </div>
-                        <span className="text-[10px] font-black text-slate-400 group-hover:text-indigo-500 uppercase tracking-widest transition-colors">
-                            Añadir Archivo Técnico
-                        </span>
-                    </button>
+                    {!isClient && (
+                        <button 
+                            onClick={() => setIsUploadModalOpen(true)}
+                            className="bg-white/30 backdrop-blur-xl rounded-[2rem] border-2 border-dashed border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all min-h-[300px] flex flex-col items-center justify-center group"
+                        >
+                            <div className="w-12 h-12 bg-white rounded-2xl shadow-sm text-slate-400 group-hover:text-indigo-500 flex items-center justify-center mb-4 transition-colors">
+                                <Plus className="w-6 h-6" />
+                            </div>
+                            <span className="text-[10px] font-black text-slate-400 group-hover:text-indigo-500 uppercase tracking-widest transition-colors">
+                                Añadir Archivo Técnico
+                            </span>
+                        </button>
+                    )}
                 </div>
             </div>
 

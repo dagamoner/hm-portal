@@ -6,6 +6,7 @@ import VisitaWizard from './VisitaWizard';
 import DashboardCards from './components/DashboardCards';
 import FindingsList from './components/FindingsList';
 import VisitsList from './components/VisitsList';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 export default function VisitasClient({ 
   company, 
@@ -18,6 +19,7 @@ export default function VisitasClient({
   initialVisits: any[];
   initialFindings: any[];
 }) {
+  const { canEdit, isClient } = useAuth();
   const [activeTab, setActiveTab] = useState<'visitas' | 'desvios'>('visitas');
   const [isCreating, setIsCreating] = useState(false);
   const [visits, setVisits] = useState(initialVisits);
@@ -79,20 +81,22 @@ export default function VisitasClient({
           </h1>
           <p className="text-slate-500 mt-1">Gestión de actas, libros de HyS y desvíos (No Conformidades).</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button 
-            className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm transition-all"
-            onClick={() => alert("Configuración de plantillas en desarrollo")}
-          >
-            <Settings className="w-4 h-4" /> Plantillas
-          </button>
-          <button 
-            onClick={() => setIsCreating(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-200 transition-all"
-          >
-            <Plus className="w-4 h-4" /> Nueva Visita
-          </button>
-        </div>
+        {!isClient && (
+          <div className="flex items-center gap-3">
+            <button 
+              className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm transition-all"
+              onClick={() => alert("Configuración de plantillas en desarrollo")}
+            >
+              <Settings className="w-4 h-4" /> Plantillas
+            </button>
+            <button 
+              onClick={() => setIsCreating(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-200 transition-all"
+            >
+              <Plus className="w-4 h-4" /> Nueva Visita
+            </button>
+          </div>
+        )}
       </div>
 
       {/* KPI Cards */}

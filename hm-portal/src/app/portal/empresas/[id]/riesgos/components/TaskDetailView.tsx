@@ -5,6 +5,7 @@ import { ArrowLeft, ShieldAlert, Plus, Trash2, CheckCircle2, AlertTriangle, Acti
 import { createHazard, deleteHazard, saveRiskEvaluation, createImprovementAction } from "@/app/actions/risks";
 import HazardModal from "./HazardModal";
 import ImprovementActionModal from "./ImprovementActionModal";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 const RISK_LEVELS = [
     { max: 4, label: "Bajo", color: "bg-emerald-100 text-emerald-700", bg: "bg-emerald-50 border-emerald-200" },
@@ -20,6 +21,7 @@ function getRiskLevel(p: number, s: number) {
 }
 
 export default function TaskDetailView({ task, companyId, onBack }: { task: any, companyId: string, onBack: () => void }) {
+    const { isClient, canEdit } = useAuth();
     const [isHazardModalOpen, setIsHazardModalOpen] = useState(false);
     const [actionModalEvalId, setActionModalEvalId] = useState<string | null>(null);
     
@@ -88,9 +90,11 @@ export default function TaskDetailView({ task, companyId, onBack }: { task: any,
                         </div>
                     </div>
                 </div>
-                <button onClick={() => setIsHazardModalOpen(true)} className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-2xl transition-all shadow-lg shadow-rose-200 flex items-center gap-2">
-                    <Plus className="w-4 h-4" /> Agregar Peligro
-                </button>
+                {!isClient && (
+                    <button onClick={() => setIsHazardModalOpen(true)} className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-2xl transition-all shadow-lg shadow-rose-200 flex items-center gap-2">
+                        <Plus className="w-4 h-4" /> Agregar Peligro
+                    </button>
+                )}
             </div>
 
             {/* Tabla de Peligros */}
@@ -130,9 +134,10 @@ export default function TaskDetailView({ task, companyId, onBack }: { task: any,
                                         </td>
                                         <td className="p-4 align-top text-center">
                                             <select 
-                                                className="w-full p-2 text-center bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 text-sm font-bold text-slate-700 cursor-pointer"
+                                                className="w-full p-2 text-center bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 text-sm font-bold text-slate-700 cursor-pointer disabled:opacity-50"
                                                 value={ev.p}
                                                 onChange={(e) => handleEvaluationChange(hazard.id, 'p', Number(e.target.value))}
+                                                disabled={!canEdit}
                                             >
                                                 <option value={0}>-</option>
                                                 <option value={1}>1-Rara</option>
@@ -144,9 +149,10 @@ export default function TaskDetailView({ task, companyId, onBack }: { task: any,
                                         </td>
                                         <td className="p-4 align-top text-center">
                                             <select 
-                                                className="w-full p-2 text-center bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 text-sm font-bold text-slate-700 cursor-pointer"
+                                                className="w-full p-2 text-center bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 text-sm font-bold text-slate-700 cursor-pointer disabled:opacity-50"
                                                 value={ev.s}
                                                 onChange={(e) => handleEvaluationChange(hazard.id, 's', Number(e.target.value))}
+                                                disabled={!canEdit}
                                             >
                                                 <option value={0}>-</option>
                                                 <option value={1}>1-Insignificante</option>
@@ -164,24 +170,31 @@ export default function TaskDetailView({ task, companyId, onBack }: { task: any,
                                         </td>
                                         <td className="p-4 align-top">
                                             <textarea 
-                                                className="w-full p-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-indigo-500 text-sm resize-none h-20"
+                                                className="w-full p-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-indigo-500 text-sm resize-none h-20 disabled:opacity-50"
                                                 placeholder="Ej: Uso de EPP, ventilación local..."
                                                 value={ev.control}
                                                 onChange={(e) => handleEvaluationChange(hazard.id, 'control', e.target.value)}
+                                                disabled={!canEdit}
                                             ></textarea>
                                         </td>
                                         <td className="p-4 align-top text-center space-y-2">
-                                            <button onClick={() => handleSaveEvaluation(hazard.id)} className="w-full p-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg transition-colors flex items-center justify-center gap-1 font-bold text-xs">
-                                                <CheckCircle2 className="w-3.5 h-3.5" /> Guardar
-                                            </button>
-                                            {ev.p * ev.s > 4 && hazard.evaluations?.[0]?.id && (
-                                                <button onClick={() => setActionModalEvalId(hazard.evaluations[0].id)} className="w-full p-2 bg-purple-50 text-purple-700 hover:bg-purple-600 hover:text-white rounded-lg transition-colors flex items-center justify-center gap-1 font-bold text-xs">
-                                                    <Wrench className="w-3.5 h-3.5" /> Plan
-                                                </button>
+                                            {canEdit ? (
+                                                <>
+                                                    <button onClick={() => handleSaveEvaluation(hazard.id)} className="w-full p-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg transition-colors flex items-center justify-center gap-1 font-bold text-xs">
+                                                        <CheckCircle2 className="w-3.5 h-3.5" /> Guardar
+                                                    </button>
+                                                    {ev.p * ev.s > 4 && hazard.evaluations?.[0]?.id && (
+                                                        <button onClick={() => setActionModalEvalId(hazard.evaluations[0].id)} className="w-full p-2 bg-purple-50 text-purple-700 hover:bg-purple-600 hover:text-white rounded-lg transition-colors flex items-center justify-center gap-1 font-bold text-xs">
+                                                            <Wrench className="w-3.5 h-3.5" /> Plan
+                                                        </button>
+                                                    )}
+                                                    <button onClick={() => handleDeleteHazard(hazard.id)} className="w-full p-2 bg-white text-slate-400 border border-slate-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-lg transition-colors flex items-center justify-center gap-1 font-bold text-xs">
+                                                        <Trash2 className="w-3.5 h-3.5" /> Eliminar
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <span className="text-xs text-slate-400">Solo lectura</span>
                                             )}
-                                            <button onClick={() => handleDeleteHazard(hazard.id)} className="w-full p-2 bg-white text-slate-400 border border-slate-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-lg transition-colors flex items-center justify-center gap-1 font-bold text-xs">
-                                                <Trash2 className="w-3.5 h-3.5" /> Eliminar
-                                            </button>
                                         </td>
                                     </tr>
                                 );

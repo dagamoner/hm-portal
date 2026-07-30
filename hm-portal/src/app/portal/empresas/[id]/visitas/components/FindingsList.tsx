@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { updateFindingStatus } from '@/app/actions/visits';
 import { AlertCircle, Calendar, CheckCircle2, MoreVertical, X } from 'lucide-react';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 const formatDate = (dateString: string | Date) => {
   return new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(dateString));
 };
 
 export default function FindingsList({ findings, onUpdate }: { findings: any[], onUpdate: (f: any) => void }) {
+  const { isClient } = useAuth();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [actionPlan, setActionPlan] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
@@ -130,7 +132,7 @@ export default function FindingsList({ findings, onUpdate }: { findings: any[], 
             </div>
 
             <div className="flex md:flex-col items-center md:items-end justify-end gap-2 border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-4 min-w-[140px]">
-              {finding.status !== 'CERRADO' && (
+              {!isClient && finding.status !== 'CERRADO' && (
                 <>
                   <button 
                     onClick={() => {

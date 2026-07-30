@@ -6,11 +6,13 @@ import { createEquipment } from "@/app/actions/equipos";
 import { useRouter } from "next/navigation";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export default function EquiposClient({ companyId, initialEquipments }: { companyId: string, initialEquipments: any[] }) {
   const router = useRouter();
+  const { isClient } = useAuth();
   const [equipments, setEquipments] = useState(initialEquipments);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -80,13 +82,15 @@ export default function EquiposClient({ companyId, initialEquipments }: { compan
 
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-slate-800">Inventario Centralizado ({equipments.length})</h2>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center space-x-2"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Alta de Activo</span>
-        </button>
+        {!isClient && (
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center space-x-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Alta de Activo</span>
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

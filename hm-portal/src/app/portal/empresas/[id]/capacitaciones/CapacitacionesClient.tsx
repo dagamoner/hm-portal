@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { createTraining } from '@/app/actions/trainings';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 const MONTHS = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
@@ -23,6 +24,7 @@ const MONTHS = [
 ];
 
 export default function CapacitacionesClient({ companyId, companyName, initialPlans, stats }: any) {
+  const { isClient } = useAuth();
   const [plans, setPlans] = useState(initialPlans);
   const currentYear = new Date().getFullYear();
   const currentMonthIndex = new Date().getMonth() + 1; // 1-12
@@ -136,12 +138,14 @@ export default function CapacitacionesClient({ companyId, companyName, initialPl
               <p className="text-slate-500 font-medium text-sm">Cronograma progresivo de formación</p>
             </div>
           </div>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 transition-all active:scale-95"
-          >
-            <Plus className="w-4 h-4" /> Agregar Capacitación
-          </button>
+          {!isClient && (
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 transition-all active:scale-95"
+            >
+              <Plus className="w-4 h-4" /> Agregar Capacitación
+            </button>
+          )}
         </div>
 
         <div className="p-8">

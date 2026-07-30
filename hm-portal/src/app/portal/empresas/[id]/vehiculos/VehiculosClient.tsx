@@ -4,9 +4,11 @@ import { useState } from "react";
 import { Plus, Car, Truck, Settings, FileText, CheckCircle } from "lucide-react";
 import { createVehicle } from "@/app/actions/vehiculos";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function VehiculosClient({ companyId, initialVehicles }: { companyId: string, initialVehicles: any[] }) {
   const router = useRouter();
+  const { isClient } = useAuth();
   const [vehicles, setVehicles] = useState(initialVehicles);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -52,13 +54,15 @@ export default function VehiculosClient({ companyId, initialVehicles }: { compan
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-slate-800">Directorio de Unidades ({vehicles.length})</h2>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center space-x-2"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Alta de Unidad</span>
-        </button>
+        {!isClient && (
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center space-x-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Alta de Unidad</span>
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

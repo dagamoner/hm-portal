@@ -3,9 +3,11 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Building2, ShieldAlert, Settings, Home, Users } from "lucide-react"
+import { useAuth } from "@/components/providers/AuthProvider"
 
 export function PortalSidebar() {
   const pathname = usePathname();
+  const { isAdmin, isManager } = useAuth();
 
   const getLinkClass = (path: string) => {
     const isActive = pathname.startsWith(path);
@@ -32,22 +34,26 @@ export function PortalSidebar() {
           <span>Dashboard</span>
         </Link>
         
-        <Link href="/portal/empresas" className={getLinkClass("/portal/empresas")}>
-          <Building2 size={20} />
-          <span>Empresas</span>
-        </Link>
+        {(isAdmin || isManager) && (
+          <Link href="/portal/empresas" className={getLinkClass("/portal/empresas")}>
+            <Building2 size={20} />
+            <span>Empresas</span>
+          </Link>
+        )}
 
-
-        
-        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-6 mb-2 px-4">Configuración</div>
-        <Link href="/portal/usuarios" className={getLinkClass("/portal/usuarios")}>
-          <Users size={20} />
-          <span>Usuarios</span>
-        </Link>
-        <Link href="/portal/settings" className={getLinkClass("/portal/settings")}>
-          <Settings size={20} />
-          <span>Ajustes</span>
-        </Link>
+        {(isAdmin || isManager) && (
+          <>
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-6 mb-2 px-4">Configuración</div>
+            <Link href="/portal/usuarios" className={getLinkClass("/portal/usuarios")}>
+              <Users size={20} />
+              <span>Usuarios</span>
+            </Link>
+            <Link href="/portal/settings" className={getLinkClass("/portal/settings")}>
+              <Settings size={20} />
+              <span>Ajustes</span>
+            </Link>
+          </>
+        )}
       </div>
     </aside>
   )

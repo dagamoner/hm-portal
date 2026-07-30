@@ -18,8 +18,10 @@ import ProcessModal from "./components/ProcessModal";
 import JobRoleModal from "./components/JobRoleModal";
 import TaskModal from "./components/TaskModal";
 import TaskDetailView from "./components/TaskDetailView";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function RiesgosClient({ companyId, initialEstablishments }: { companyId: string, initialEstablishments: any[] }) {
+    const { canEdit, isClient } = useAuth();
     const [establishments, setEstablishments] = useState(initialEstablishments);
     
     // Selection state
@@ -119,9 +121,11 @@ export default function RiesgosClient({ companyId, initialEstablishments }: { co
                             <Building2 className="w-5 h-5 text-indigo-500" />
                             Establecimientos
                         </h3>
-                        <button onClick={() => setModalConfig({type: 'ESTABLISHMENT'})} className="p-1.5 bg-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all">
-                            <Plus className="w-4 h-4" />
-                        </button>
+                        {!isClient && (
+                            <button onClick={() => setModalConfig({type: 'ESTABLISHMENT'})} className="p-1.5 bg-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all">
+                                <Plus className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
                     <div className="flex-1 overflow-y-auto p-3 space-y-2">
                         {establishments.length === 0 && (
@@ -142,9 +146,11 @@ export default function RiesgosClient({ companyId, initialEstablishments }: { co
                                     <MapPin className="w-3 h-3" /> {est.address || 'Sin dirección'}
                                 </div>
                                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                                    <button onClick={(e) => { e.stopPropagation(); handleDelete('ESTABLISHMENT', est.id); }} className="p-1.5 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
+                                    {canEdit && (
+                                        <button onClick={(e) => { e.stopPropagation(); handleDelete('ESTABLISHMENT', est.id); }} className="p-1.5 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
                                     <ChevronRight className={`w-4 h-4 ${selectedEst?.id === est.id ? 'text-indigo-600' : 'text-slate-300'}`} />
                                 </div>
                             </div>
@@ -160,9 +166,11 @@ export default function RiesgosClient({ companyId, initialEstablishments }: { co
                                 <LayoutGrid className="w-5 h-5 text-emerald-500" />
                                 Sectores
                             </h3>
-                            <button onClick={() => setModalConfig({type: 'SECTOR'})} className="p-1.5 bg-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all">
-                                <Plus className="w-4 h-4" />
-                            </button>
+                            {!isClient && (
+                                <button onClick={() => setModalConfig({type: 'SECTOR'})} className="p-1.5 bg-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all">
+                                    <Plus className="w-4 h-4" />
+                                </button>
+                            )}
                         </div>
                         <div className="flex-1 overflow-y-auto p-3 space-y-2">
                             {selectedEst.sectors?.length === 0 && (
@@ -180,9 +188,11 @@ export default function RiesgosClient({ companyId, initialEstablishments }: { co
                                 >
                                     <div className="font-bold text-slate-800 pr-8 text-sm">{sec.name}</div>
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                                        <button onClick={(e) => { e.stopPropagation(); handleDelete('SECTOR', sec.id); }} className="p-1.5 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
+                                        {canEdit && (
+                                            <button onClick={(e) => { e.stopPropagation(); handleDelete('SECTOR', sec.id); }} className="p-1.5 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        )}
                                         <ChevronRight className={`w-4 h-4 ${selectedSec?.id === sec.id ? 'text-emerald-600' : 'text-slate-300'}`} />
                                     </div>
                                 </div>
@@ -199,9 +209,11 @@ export default function RiesgosClient({ companyId, initialEstablishments }: { co
                                 <Settings className="w-5 h-5 text-amber-500" />
                                 Procesos
                             </h3>
-                            <button onClick={() => setModalConfig({type: 'PROCESS'})} className="p-1.5 bg-amber-100 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl transition-all">
-                                <Plus className="w-4 h-4" />
-                            </button>
+                            {!isClient && (
+                                <button onClick={() => setModalConfig({type: 'PROCESS'})} className="p-1.5 bg-amber-100 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl transition-all">
+                                    <Plus className="w-4 h-4" />
+                                </button>
+                            )}
                         </div>
                         <div className="flex-1 overflow-y-auto p-3 space-y-2">
                             {selectedSec.processes?.length === 0 && (
@@ -219,9 +231,11 @@ export default function RiesgosClient({ companyId, initialEstablishments }: { co
                                 >
                                     <div className="font-bold text-slate-800 pr-8 text-sm">{proc.name}</div>
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                                        <button onClick={(e) => { e.stopPropagation(); handleDelete('PROCESS', proc.id); }} className="p-1.5 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
+                                        {canEdit && (
+                                            <button onClick={(e) => { e.stopPropagation(); handleDelete('PROCESS', proc.id); }} className="p-1.5 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        )}
                                         <ChevronRight className={`w-4 h-4 ${selectedProc?.id === proc.id ? 'text-amber-600' : 'text-slate-300'}`} />
                                     </div>
                                 </div>
@@ -238,9 +252,11 @@ export default function RiesgosClient({ companyId, initialEstablishments }: { co
                                 <Briefcase className="w-5 h-5 text-sky-500" />
                                 Puestos
                             </h3>
-                            <button onClick={() => setModalConfig({type: 'JOBROLE'})} className="p-1.5 bg-sky-100 text-sky-600 hover:bg-sky-600 hover:text-white rounded-xl transition-all">
-                                <Plus className="w-4 h-4" />
-                            </button>
+                            {!isClient && (
+                                <button onClick={() => setModalConfig({type: 'JOBROLE'})} className="p-1.5 bg-sky-100 text-sky-600 hover:bg-sky-600 hover:text-white rounded-xl transition-all">
+                                    <Plus className="w-4 h-4" />
+                                </button>
+                            )}
                         </div>
                         <div className="flex-1 overflow-y-auto p-3 space-y-2">
                             {selectedProc.jobRoles?.length === 0 && (
@@ -261,9 +277,11 @@ export default function RiesgosClient({ companyId, initialEstablishments }: { co
                                         <Users className="w-3 h-3" /> {role.personnelCount || 1} Trabajador(es)
                                     </div>
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                                        <button onClick={(e) => { e.stopPropagation(); handleDelete('JOBROLE', role.id); }} className="p-1.5 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
+                                        {canEdit && (
+                                            <button onClick={(e) => { e.stopPropagation(); handleDelete('JOBROLE', role.id); }} className="p-1.5 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        )}
                                         <ChevronRight className={`w-4 h-4 ${selectedRole?.id === role.id ? 'text-sky-600' : 'text-slate-300'}`} />
                                     </div>
                                 </div>
@@ -280,9 +298,11 @@ export default function RiesgosClient({ companyId, initialEstablishments }: { co
                                 <ClipboardList className="w-5 h-5 text-rose-500" />
                                 Tareas
                             </h3>
-                            <button onClick={() => setModalConfig({type: 'TASK'})} className="p-1.5 bg-rose-100 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all">
-                                <Plus className="w-4 h-4" />
-                            </button>
+                            {!isClient && (
+                                <button onClick={() => setModalConfig({type: 'TASK'})} className="p-1.5 bg-rose-100 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all">
+                                    <Plus className="w-4 h-4" />
+                                </button>
+                            )}
                         </div>
                         <div className="flex-1 overflow-y-auto p-3 space-y-2">
                             {selectedRole.tasks?.length === 0 && (
@@ -299,9 +319,11 @@ export default function RiesgosClient({ companyId, initialEstablishments }: { co
                                         {task.type || 'Rutinaria'}
                                     </div>
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                                        <button onClick={(e) => { e.stopPropagation(); handleDelete('TASK', task.id); }} className="p-1.5 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
+                                        {canEdit && (
+                                            <button onClick={(e) => { e.stopPropagation(); handleDelete('TASK', task.id); }} className="p-1.5 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        )}
                                         <ChevronRight className="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </div>
                                 </div>
