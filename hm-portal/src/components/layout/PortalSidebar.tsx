@@ -51,10 +51,12 @@ export function PortalSidebar() {
         {(isAdmin || isManager) && (
           <>
             <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-6 mb-2 px-4">Configuración</div>
-            <Link href="/portal/usuarios" className={getLinkClass("/portal/usuarios")}>
-              <Users size={20} />
-              <span>Usuarios</span>
-            </Link>
+            {isAdmin && (
+              <Link href="/portal/usuarios" className={getLinkClass("/portal/usuarios")}>
+                <Users size={20} />
+                <span>Usuarios</span>
+              </Link>
+            )}
             <Link href="/portal/settings" className={getLinkClass("/portal/settings")}>
               <Settings size={20} />
               <span>Ajustes</span>
