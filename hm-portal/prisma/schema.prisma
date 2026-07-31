@@ -43,6 +43,10 @@ model User {
   // Additional user data
   dni       String?
   phone     String?
+  
+  // Role-based access control
+  hasGlobalAccess    Boolean  @default(false)
+  assignedCompanyIds String[] @default([])
 }
 
 // ==========================================

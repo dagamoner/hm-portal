@@ -66,11 +66,24 @@ export async function requireAuth(companyId?: string, allowedRoles?: string[]) {
   }
 
   // IDOR / Company validation
-  // Internal roles (ADMIN, MANAGER, INSPECTOR) have universal access
-  if (!['ADMIN', 'MANAGER', 'INSPECTOR'].includes(user.role)) {
-    if (companyId && user.companyId !== companyId) {
-      throw new Error("Acceso denegado. No perteneces a esta empresa.");
+  if (user.role === 'ADMIN' || user.hasGlobalAccess) {
+    // Universal access
+    return user;
+  }
+
+  if (['MANAGER', 'INSPECTOR'].includes(user.role)) {
+    if (companyId) {
+      const allowedCompanies = user.assignedCompanyIds || [];
+      if (!allowedCompanies.includes(companyId)) {
+        throw new Error("Acceso denegado. No tienes permisos para ver esta empresa.");
+      }
     }
+    return user;
+  }
+
+  // CLIENT access
+  if (companyId && user.companyId !== companyId) {
+    throw new Error("Acceso denegado. No perteneces a esta empresa.");
   }
 
   return user;

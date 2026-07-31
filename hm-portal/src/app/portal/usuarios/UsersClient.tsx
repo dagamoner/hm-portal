@@ -20,11 +20,13 @@ export default function UsersClient({ initialUsers, companies }) {
     const [isPending, startTransition] = useTransition();
 
     const [formData, setFormData] = useState({
-        id: '', username: '', password: '', name: '', role: 'CLIENT', companyId: '', dni: '', phone: ''
+        id: '', username: '', password: '', name: '', role: 'CLIENT', companyId: '', dni: '', phone: '',
+        hasGlobalAccess: false,
+        assignedCompanyIds: [] as string[]
     });
 
     const openCreate = () => {
-        setFormData({ id: '', username: '', password: '', name: '', role: 'CLIENT', companyId: '', dni: '', phone: '' });
+        setFormData({ id: '', username: '', password: '', name: '', role: 'CLIENT', companyId: '', dni: '', phone: '', hasGlobalAccess: false, assignedCompanyIds: [] });
         setError(null);
         setIsCreateModalOpen(true);
     };
@@ -38,7 +40,9 @@ export default function UsersClient({ initialUsers, companies }) {
             role: u.role,
             companyId: u.companyId || '',
             dni: u.dni || '',
-            phone: u.phone || ''
+            phone: u.phone || '',
+            hasGlobalAccess: u.hasGlobalAccess || false,
+            assignedCompanyIds: u.assignedCompanyIds || []
         });
         setError(null);
         setIsEditModalOpen(true);
@@ -48,7 +52,15 @@ export default function UsersClient({ initialUsers, companies }) {
         e.preventDefault();
         setError(null);
         const data = new FormData();
-        Object.entries(formData).forEach(([key, value]) => data.append(key, value));
+        Object.entries(formData).forEach(([key, value]) => {
+            if (key === 'assignedCompanyIds') {
+                (value as string[]).forEach(id => data.append('assignedCompanyIds', id));
+            } else if (key === 'hasGlobalAccess') {
+                data.append(key, value ? 'true' : 'false');
+            } else {
+                data.append(key, value as string);
+            }
+        });
 
         startTransition(async () => {
             const res = await createUser(data);
@@ -64,7 +76,15 @@ export default function UsersClient({ initialUsers, companies }) {
         e.preventDefault();
         setError(null);
         const data = new FormData();
-        Object.entries(formData).forEach(([key, value]) => data.append(key, value));
+        Object.entries(formData).forEach(([key, value]) => {
+            if (key === 'assignedCompanyIds') {
+                (value as string[]).forEach(id => data.append('assignedCompanyIds', id));
+            } else if (key === 'hasGlobalAccess') {
+                data.append(key, value ? 'true' : 'false');
+            } else {
+                data.append(key, value as string);
+            }
+        });
 
         startTransition(async () => {
             const res = await updateUser(formData.id, data);
@@ -199,8 +219,12 @@ export default function UsersClient({ initialUsers, companies }) {
                                                 <Building className="w-4 h-4 text-slate-400" />
                                                 <span className="font-bold text-slate-700">{user.company.name}</span>
                                             </div>
-                                        ) : (
+                                        ) : user.hasGlobalAccess ? (
                                             <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Acceso Global</span>
+                                        ) : user.assignedCompanyIds?.length > 0 ? (
+                                            <span className="text-xs text-indigo-600 font-bold uppercase tracking-wider">{user.assignedCompanyIds.length} Empresas Asignadas</span>
+                                        ) : (
+                                            <span className="text-xs text-red-500 font-bold uppercase tracking-wider">Sin Acceso</span>
                                         )}
                                     </td>
                                     <td className="px-6 py-5 text-right">
@@ -319,6 +343,46 @@ export default function UsersClient({ initialUsers, companies }) {
                                             ))}
                                         </select>
                                     </div>
+                                </div>
+                            )}
+
+                            {['MANAGER', 'INSPECTOR'].includes(formData.role) && (
+                                <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                    <div className="flex items-center gap-3">
+                                        <input 
+                                            type="checkbox" 
+                                            id="globalAccess"
+                                            checked={formData.hasGlobalAccess}
+                                            onChange={(e) => setFormData({...formData, hasGlobalAccess: e.target.checked})}
+                                            className="w-5 h-5 text-indigo-600 rounded-md border-slate-300 focus:ring-indigo-500"
+                                        />
+                                        <label htmlFor="globalAccess" className="text-sm font-bold text-slate-800">
+                                            Otorgar Acceso Global a todas las empresas
+                                        </label>
+                                    </div>
+                                    {!formData.hasGlobalAccess && (
+                                        <div className="mt-4">
+                                            <label className="text-xs font-black uppercase text-slate-600 ml-1 mb-2 block">Seleccionar Empresas Específicas</label>
+                                            <div className="max-h-48 overflow-y-auto space-y-2 pr-2">
+                                                {companies.map((c: any) => (
+                                                    <label key={c.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-xl transition-all cursor-pointer">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={formData.assignedCompanyIds.includes(c.id)}
+                                                            onChange={(e) => {
+                                                                const newIds = e.target.checked 
+                                                                    ? [...formData.assignedCompanyIds, c.id]
+                                                                    : formData.assignedCompanyIds.filter(id => id !== c.id);
+                                                                setFormData({...formData, assignedCompanyIds: newIds});
+                                                            }}
+                                                            className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                                                        />
+                                                        <span className="text-sm text-slate-700">{c.name}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

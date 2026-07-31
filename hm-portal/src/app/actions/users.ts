@@ -29,6 +29,8 @@ export async function createUser(formData: FormData) {
     const companyId = formData.get("companyId") as string;
     const dni = formData.get("dni") as string;
     const phone = formData.get("phone") as string;
+    const hasGlobalAccess = formData.get("hasGlobalAccess") === 'true';
+    const assignedCompanyIds = formData.getAll("assignedCompanyIds") as string[];
 
     const existingUser = await prisma.user.findUnique({ where: { username } });
     if (existingUser) {
@@ -46,6 +48,8 @@ export async function createUser(formData: FormData) {
         companyId: companyId || null,
         dni: dni || null,
         phone: phone || null,
+        hasGlobalAccess,
+        assignedCompanyIds,
       }
     });
     
@@ -90,6 +94,8 @@ export async function updateUser(id: string, formData: FormData) {
     const companyId = formData.get("companyId") as string;
     const dni = formData.get("dni") as string;
     const phone = formData.get("phone") as string;
+    const hasGlobalAccess = formData.get("hasGlobalAccess") === 'true';
+    const assignedCompanyIds = formData.getAll("assignedCompanyIds") as string[];
 
     // Default main admin can't have its role changed
     const user = await prisma.user.findUnique({ where: { id } });
@@ -101,10 +107,12 @@ export async function updateUser(id: string, formData: FormData) {
       where: { id },
       data: {
         name,
-        role,
+        role: user?.username === 'admin' ? 'ADMIN' : (role || 'CLIENT'),
         companyId: companyId || null,
         dni: dni || null,
         phone: phone || null,
+        hasGlobalAccess,
+        assignedCompanyIds,
       }
     });
     

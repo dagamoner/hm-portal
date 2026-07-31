@@ -8,8 +8,15 @@ export async function getCompanies() {
   const user = await requireAuth(); 
   
   try {
-    if (['ADMIN', 'MANAGER', 'INSPECTOR'].includes(user.role)) {
+    if (user.role === 'ADMIN' || user.hasGlobalAccess) {
       const companies = await prisma.company.findMany({
+        orderBy: { name: 'asc' }
+      });
+      return companies;
+    } else if (['MANAGER', 'INSPECTOR'].includes(user.role)) {
+      const allowedCompanyIds = user.assignedCompanyIds || [];
+      const companies = await prisma.company.findMany({
+        where: { id: { in: allowedCompanyIds } },
         orderBy: { name: 'asc' }
       });
       return companies;
