@@ -8,8 +8,21 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "MH Portal | Higiene y Seguridad Laboral",
-  description: "Servicios integrales de Higiene y Seguridad Laboral B2B",
+  title: "MH Higiene y Seguridad Laboral",
+  description: "Servicios integrales de Higiene y Seguridad Laboral B2B. Consultoría, capacitaciones, inspecciones y gestión de riesgos para tu empresa.",
+  keywords: ["higiene y seguridad", "seguridad laboral", "consultoría", "SRT", "prevención de riesgos", "capacitaciones", "inspecciones", "Argentina"],
+  openGraph: {
+    title: "MH Higiene y Seguridad Laboral",
+    description: "Servicios integrales de Higiene y Seguridad Laboral B2B para tu empresa.",
+    url: "https://mhhigieneyseguridad.com",
+    siteName: "MH Higiene y Seguridad",
+    locale: "es_AR",
+    type: "website",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
