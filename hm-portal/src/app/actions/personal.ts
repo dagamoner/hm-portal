@@ -3,17 +3,47 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
+function calculateSafetyScore(worker: any) {
+  let score = 50; // Base score
+  
+  // EPP Delivered
+  if (worker.eppDeliveries && worker.eppDeliveries.length > 0) {
+    score += 10;
+  }
+  
+  // Trainings
+  if (worker.trainingRecords && worker.trainingRecords.length > 0) {
+    const approvedTrainings = worker.trainingRecords.filter((t: any) => t.approved).length;
+    score += Math.min(20, approvedTrainings * 5); // Max 20 points
+  }
+  
+  // Permits
+  if (worker.permits && worker.permits.length > 0) {
+    const validPermits = worker.permits.filter((p: any) => p.status === 'Vigente' || p.status === 'Cerrado' || p.status === 'Firmado').length;
+    score += Math.min(20, validPermits * 2); // Max 20 points
+  }
+  
+  return Math.min(100, Math.max(0, score)); // Ensure between 0 and 100
+}
+
 export async function getWorkers(companyId: string) {
   try {
-    return await prisma.worker.findMany({
+    const workers = await prisma.worker.findMany({
       where: { companyId },
       include: {
         permits: {
           orderBy: { issueDate: 'desc' }
-        }
+        },
+        trainingRecords: true,
+        eppDeliveries: true
       },
       orderBy: { createdAt: 'desc' }
     });
+    
+    return workers.map(w => ({
+      ...w,
+      safetyScore: calculateSafetyScore(w)
+    }));
   } catch (error) {
     console.error("Error fetching workers:", error);
     return [];
@@ -22,14 +52,23 @@ export async function getWorkers(companyId: string) {
 
 export async function getWorkerProfile(workerId: string) {
   try {
-    return await prisma.worker.findUnique({
+    const worker = await prisma.worker.findUnique({
       where: { id: workerId },
       include: {
         permits: {
           orderBy: { issueDate: 'desc' }
-        }
+        },
+        trainingRecords: true
       }
     });
+    
+    if (worker) {
+      return {
+        ...worker,
+        safetyScore: calculateSafetyScore(worker)
+      };
+    }
+    return null;
   } catch (error) {
     console.error("Error fetching worker:", error);
     return null;
@@ -72,6 +111,38 @@ export async function generateWorkers(companyId: string, roleName: string, count
   } catch (error) {
     console.error("Error generating workers:", error);
     return { success: false, error: "No se pudieron generar los perfiles" };
+  }
+}
+
+export async function createActualWorkers(companyId: string, workersData: any[]) {
+  try {
+    const formattedWorkers = workersData.map(w => ({
+      companyId,
+      firstName: w.firstName,
+      lastName: w.lastName,
+      documentId: w.documentId,
+      safetyScore: 100, // Default to 100 as per user requirement to use live data later
+      laborData: {
+        position: w.position,
+        function: w.function,
+        cuil: w.cuil,
+        phone: w.phone,
+        emergencyContact: w.emergencyContact || null,
+        address: w.address || null,
+        eppDelivered: w.eppDelivered,
+        educationLevel: w.educationLevel || null,
+      }
+    }));
+
+    const createdWorkers = await prisma.$transaction(
+      formattedWorkers.map(data => prisma.worker.create({ data }))
+    );
+
+    revalidatePath(`/portal/empresas/${companyId}/personal`);
+    return { success: true, workers: createdWorkers };
+  } catch (error) {
+    console.error("Error creating real workers:", error);
+    return { success: false, error: "No se pudieron crear los perfiles" };
   }
 }
 
@@ -144,4 +215,46 @@ export async function getPTWSuggestions(taskDescription: string) {
   }
 
   return { success: true, suggestions: { hazards, ppe, preventions } };
+}
+
+export async function updateWorker(workerId: string, companyId: string, data: any) {
+  try {
+    const worker = await prisma.worker.update({
+      where: { id: workerId },
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        documentId: data.documentId,
+        laborData: {
+          position: data.position,
+          function: data.function,
+          cuil: data.cuil,
+          phone: data.phone,
+          emergencyContact: data.emergencyContact || null,
+          address: data.address || null,
+          eppDelivered: data.eppDelivered,
+          educationLevel: data.educationLevel || null,
+        }
+      }
+    });
+    revalidatePath(`/portal/empresas/${companyId}/personal`);
+    revalidatePath(`/portal/empresas/${companyId}/personal/${workerId}`);
+    return { success: true, worker };
+  } catch (error) {
+    console.error("Error updating worker:", error);
+    return { success: false, error: "Error al actualizar perfil" };
+  }
+}
+
+export async function deleteWorker(workerId: string, companyId: string) {
+  try {
+    await prisma.worker.delete({
+      where: { id: workerId }
+    });
+    revalidatePath(`/portal/empresas/${companyId}/personal`);
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting worker:", error);
+    return { success: false, error: "Error al eliminar perfil" };
+  }
 }

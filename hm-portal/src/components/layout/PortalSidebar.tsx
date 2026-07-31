@@ -19,7 +19,7 @@ export function PortalSidebar() {
   };
 
   return (
-    <aside className="w-72 bg-white border-r border-slate-200 h-screen fixed left-0 top-0 flex flex-col z-50">
+    <aside className="print:hidden w-72 bg-white border-r border-slate-200 h-screen fixed left-0 top-0 flex flex-col z-50">
       <div className="h-24 flex items-center px-8 border-b border-slate-100">
         <Link href="/portal" className="flex items-center gap-2">
           <span className="text-2xl font-black text-indigo-900 tracking-tight">MH<span className="text-indigo-600">.</span> Portal</span>

@@ -6,7 +6,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { 
     LayoutDashboard, FileText, Activity, Accessibility, Bug, AlertTriangle, 
     Search, ShieldAlert, Calendar, Truck, Server, Users, ClipboardCheck, 
-    History, GraduationCap, TableProperties, Siren
+    History, GraduationCap, TableProperties, Siren, Shield
 } from "lucide-react";
 
 export const MODULES = [
@@ -23,6 +23,7 @@ export const MODULES = [
     { name: "Vehículos", path: "/vehiculos", icon: Truck },
     { name: "Equipos y Activos", path: "/equipos", icon: Server },
     { name: "Personal", path: "/personal", icon: Users },
+    { name: "Entrega EPP", path: "/epp", icon: Shield },
     { name: "Visitas", path: "/visitas", icon: ClipboardCheck },
     { name: "Capacitaciones", path: "/capacitaciones", icon: GraduationCap },
 ];
@@ -37,7 +38,7 @@ export function CompanyTabs({ companyId }: { companyId: string }) {
     ];
 
     return (
-        <div className="w-full bg-white/60 backdrop-blur-md border-b border-white/50 sticky top-0 z-40">
+        <div className="print:hidden w-full bg-white/60 backdrop-blur-md border-b border-white/50 sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="flex space-x-1 overflow-x-auto custom-scrollbar py-3">
                     {tabsToRender.map((module) => {

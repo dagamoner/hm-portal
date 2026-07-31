@@ -104,7 +104,7 @@ export async function createTraining(companyId: string, data: any) {
 
 export async function updateTraining(id: string, companyId: string, data: any) {
   try {
-    await requireAuth(companyId, ['ADMIN', 'MANAGER']);
+    await requireAuth(companyId, ['ADMIN', 'MANAGER', 'INSPECTOR']);
     const training = await prisma.training.update({
       where: { id },
       data
@@ -195,15 +195,16 @@ export async function syncTrainingRecords(trainingId: string, companyId: string)
 
 export async function saveTrainingRecords(records: any[], companyId: string) {
   try {
-    await requireAuth(companyId, ['ADMIN', 'MANAGER']);
+    await requireAuth(companyId, ['ADMIN', 'MANAGER', 'INSPECTOR']);
     // We update each record sequentially or via transaction
     const updates = records.map(record => {
       return prisma.trainingRecord.update({
         where: { id: record.id },
         data: {
           completed: record.completed,
+          hasExam: record.hasExam,
           approved: record.approved,
-          score: record.score ? parseFloat(record.score) : null,
+          score: (record.score !== null && record.score !== undefined && record.score !== '') ? parseFloat(record.score) : null,
           certificateId: record.certificateId,
           completionDate: record.completionDate ? new Date(record.completionDate) : null,
           expirationDate: record.completionDate ? new Date(new Date(record.completionDate).setFullYear(new Date(record.completionDate).getFullYear() + 1)) : null
@@ -213,6 +214,8 @@ export async function saveTrainingRecords(records: any[], companyId: string) {
     
     await prisma.$transaction(updates);
     revalidatePath(`/portal/empresas/${companyId}/capacitaciones`);
+    // Assuming we could also just revalidate everything in the portal
+    revalidatePath(`/portal/empresas/${companyId}/capacitaciones/[trainingId]`, 'page');
   } catch (error: any) {
         console.error("Action Error:", error);
         return { error: error.message || "Ha ocurrido un error inesperado." };

@@ -36,7 +36,7 @@ export async function PortalHeader() {
   }
 
   return (
-    <header className="h-24 px-10 flex items-center justify-between border-b border-slate-200/60 bg-white/70 backdrop-blur-md sticky top-0 z-40">
+    <header className="print:hidden h-24 px-10 flex items-center justify-between border-b border-slate-200/60 bg-white/70 backdrop-blur-md sticky top-0 z-40">
       <div className="flex items-center gap-4">
         <div className="p-3 bg-slate-100 rounded-xl hidden md:block">
           <Search className="w-5 h-5 text-slate-400" />

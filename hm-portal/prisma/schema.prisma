@@ -261,6 +261,7 @@ model Worker {
   permits          PermitToWork[]
   trainingRecords  TrainingRecord[]
   brigadeMembers   BrigadeMember[]
+  eppDeliveries    EppDelivery[]
   
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -318,6 +319,7 @@ model Company {
   workers             Worker[]
   permits             PermitToWork[]
   auditLogs           AuditLog[]
+  eppDeliveries       EppDelivery[]
   
   // New Relations for Training Module
   trainingPlans       TrainingPlan[]
@@ -645,6 +647,7 @@ model Training {
   type            String   // Operativo, Gerencial, Salud, Ingeniería
   priority        String   // Obligatoria, Recomendada
   externalLink    String?  // Google Form URL
+  sheetLink       String?  // Google Sheets URL
   status          String   @default("Bloqueada") // Bloqueada, Pendiente, En Progreso, Completada
   
   records         TrainingRecord[]
@@ -663,6 +666,7 @@ model TrainingRecord {
   company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   
   completed       Boolean  @default(false)
+  hasExam         Boolean? @default(false)
   approved        Boolean?
   score           Float?
   certificateId   String?  // Ej: 6B11DO-CE000006
@@ -759,6 +763,27 @@ model EmergencyEquipment {
   expirationDate  DateTime? // Caducidad del agente extintor, insumos, etc.
   
   details         Json     @default("{}") // Capacidad, agente, pruebas hidráulicas
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model EppDelivery {
+  id              String   @id @default(uuid())
+  
+  workerId        String
+  worker          Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  date            DateTime @default(now())
+  
+  // JSON array for the EPP items: { id, product, typeModel, brand, certified, quantity, deliveryDate }
+  items           Json     @default("[]")
+  
+  additionalInfo  String?  // Optional field for "Información adicional"
+  signed          Boolean  @default(false)
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
