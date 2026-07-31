@@ -23,6 +23,7 @@ export default async function WorkerPTWPage({ params }: { params: Promise<{ id: 
             <h1 className="text-2xl font-bold text-slate-800">{worker.firstName} {worker.lastName}</h1>
             <p className="text-slate-500 text-sm mt-1">
               DNI: {worker.documentId} | {(worker.laborData as any)?.position || 'Sin puesto'}
+              { (worker.laborData as any)?.hireDate && ` | Ingreso: ${new Date((worker.laborData as any).hireDate).toLocaleDateString('es-AR')}` }
             </p>
           </div>
         </div>

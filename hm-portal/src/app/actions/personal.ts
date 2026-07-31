@@ -131,6 +131,7 @@ export async function createActualWorkers(companyId: string, workersData: any[])
         address: w.address || null,
         eppDelivered: w.eppDelivered,
         educationLevel: w.educationLevel || null,
+        hireDate: w.hireDate || null,
       }
     }));
 
@@ -234,6 +235,7 @@ export async function updateWorker(workerId: string, companyId: string, data: an
           address: data.address || null,
           eppDelivered: data.eppDelivered,
           educationLevel: data.educationLevel || null,
+          hireDate: data.hireDate || null,
         }
       }
     });
