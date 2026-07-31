@@ -44,7 +44,7 @@ export default function TrainingDetailClient({ company, companyId, training, use
       if (res?.error) throw new Error(res.error);
       
       const updateRes = await updateTraining(training.id, companyId, { sheetLink, externalLink, status: trainingStatus });
-      if (updateRes?.error) throw new Error(updateRes.error);
+      if ((updateRes as any)?.error) throw new Error((updateRes as any).error);
       
       alert("Registros guardados correctamente");
     } catch (error: any) {
