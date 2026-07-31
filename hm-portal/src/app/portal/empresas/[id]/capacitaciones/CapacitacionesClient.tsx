@@ -12,10 +12,11 @@ import {
   ExternalLink,
   ChevronRight,
   CalendarDays,
-  FileText
+  FileText,
+  Trash2
 } from 'lucide-react';
 import Link from 'next/link';
-import { createTraining } from '@/app/actions/trainings';
+import { createTraining, deleteTraining } from '@/app/actions/trainings';
 import { useAuth } from '@/components/providers/AuthProvider';
 
 const MONTHS = [
@@ -24,7 +25,7 @@ const MONTHS = [
 ];
 
 export default function CapacitacionesClient({ companyId, companyName, initialPlans, stats }: any) {
-  const { isClient } = useAuth();
+  const { isClient, isAdmin, isManager } = useAuth();
   const [plans, setPlans] = useState(initialPlans);
   const currentYear = new Date().getFullYear();
   const currentMonthIndex = new Date().getMonth() + 1; // 1-12
@@ -64,6 +65,17 @@ export default function CapacitacionesClient({ companyId, companyName, initialPl
       window.location.reload(); // Quick refresh to get updated server data
     } catch (error) {
       alert("Error creando la capacitación");
+    }
+  };
+
+  const handleDeleteTraining = async (id: string) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar esta capacitación?')) {
+      try {
+        await deleteTraining(id, companyId);
+        window.location.reload();
+      } catch (error) {
+        alert("Error eliminando la capacitación");
+      }
     }
   };
 
@@ -187,9 +199,20 @@ export default function CapacitacionesClient({ companyId, companyName, initialPl
                               <span className={`text-xs font-bold ${t.status === 'Completada' ? 'text-green-600' : t.status === 'En Progreso' ? 'text-amber-500' : 'text-slate-500'}`}>
                                 {t.status}
                               </span>
-                              <Link href={`/portal/empresas/${companyId}/capacitaciones/${t.id}`} className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-indigo-100 hover:text-indigo-600 transition-colors">
-                                <ChevronRight className="w-4 h-4" />
-                              </Link>
+                              <div className="flex gap-2">
+                                {(isAdmin || isManager) && (
+                                  <button 
+                                    onClick={() => handleDeleteTraining(t.id)}
+                                    className="w-8 h-8 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 hover:bg-rose-100 hover:text-rose-700 transition-colors"
+                                    title="Eliminar capacitación"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                )}
+                                <Link href={`/portal/empresas/${companyId}/capacitaciones/${t.id}`} className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-indigo-100 hover:text-indigo-600 transition-colors">
+                                  <ChevronRight className="w-4 h-4" />
+                                </Link>
+                              </div>
                             </div>
                           )}
                         </div>
