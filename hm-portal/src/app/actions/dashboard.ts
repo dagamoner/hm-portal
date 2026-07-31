@@ -75,7 +75,7 @@ export async function getDashboardMetrics(companyId?: string) {
     // Supongamos que level > 15 es ALTO/EXTREMO (matriz 5x5)
     const openCriticalRisks = riskEvals.filter(r => (r.riskLevel || 0) >= 15 && r.status !== 'Cerrado').length;
     const verifiedCriticalControls = riskEvals.filter(r => (r.riskLevel || 0) >= 15 && r.status === 'Validado').length;
-    const pctControlsVerified = openCriticalRisks > 0 ? Math.round((verifiedCriticalControls / openCriticalRisks) * 100) : 100;
+    const pctControlsVerified = openCriticalRisks > 0 ? Math.round((verifiedCriticalControls / openCriticalRisks) * 100) : 0;
 
     // 4. ACCIONES DE MEJORA
     const actions = await prisma.improvementAction.findMany({
@@ -110,7 +110,7 @@ export async function getDashboardMetrics(companyId?: string) {
         if (closedAt <= new Date(a.deadline)) closedOnTime++;
       }
     });
-    const pctClosedOnTime = totalClosedWithDeadline > 0 ? Math.round((closedOnTime / totalClosedWithDeadline) * 100) : 100;
+    const pctClosedOnTime = totalClosedWithDeadline > 0 ? Math.round((closedOnTime / totalClosedWithDeadline) * 100) : 0;
 
     // 5. TENDENCIAS MENSUALES (Últimos 12 meses)
     const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];

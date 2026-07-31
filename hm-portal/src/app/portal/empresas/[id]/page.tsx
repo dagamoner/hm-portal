@@ -19,7 +19,7 @@ export default async function CompanyDashboardPage({ params }: { params: Promise
   // Si no hay datos, mostramos fallback en cero
   const fallbackData = {
     companyName: company.name,
-    kpis: { frequencyRate: "0", severityRate: "0", lostDays: 0, openCriticalRisks: 0, overdueActions: 0, pctClosedOnTime: 100, pctControlsVerified: 100, totalInspections: 0 },
+    kpis: { frequencyRate: "0", severityRate: "0", lostDays: 0, openCriticalRisks: 0, overdueActions: 0, pctClosedOnTime: 0, pctControlsVerified: 0, totalInspections: 0 },
     monthlyTrend: [],
     riskByEstArray: [],
     paretoData: [],
