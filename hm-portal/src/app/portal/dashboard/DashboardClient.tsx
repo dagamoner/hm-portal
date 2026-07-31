@@ -152,7 +152,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         <KpiCard title="Acciones Vencidas" value={kpis?.overdueActions} subtitle="Críticas fuera de plazo" icon={<ShieldAlert className="text-red-600" />} />
         <KpiCard title="% Cierre en Término" value={`${kpis?.pctClosedOnTime}%`} subtitle="Eficacia de gestión" icon={<CheckSquare className="text-emerald-500" />} />
         <KpiCard title="% Controles Verificados" value={`${kpis?.pctControlsVerified}%`} subtitle="En riesgos altos" icon={<CheckCircle className="text-blue-600" />} />
-        <KpiCard title="Cobertura Preventiva" value={`${kpis?.pctInspections}%`} subtitle="Inspecciones ejecutadas" icon={<Users className="text-purple-500" />} />
+        <KpiCard title="Cobertura Preventiva" value={kpis?.totalInspections || 0} subtitle="Inspecciones ejecutadas" icon={<Users className="text-purple-500" />} />
       </div>
 
       {/* FILA 2: TENDENCIAS Y RIESGOS */}
@@ -186,10 +186,9 @@ export default function DashboardClient({ data }: DashboardClientProps) {
       </div>
 
       {/* FILA 4: GAUGES (TACÓMETROS) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
         <GaugeCard title="Cierre en Término" value={kpis?.pctClosedOnTime || 0} color="#10b981" />
         <GaugeCard title="Controles Críticos Eficaces" value={kpis?.pctControlsVerified || 0} color="#3b82f6" />
-        <GaugeCard title="Plan de Inspecciones" value={kpis?.pctInspections || 0} color="#8b5cf6" />
       </div>
 
     </div>

@@ -7,14 +7,8 @@ export async function getDashboardMetrics(companyId?: string) {
     const whereCompany = companyId ? { companyId } : {};
 
     // 1. HORAS HOMBRE Y TRABAJADORES
-    const companies = await prisma.company.findMany({
-      where: companyId ? { id: companyId } : {},
-      select: { id: true, name: true, workersAdmin: true, workersOps: true }
-    });
-
-    let totalWorkers = 0;
-    companies.forEach(c => {
-      totalWorkers += (c.workersAdmin || 0) + (c.workersOps || 0);
+    const totalWorkers = await prisma.worker.count({
+      where: whereCompany
     });
 
     const now = new Date();
@@ -199,31 +193,31 @@ export async function getDashboardMetrics(companyId?: string) {
       { category: '> 30 Días', count: age30plus },
     ];
 
-    // 9. EVENTOS POR TURNO (Mockeado desde details.turno si existe, o aleatorio para la demostración si no hay datos)
+    // 9. EVENTOS POR TURNO
     const turnosCount = { 'Mañana': 0, 'Tarde': 0, 'Noche': 0 };
     incidents12M.forEach(inc => {
       let turno = 'Mañana';
       if (inc.details && typeof inc.details === 'object' && !Array.isArray(inc.details) && (inc.details as any).turno) {
         turno = String((inc.details as any).turno);
       } else {
-        // Asignación simple para poblar el gráfico si no se guardó el turno
         const h = new Date(inc.date).getHours();
         if (h >= 6 && h < 14) turno = 'Mañana';
         else if (h >= 14 && h < 22) turno = 'Tarde';
         else turno = 'Noche';
       }
-      if (turno in turnosCount) turnosCount[turno as keyof typeof turnosCount]++;
+      if (turno in turnosCount) {
+        turnosCount[turno as keyof typeof turnosCount]++;
+      }
     });
 
     const eventsByShift = [
       { name: 'Mañana', count: turnosCount['Mañana'] },
       { name: 'Tarde', count: turnosCount['Tarde'] },
-      { name: 'Noche', count: turnosCount['Noche'] },
+      { name: 'Noche', count: turnosCount['Noche'] }
     ];
 
-    // Inspecciones (Para Gauges)
-    const inspections = await prisma.inspection.count({ where: whereCompany });
-    const pctInspections = Math.min(100, Math.round((inspections / (companies.length * 12)) * 100)) || 50; // Mock base
+    // Inspecciones
+    const totalInspections = await prisma.inspection.count({ where: whereCompany });
 
     return {
       kpis: {
@@ -234,7 +228,7 @@ export async function getDashboardMetrics(companyId?: string) {
         overdueActions,
         pctClosedOnTime,
         pctControlsVerified,
-        pctInspections
+        totalInspections
       },
       monthlyTrend,
       riskByEstArray,
