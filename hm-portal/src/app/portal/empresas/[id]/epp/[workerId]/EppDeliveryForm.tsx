@@ -9,7 +9,6 @@ import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function EppDeliveryForm({ company, worker, existingDelivery }: { company: any, worker: any, existingDelivery: any }) {
   const router = useRouter();
-  const { userRole } = useAuth();
   
   const [items, setItems] = useState<any[]>(existingDelivery?.items || [
     { id: '1', product: '', typeModel: '', brand: '', certified: 'NO', quantity: 1, deliveryDate: new Date().toISOString().split('T')[0], workerSignature: false }
