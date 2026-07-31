@@ -50,8 +50,6 @@ export default function EppDeliveryForm({ company, worker, existingDelivery }: {
   const [signed, setSigned] = useState(existingDelivery?.signed || false);
   const [isSaving, setIsSaving] = useState(false);
   
-  const canEdit = userRole === 'ADMIN' || userRole === 'MANAGER' || userRole === 'INSPECTOR' || userRole === 'CLIENT';
-
   const handleAddItem = () => {
     setItems([...items, { 
       id: Math.random().toString(36).substring(7), 
@@ -293,9 +291,10 @@ export default function EppDeliveryForm({ company, worker, existingDelivery }: {
                   <td className="print:hidden p-1 text-center">
                     <button 
                       onClick={() => handleRemoveItem(item.id)}
-                      className="text-red-500 hover:text-red-700 p-1 rounded-md"
+                      className="text-red-500 hover:text-red-700 transition-colors p-1"
+                      title="Eliminar fila"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4 mx-auto" />
                     </button>
                   </td>
                 </tr>
@@ -317,7 +316,7 @@ export default function EppDeliveryForm({ company, worker, existingDelivery }: {
             </tbody>
           </table>
           
-          <div className="mt-4 print:hidden">
+          <div className="mt-4">
             <button
               onClick={handleAddItem}
               className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-sm font-bold transition-colors"
