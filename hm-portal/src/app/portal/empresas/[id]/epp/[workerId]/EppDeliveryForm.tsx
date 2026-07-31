@@ -84,8 +84,8 @@ export default function EppDeliveryForm({ company, worker, existingDelivery }: {
         additionalInfo: JSON.stringify(headerData),
         signed
       });
-      if (res?.error) {
-        alert(res.error);
+      if ((res as any)?.error) {
+        alert((res as any).error);
       } else {
         alert("Planilla guardada correctamente");
         router.refresh();
