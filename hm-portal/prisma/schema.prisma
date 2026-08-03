@@ -298,6 +298,10 @@ model Company {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
+  // U.T.E. Support
+  isUte               Boolean  @default(false)
+  uteMembers          Json     @default("[]") // Nombres/CUITs de las empresas conformantes
+
   users               User[]
   incidents           Incident[]
   inspections         Inspection[]
@@ -335,6 +339,10 @@ model Company {
   emergencyDrills     EmergencyDrill[]
   brigadeMembers      BrigadeMember[]
   emergencyEquipments EmergencyEquipment[]
+
+  // New Relations for Contractor Module
+  projects            Project[]
+  contractors         Contractor[]
 }
 
 model CancerigenoEvaluation {
@@ -788,6 +796,101 @@ model EppDelivery {
   
   additionalInfo  String?  // Optional field for "Información adicional"
   signed          Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ==========================================
+// CONTRACTOR MANAGEMENT MODULE
+// ==========================================
+
+model Project {
+  id              String   @id @default(uuid())
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  name            String
+  location        String
+  startDate       DateTime?
+  endDate         DateTime?
+  status          String   @default("Activo")
+  
+  description     String?
+  
+  projectContractors ProjectContractor[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Contractor {
+  id              String   @id @default(uuid())
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  name            String
+  cuit            String
+  art             String?
+  contactName     String?
+  contactEmail    String?
+  contactPhone    String?
+  status          String   @default("Activo")
+  
+  projectContractors ProjectContractor[]
+  documents          ContractorDocument[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ProjectContractor {
+  id              String   @id @default(uuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  contractorId    String
+  contractor      Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  
+  role            String   @default("Subcontratista") // Principal, Subcontratista
+  noticeOfWork    String?  // Expediente Aviso de Obra (Res SRT 51/97)
+  noticeDate      DateTime?
+  
+  safetyPrograms  SafetyProgram[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([projectId, contractorId])
+}
+
+model SafetyProgram {
+  id                  String   @id @default(uuid())
+  projectContractorId String
+  projectContractor   ProjectContractor @relation(fields: [projectContractorId], references: [id], onDelete: Cascade)
+  
+  title               String
+  resolution          String   @default("35/1998") // 35/1998, 319/1999
+  status              String   @default("Pendiente") // Pendiente, Aprobado, Vencido, Rechazado
+  approvalDate        DateTime?
+  validUntil          DateTime?
+  notes               String?
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model ContractorDocument {
+  id              String   @id @default(uuid())
+  contractorId    String
+  contractor      Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  
+  name            String
+  type            String   // Constancia ART, Clausula No Repeticion, Alta AFIP, Legajo Tecnico
+  fileUrl         String
+  status          String   @default("Pendiente") // Pendiente, Aprobado, Rechazado
+  notes           String?
+  uploadedAt      DateTime @default(now())
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
