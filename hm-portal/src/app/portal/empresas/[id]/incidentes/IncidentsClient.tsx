@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Plus, AlertTriangle, X, Eye, FileText, Calendar, MapPin, Activity, CheckCircle, ShieldAlert, Edit, Trash2 } from 'lucide-react';
 import { createIncident, updateIncidentStatus, updateIncident, deleteIncident } from '@/app/actions/incidents';
+import { generateIncidentReport } from '@/lib/pdf/incidentReport';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 
@@ -34,6 +35,22 @@ export default function IncidentsClient({
     const [machinery, setMachinery] = useState('');
     const [witnesses, setWitnesses] = useState('');
     
+    
+    // Extra details for PDF Report
+    const [workerName, setWorkerName] = useState('');
+    const [workerDni, setWorkerDni] = useState('');
+    const [workerRole, setWorkerRole] = useState('');
+    const [immediateBoss, setImmediateBoss] = useState('');
+    const [sheaReferent, setSheaReferent] = useState('');
+    const [reportType, setReportType] = useState('Incidente preventivo con potencial de daño grave');
+    const [unsafeActions, setUnsafeActions] = useState('');
+    const [unsafeConditions, setUnsafeConditions] = useState('');
+    const [associatedRisks, setAssociatedRisks] = useState('');
+    const [immediateMeasures, setImmediateMeasures] = useState('');
+    const [reinductionTopics, setReinductionTopics] = useState('');
+    const [technicalConclusion, setTechnicalConclusion] = useState('');
+    const [generateWarning, setGenerateWarning] = useState(false);
+
     const [isSaving, setIsSaving] = useState(false);
 
     // Filter incidents
@@ -68,7 +85,10 @@ export default function IncidentsClient({
                 incidentType,
                 bodyPart,
                 machinery,
-                witnesses
+                witnesses,
+                workerName, workerDni, workerRole, immediateBoss, sheaReferent, reportType,
+                unsafeActions, unsafeConditions, associatedRisks, immediateMeasures, reinductionTopics,
+                technicalConclusion, generateWarning
             };
 
             await createIncident(companyId, { 
@@ -91,6 +111,10 @@ export default function IncidentsClient({
             setBodyPart('');
             setMachinery('');
             setWitnesses('');
+            setWorkerName(''); setWorkerDni(''); setWorkerRole(''); setImmediateBoss(''); setSheaReferent('');
+            setReportType('Incidente preventivo con potencial de daño grave');
+            setUnsafeActions(''); setUnsafeConditions(''); setAssociatedRisks('');
+            setImmediateMeasures(''); setReinductionTopics(''); setTechnicalConclusion(''); setGenerateWarning(false);
             
             router.refresh();
         } catch (error) {
@@ -105,7 +129,15 @@ export default function IncidentsClient({
         setIsSaving(true);
         try {
             const dateObj = new Date(dateStr);
-            const details = { incidentType, bodyPart, machinery, witnesses };
+            const details = {
+                incidentType,
+                bodyPart,
+                machinery,
+                witnesses,
+                workerName, workerDni, workerRole, immediateBoss, sheaReferent, reportType,
+                unsafeActions, unsafeConditions, associatedRisks, immediateMeasures, reinductionTopics,
+                technicalConclusion, generateWarning
+            };
 
             const res = await updateIncident(selectedIncident.id, companyId, { 
                 title, location, description, severity, date: dateObj, details
@@ -216,7 +248,14 @@ export default function IncidentsClient({
                             setIsCreating(true); 
                             setIsEditing(false);
                             setSelectedIncident(null); 
-                            setTitle(''); setDateStr(''); setLocation(''); setDescription(''); setSeverity('LOW'); setIncidentType(''); setBodyPart(''); setMachinery(''); setWitnesses('');
+                            setTitle(''); setDateStr(''); setLocation(''); setDescription(''); setSeverity('LOW'); setIncidentType('');
+            setBodyPart('');
+            setMachinery('');
+            setWitnesses('');
+            setWorkerName(''); setWorkerDni(''); setWorkerRole(''); setImmediateBoss(''); setSheaReferent('');
+            setReportType('Incidente preventivo con potencial de daño grave');
+            setUnsafeActions(''); setUnsafeConditions(''); setAssociatedRisks('');
+            setImmediateMeasures(''); setReinductionTopics(''); setTechnicalConclusion(''); setGenerateWarning(false);
                         }}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold tracking-widest uppercase text-xs flex items-center gap-2 shadow-xl shadow-blue-600/20 transition-all active:scale-95"
                     >
@@ -393,6 +432,77 @@ export default function IncidentsClient({
                                         onChange={e => setDescription(e.target.value)}
                                     />
                                 </div>
+
+                                {/* Separator for PDF Report fields */}
+                                <div className="mt-8 pt-6 border-t border-slate-200">
+                                    <h4 className="text-lg font-black text-slate-800 mb-4">Datos del Trabajador y Reporte PDF</h4>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Nombre del Trabajador</label>
+                                        <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none" value={workerName} onChange={e => setWorkerName(e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">DNI</label>
+                                        <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none" value={workerDni} onChange={e => setWorkerDni(e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Puesto / Función</label>
+                                        <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none" value={workerRole} onChange={e => setWorkerRole(e.target.value)} />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Jefatura Inmediata</label>
+                                        <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none" value={immediateBoss} onChange={e => setImmediateBoss(e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Jefatura / Referente SHEA</label>
+                                        <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none" value={sheaReferent} onChange={e => setSheaReferent(e.target.value)} />
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">Tipo de Reporte PDF</label>
+                                    <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none" value={reportType} onChange={e => setReportType(e.target.value)} />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Acciones Inseguras Detectadas</label>
+                                        <textarea rows={3} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none" value={unsafeActions} onChange={e => setUnsafeActions(e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Condiciones Inseguras Asociadas</label>
+                                        <textarea rows={3} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none" value={unsafeConditions} onChange={e => setUnsafeConditions(e.target.value)} />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Riesgos Asociados</label>
+                                        <textarea rows={3} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none" value={associatedRisks} onChange={e => setAssociatedRisks(e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Medidas Inmediatas Recomendadas</label>
+                                        <textarea rows={3} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none" value={immediateMeasures} onChange={e => setImmediateMeasures(e.target.value)} />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">Temas de Reinducción</label>
+                                    <textarea rows={2} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none" value={reinductionTopics} onChange={e => setReinductionTopics(e.target.value)} />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">Conclusión Técnica</label>
+                                    <textarea rows={3} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none" value={technicalConclusion} onChange={e => setTechnicalConclusion(e.target.value)} />
+                                </div>
+                                
+                                <div className="flex items-center gap-3 bg-red-50 p-4 rounded-xl border border-red-100">
+                                    <input type="checkbox" id="generateWarning" className="w-5 h-5" checked={generateWarning} onChange={e => setGenerateWarning(e.target.checked)} />
+                                    <label htmlFor="generateWarning" className="text-sm font-bold text-red-900 cursor-pointer">Incluir Anexo II: Llamado de Atención Formal por RR.HH.</label>
+                                </div>
+
                             </div>
                             
                             <div className="pt-6 border-t border-slate-100 mt-auto flex justify-end gap-3">
@@ -452,6 +562,12 @@ export default function IncidentsClient({
                                             className="text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg transition-colors border border-indigo-200 flex items-center gap-1"
                                         >
                                             <Activity className="w-3.5 h-3.5" /> Investigación
+                                        </button>
+                                        <button 
+                                            onClick={() => generateIncidentReport(selectedIncident, selectedIncident.company?.name || 'Empresa')}
+                                            className="text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg transition-colors border border-emerald-200 flex items-center gap-1"
+                                        >
+                                            <FileText className="w-3.5 h-3.5" /> Descargar PDF
                                         </button>
                                         
                                         {!isClient && (

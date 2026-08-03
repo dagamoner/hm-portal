@@ -43,6 +43,7 @@ export async function getIncidents(companyId: string) {
       await requireAuth(companyId);
         return await prisma.incident.findMany({
             where: { companyId },
+            include: { company: true },
             orderBy: { date: 'desc' }
         });
     } catch (error: any) {

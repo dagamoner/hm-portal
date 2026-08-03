@@ -15,7 +15,7 @@ export const MODULES = [
     { name: "Mediciones y Prot.", path: "/mediciones", icon: Activity },
     { name: "Ergonomía", path: "/ergonomia", icon: Accessibility },
     { name: "Cancerígenos", path: "/cancerigenos", icon: Bug },
-    { name: "Incidentes", path: "/incidentes", icon: AlertTriangle },
+    { name: "Incidentes / Accidentes", path: "/incidentes", icon: AlertTriangle },
     { name: "Investigación", path: "/investigacion", icon: Search },
     { name: "Riesgos Inher.", path: "/riesgos", icon: ShieldAlert },
     { name: "Matriz Global", path: "/matriz", icon: TableProperties },
