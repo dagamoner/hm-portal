@@ -48,9 +48,26 @@ export async function updateProject(companyId: string, projectId: string, data: 
     await requireAuth(companyId);
     const project = await prisma.project.update({
         where: { id: projectId },
-        data
+        data: {
+            name: data.name,
+            location: data.location,
+            startDate: data.startDate ? new Date(data.startDate) : null,
+            endDate: data.endDate ? new Date(data.endDate) : null,
+            status: data.status,
+            description: data.description
+        }
     });
     await logAction('Contratistas', 'MODIFICAR', `Proyecto: ${project.name}`, { id: project.id }, companyId);
+    revalidatePath(`/portal/empresas/${companyId}/contratistas`);
+    return project;
+}
+
+export async function deleteProject(companyId: string, projectId: string) {
+    await requireAuth(companyId);
+    const project = await prisma.project.delete({
+        where: { id: projectId }
+    });
+    await logAction('Contratistas', 'ELIMINAR', `Proyecto: ${project.name}`, { id: project.id }, companyId);
     revalidatePath(`/portal/empresas/${companyId}/contratistas`);
     return project;
 }
@@ -90,6 +107,35 @@ export async function createContractor(companyId: string, data: any) {
     });
     
     await logAction('Contratistas', 'CREAR', `Contratista: ${contractor.name}`, { id: contractor.id }, companyId);
+    revalidatePath(`/portal/empresas/${companyId}/contratistas`);
+    return contractor;
+}
+
+export async function updateContractor(companyId: string, contractorId: string, data: any) {
+    await requireAuth(companyId);
+    const contractor = await prisma.contractor.update({
+        where: { id: contractorId },
+        data: {
+            name: data.name,
+            cuit: data.cuit,
+            art: data.art,
+            contactName: data.contactName,
+            contactEmail: data.contactEmail,
+            contactPhone: data.contactPhone
+        }
+    });
+    
+    await logAction('Contratistas', 'MODIFICAR', `Contratista: ${contractor.name}`, { id: contractor.id }, companyId);
+    revalidatePath(`/portal/empresas/${companyId}/contratistas`);
+    return contractor;
+}
+
+export async function deleteContractor(companyId: string, contractorId: string) {
+    await requireAuth(companyId);
+    const contractor = await prisma.contractor.delete({
+        where: { id: contractorId }
+    });
+    await logAction('Contratistas', 'ELIMINAR', `Contratista: ${contractor.name}`, { id: contractor.id }, companyId);
     revalidatePath(`/portal/empresas/${companyId}/contratistas`);
     return contractor;
 }

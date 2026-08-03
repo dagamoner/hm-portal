@@ -2,8 +2,8 @@
 
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { HardHat, Plus, Search, Building, FileText, CheckCircle, XCircle, Clock, AlertTriangle, FileUp, Building2, MapPin, X } from 'lucide-react';
-import { createProject, createContractor, assignContractorToProject, uploadContractorDocument, updateContractorDocumentStatus, createSafetyProgram, updateSafetyProgramStatus } from '@/app/actions/contractors';
+import { HardHat, Plus, Search, Building, FileText, CheckCircle, XCircle, Clock, AlertTriangle, FileUp, Building2, MapPin, X, Edit, Trash2 } from 'lucide-react';
+import { createProject, updateProject, deleteProject, createContractor, updateContractor, deleteContractor, assignContractorToProject, uploadContractorDocument, updateContractorDocumentStatus, createSafetyProgram, updateSafetyProgramStatus } from '@/app/actions/contractors';
 import { useRouter } from 'next/navigation';
 
 export default function ContractorsClient({
@@ -23,6 +23,8 @@ export default function ContractorsClient({
     // Modals
     const [showNewProject, setShowNewProject] = useState(false);
     const [showNewContractor, setShowNewContractor] = useState(false);
+    const [editProject, setEditProject] = useState<any | null>(null);
+    const [editContractor, setEditContractor] = useState<any | null>(null);
     const [showAssignContractor, setShowAssignContractor] = useState<{projectId: string} | null>(null);
     const [showUploadDoc, setShowUploadDoc] = useState<{contractorId: string} | null>(null);
     const [showSafetyProgram, setShowSafetyProgram] = useState<{projectContractorId: string} | null>(null);
@@ -36,16 +38,36 @@ export default function ContractorsClient({
 
     const handleCreateProject = async () => {
         if (!projectForm.name || !projectForm.location) return;
-        await createProject(companyId, projectForm);
+        if (editProject) {
+            await updateProject(companyId, editProject.id, projectForm);
+            setEditProject(null);
+        } else {
+            await createProject(companyId, projectForm);
+        }
         setShowNewProject(false);
         setProjectForm({ name: '', location: '', startDate: '', endDate: '' });
     };
 
+    const handleDeleteProject = async (id: string) => {
+        if (!confirm('¿Estás seguro de que deseas eliminar esta obra/proyecto?')) return;
+        await deleteProject(companyId, id);
+    };
+
     const handleCreateContractor = async () => {
         if (!contractorForm.name || !contractorForm.cuit) return;
-        await createContractor(companyId, contractorForm);
+        if (editContractor) {
+            await updateContractor(companyId, editContractor.id, contractorForm);
+            setEditContractor(null);
+        } else {
+            await createContractor(companyId, contractorForm);
+        }
         setShowNewContractor(false);
         setContractorForm({ name: '', cuit: '', contactName: '', contactPhone: '', contactEmail: '' });
+    };
+
+    const handleDeleteContractor = async (id: string) => {
+        if (!confirm('¿Estás seguro de que deseas eliminar este contratista?')) return;
+        await deleteContractor(companyId, id);
     };
 
     const handleAssignContractor = async () => {
@@ -78,13 +100,13 @@ export default function ContractorsClient({
 
     return (
         <div className="min-h-screen bg-slate-50/50 p-4 md:p-8">
-            {/* Modals... (Simplified for now) */}
-            {showNewProject && (
+            {/* Modals */}
+            {(showNewProject || editProject) && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold">Nueva Obra / Proyecto</h3>
-                            <button onClick={() => setShowNewProject(false)}><X className="w-5 h-5 text-slate-400" /></button>
+                            <h3 className="text-xl font-bold">{editProject ? 'Editar Obra / Proyecto' : 'Nueva Obra / Proyecto'}</h3>
+                            <button onClick={() => { setShowNewProject(false); setEditProject(null); setProjectForm({ name: '', location: '', startDate: '', endDate: '' }); }}><X className="w-5 h-5 text-slate-400" /></button>
                         </div>
                         <div className="space-y-4">
                             <div>
@@ -101,12 +123,12 @@ export default function ContractorsClient({
                 </div>
             )}
 
-            {showNewContractor && (
+            {(showNewContractor || editContractor) && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold">Nuevo Contratista</h3>
-                            <button onClick={() => setShowNewContractor(false)}><X className="w-5 h-5 text-slate-400" /></button>
+                            <h3 className="text-xl font-bold">{editContractor ? 'Editar Contratista' : 'Nuevo Contratista'}</h3>
+                            <button onClick={() => { setShowNewContractor(false); setEditContractor(null); setContractorForm({ name: '', cuit: '', contactName: '', contactPhone: '', contactEmail: '' }); }}><X className="w-5 h-5 text-slate-400" /></button>
                         </div>
                         <div className="space-y-4">
                             <div>
@@ -174,9 +196,15 @@ export default function ContractorsClient({
                                         </div>
                                     </div>
                                     {canEdit && (
-                                        <button onClick={() => setShowAssignContractor({projectId: proj.id})} className="text-xs font-bold bg-slate-50 hover:bg-slate-100 text-slate-700 px-4 py-2 rounded-xl transition-colors border border-slate-200 flex items-center gap-1">
-                                            <Plus className="w-3.5 h-3.5" /> Asignar Contratista
-                                        </button>
+                                        <div className="flex flex-col sm:flex-row gap-2">
+                                            <button onClick={() => setShowAssignContractor({projectId: proj.id})} className="text-xs font-bold bg-slate-50 hover:bg-slate-100 text-slate-700 px-3 py-2 rounded-xl transition-colors border border-slate-200 flex items-center gap-1">
+                                                <Plus className="w-3.5 h-3.5" /> Asignar Contratista
+                                            </button>
+                                            <div className="flex gap-1">
+                                                <button onClick={() => { setEditProject(proj); setProjectForm({ name: proj.name, location: proj.location, startDate: proj.startDate ? new Date(proj.startDate).toISOString().split('T')[0] : '', endDate: proj.endDate ? new Date(proj.endDate).toISOString().split('T')[0] : '' }); }} className="p-2 text-slate-500 hover:bg-blue-50 hover:text-blue-600 rounded-lg border border-transparent hover:border-blue-100"><Edit className="w-4 h-4" /></button>
+                                                <button onClick={() => handleDeleteProject(proj.id)} className="p-2 text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-lg border border-transparent hover:border-red-100"><Trash2 className="w-4 h-4" /></button>
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
 
@@ -239,6 +267,12 @@ export default function ContractorsClient({
                                         <h3 className="text-xl font-black text-slate-900">{cont.name}</h3>
                                         <span className="text-sm font-medium text-slate-500">CUIT: {cont.cuit}</span>
                                     </div>
+                                    {canEdit && (
+                                        <div className="flex gap-1">
+                                            <button onClick={() => { setEditContractor(cont); setContractorForm({ name: cont.name, cuit: cont.cuit, contactName: cont.contactName || '', contactPhone: cont.contactPhone || '', contactEmail: cont.contactEmail || '' }); }} className="p-1.5 text-slate-400 hover:bg-blue-50 hover:text-blue-600 rounded-lg"><Edit className="w-4 h-4" /></button>
+                                            <button onClick={() => handleDeleteContractor(cont.id)} className="p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex-1 mt-4">
                                     <div className="flex justify-between items-center mb-3">
