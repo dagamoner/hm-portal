@@ -22,7 +22,7 @@ export default async function CompanyLayout({
   return (
     <div className="flex flex-col min-h-[calc(100vh-6rem)]">
       {/* Header específico de la empresa (Tabs) */}
-      <CompanyTabs companyId={id} />
+      <CompanyTabs companyId={id} companyName={company.name} />
 
       {/* Contenido del módulo seleccionado */}
       <div className="flex-1 p-6">

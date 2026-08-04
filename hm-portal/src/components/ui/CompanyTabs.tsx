@@ -29,7 +29,7 @@ export const MODULES = [
     { name: "Capacitaciones", path: "/capacitaciones", icon: GraduationCap },
 ];
 
-export function CompanyTabs({ companyId }: { companyId: string }) {
+export function CompanyTabs({ companyId, companyName }: { companyId: string, companyName?: string }) {
     const pathname = usePathname();
     const { isClient, isAdmin, isInspector } = useAuth();
 
@@ -49,9 +49,15 @@ export function CompanyTabs({ companyId }: { companyId: string }) {
     ];
 
     return (
-        <div className="print:hidden w-full bg-white/60 backdrop-blur-md border-b border-white/50 sticky top-0 z-40">
+        <div className="print:hidden w-full bg-white/60 backdrop-blur-md border-b border-white/50 sticky top-0 z-30">
             <div className="max-w-7xl mx-auto px-6">
-                <div className="flex space-x-1 overflow-x-auto custom-scrollbar py-3">
+                {companyName && (
+                    <div className="pt-4 pb-2 flex items-center gap-2 text-slate-800">
+                        <span className="text-xs uppercase font-bold tracking-widest text-slate-400">Trabajando en:</span>
+                        <h2 className="text-xl font-black truncate">{companyName}</h2>
+                    </div>
+                )}
+                <div className="flex space-x-1 overflow-x-auto custom-scrollbar pb-3 pt-1">
                     {tabsToRender.map((module) => {
                         const href = `/portal/empresas/${companyId}${module.path}`;
                         const isActive = pathname === href;
