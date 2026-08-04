@@ -57,6 +57,10 @@ export function PortalSidebar() {
                 <span>Usuarios</span>
               </Link>
             )}
+            <Link href="/portal/facturacion" className={getLinkClass("/portal/facturacion")}>
+              <span className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-current font-bold text-[10px]">$</span>
+              <span>Facturación</span>
+            </Link>
             <Link href="/portal/settings" className={getLinkClass("/portal/settings")}>
               <Settings size={20} />
               <span>Ajustes</span>

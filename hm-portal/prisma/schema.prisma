@@ -23,6 +23,12 @@ enum Role {
   CLIENT
 }
 
+enum InvoiceStatus {
+  PENDIENTE
+  PAGADO
+  VENCIDO
+}
+
 model User {
   id        String   @id @default(uuid())
   username  String   @unique
@@ -319,6 +325,9 @@ model Company {
   
   // New Relation for Vehicle Module
   vehicles            Vehicle[]
+  
+  // New Relation for Invoices Module
+  invoices            Invoice[]
   
   // New Relation for Equipment Module
   equipments          Equipment[]
@@ -891,6 +900,36 @@ model ContractorDocument {
   status          String   @default("Pendiente") // Pendiente, Aprobado, Rechazado
   notes           String?
   uploadedAt      DateTime @default(now())
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ==========================================
+// FACTURACIONES Y COBROS MODULE
+// ==========================================
+
+model Invoice {
+  id              String   @id @default(uuid())
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  // Emisor (Consultora/Usuario)
+  issuerName      String   @default("Moner Dante Gaston")
+  issuerCuit      String   @default("20-33445566-7")
+  issuerAddress   String   @default("Mendoza, Argentina")
+  
+  // Factura Info
+  invoiceNumber   String
+  issueDate       DateTime
+  period          String
+  dueDate         DateTime
+  vatCondition    String   @default("Responsable Inscripto")
+  concept         String
+  amount          Float
+  amountPaid      Float    @default(0)
+  paymentDate     DateTime?
+  status          InvoiceStatus @default(PENDIENTE)
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

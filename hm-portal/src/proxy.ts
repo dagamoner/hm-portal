@@ -5,7 +5,7 @@ import { decrypt } from "@/lib/auth";
 const protectedRoutes = ["/portal"];
 const publicRoutes = ["/login", "/", "/contacto"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isProtectedRoute = protectedRoutes.some(route => path.startsWith(route));
   

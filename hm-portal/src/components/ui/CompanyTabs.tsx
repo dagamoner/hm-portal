@@ -6,7 +6,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { 
     LayoutDashboard, FileText, Activity, Accessibility, Bug, AlertTriangle, 
     Search, ShieldAlert, Calendar, Truck, Server, Users, ClipboardCheck, 
-    History, GraduationCap, TableProperties, Siren, Shield, HardHat
+    History, GraduationCap, TableProperties, Siren, Shield, HardHat, Receipt
 } from "lucide-react";
 
 export const MODULES = [
@@ -27,6 +27,7 @@ export const MODULES = [
     { name: "Visitas", path: "/visitas", icon: ClipboardCheck },
     { name: "Contratistas", path: "/contratistas", icon: HardHat },
     { name: "Capacitaciones", path: "/capacitaciones", icon: GraduationCap },
+    { name: "Facturación", path: "/facturacion", icon: Receipt },
 ];
 
 export function CompanyTabs({ companyId }: { companyId: string }) {
