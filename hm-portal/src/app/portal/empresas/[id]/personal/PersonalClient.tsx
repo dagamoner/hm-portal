@@ -208,7 +208,8 @@ export default function PersonalClient({ companyId, initialWorkers }: { companyI
                         eppDelivered: w.laborData?.eppDelivered || 'No',
                         educationLevel: w.laborData?.educationLevel || '',
                         position: w.laborData?.position || '',
-                        function: w.laborData?.function || ''
+                        function: w.laborData?.function || '',
+                        hireDate: w.laborData?.hireDate ? new Date(w.laborData.hireDate).toISOString().split('T')[0] : ''
                       });
                       setIsEditModalOpen(true);
                     }}
@@ -550,6 +551,56 @@ export default function PersonalClient({ companyId, initialWorkers }: { companyI
                       onChange={(e) => setEditingWorker({...editingWorker, emergencyContact: e.target.value})}
                       className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
                     />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Fecha de Ingreso *</label>
+                    <input 
+                      type="date" required
+                      value={editingWorker.hireDate || ''}
+                      onChange={(e) => setEditingWorker({...editingWorker, hireDate: e.target.value})}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Domicilio real</label>
+                    <input 
+                      type="text"
+                      value={editingWorker.address || ''}
+                      onChange={(e) => setEditingWorker({...editingWorker, address: e.target.value})}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Constancia de Entrega de EPP</label>
+                    <select
+                      value={editingWorker.eppDelivered || 'No'}
+                      onChange={(e) => setEditingWorker({...editingWorker, eppDelivered: e.target.value})}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    >
+                      <option value="Sí">Sí</option>
+                      <option value="No">No</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Nivel de estudio</label>
+                    <select
+                      value={editingWorker.educationLevel || ''}
+                      onChange={(e) => setEditingWorker({...editingWorker, educationLevel: e.target.value})}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    >
+                      <option value="">Seleccionar...</option>
+                      <option value="Primario">Primario</option>
+                      <option value="Primario incompleto">Primario incompleto</option>
+                      <option value="Secundario">Secundario</option>
+                      <option value="Secundario incompleto">Secundario incompleto</option>
+                      <option value="Terciario">Terciario</option>
+                      <option value="Terciario incompleto">Terciario incompleto</option>
+                      <option value="Universitario">Universitario</option>
+                      <option value="Universitario incompleto">Universitario incompleto</option>
+                      <option value="Posgrado">Posgrado</option>
+                      <option value="Posgrado en curso">Posgrado en curso</option>
+                      <option value="Sin nivel de estudio">Sin nivel de estudio</option>
+                    </select>
                   </div>
                 </div>
               </div>
