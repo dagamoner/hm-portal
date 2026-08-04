@@ -4,14 +4,16 @@ import { getInvoices, getInvoiceMetrics } from "@/app/actions/invoices";
 import CompanyInvoicesClient from "./CompanyInvoicesClient";
 import { prisma } from "@/lib/prisma";
 
-export default async function CompanyInvoicesPage({ params }: { params: { id: string } }) {
+export default async function CompanyInvoicesPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const session = await getSession();
+    
     if (!session || session.user.role !== "ADMIN") {
-        redirect(`/portal/empresas/${params.id}`);
+        redirect(`/portal/empresas/${id}`);
     }
 
     const company = await prisma.company.findUnique({
-        where: { id: params.id },
+        where: { id },
         select: { id: true, name: true, taxId: true, address: true }
     });
 
@@ -19,8 +21,8 @@ export default async function CompanyInvoicesPage({ params }: { params: { id: st
         redirect("/portal/empresas");
     }
 
-    const invoices = await getInvoices(params.id);
-    const metrics = await getInvoiceMetrics(params.id);
+    const invoices = await getInvoices(id);
+    const metrics = await getInvoiceMetrics(id);
 
     return (
         <div className="space-y-6">
