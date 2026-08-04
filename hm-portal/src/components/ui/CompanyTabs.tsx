@@ -27,16 +27,25 @@ export const MODULES = [
     { name: "Visitas", path: "/visitas", icon: ClipboardCheck },
     { name: "Contratistas", path: "/contratistas", icon: HardHat },
     { name: "Capacitaciones", path: "/capacitaciones", icon: GraduationCap },
-    { name: "Facturación", path: "/facturacion", icon: Receipt },
 ];
 
 export function CompanyTabs({ companyId }: { companyId: string }) {
     const pathname = usePathname();
-    const { isClient } = useAuth();
+    const { role, isClient } = useAuth();
+
+    const allowedModules = MODULES.filter(m => {
+        if (role === "CLIENT" && (m.path === "/log-auditoria" || m.path === "/mediciones")) return false;
+        if (role === "INSPECTOR" && m.path === "/log-auditoria") return false;
+        return true;
+    });
+
+    if (role === "ADMIN") {
+        allowedModules.push({ name: "Facturación", path: "/facturacion", icon: Receipt });
+    }
 
     const tabsToRender = [
         ...(isClient ? [] : [{ name: "Dashboard 365", path: "", icon: LayoutDashboard }]),
-        ...MODULES
+        ...allowedModules
     ];
 
     return (

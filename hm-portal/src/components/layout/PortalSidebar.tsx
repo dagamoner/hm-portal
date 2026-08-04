@@ -52,15 +52,17 @@ export function PortalSidebar() {
           <>
             <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-6 mb-2 px-4">Configuración</div>
             {isAdmin && (
-              <Link href="/portal/usuarios" className={getLinkClass("/portal/usuarios")}>
-                <Users size={20} />
-                <span>Usuarios</span>
-              </Link>
+              <>
+                <Link href="/portal/usuarios" className={getLinkClass("/portal/usuarios")}>
+                  <Users size={20} />
+                  <span>Usuarios</span>
+                </Link>
+                <Link href="/portal/facturacion" className={getLinkClass("/portal/facturacion")}>
+                  <span className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-current font-bold text-[10px]">$</span>
+                  <span>Facturación</span>
+                </Link>
+              </>
             )}
-            <Link href="/portal/facturacion" className={getLinkClass("/portal/facturacion")}>
-              <span className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-current font-bold text-[10px]">$</span>
-              <span>Facturación</span>
-            </Link>
             <Link href="/portal/settings" className={getLinkClass("/portal/settings")}>
               <Settings size={20} />
               <span>Ajustes</span>

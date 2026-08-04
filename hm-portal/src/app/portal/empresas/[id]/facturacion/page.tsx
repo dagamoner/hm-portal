@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 
 export default async function CompanyInvoicesPage({ params }: { params: { id: string } }) {
     const session = await getSession();
-    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "MANAGER")) {
+    if (!session || session.user.role !== "ADMIN") {
         redirect(`/portal/empresas/${params.id}`);
     }
 

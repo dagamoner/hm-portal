@@ -11,8 +11,8 @@ export async function getInvoices(companyId?: string) {
     const session = await getSession();
     if (!session?.user) throw new Error("No autenticado");
     
-    // Solo admins/managers pueden ver todo, si no se pasa companyId
-    if (!companyId && session.user.role !== "ADMIN" && session.user.role !== "MANAGER") {
+    // Solo admins pueden ver todo, si no se pasa companyId
+    if (!companyId && session.user.role !== "ADMIN") {
         throw new Error("No autorizado");
     }
 
