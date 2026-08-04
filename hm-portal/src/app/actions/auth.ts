@@ -76,7 +76,7 @@ export async function login(formData: FormData) {
     return { error: "Ha ocurrido un error en el servidor" };
   }
   
-  redirect("/portal/dashboard");
+  return { success: true };
 }
 
 export async function logout() {

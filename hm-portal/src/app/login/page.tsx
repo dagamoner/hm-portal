@@ -25,6 +25,9 @@ export default function LoginPage() {
     const res = await login(formData);
     if (res?.error) {
       setError(res.error);
+    } else if (res?.success) {
+      sessionStorage.setItem("active_session", "true");
+      window.location.href = "/portal/dashboard";
     }
   }
 

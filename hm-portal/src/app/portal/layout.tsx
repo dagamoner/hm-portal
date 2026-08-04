@@ -4,6 +4,7 @@ import { PortalSidebar } from "@/components/layout/PortalSidebar"
 import { PortalHeader } from "@/components/layout/PortalHeader"
 import { getSession } from "@/lib/auth"
 import { AuthProvider } from "@/components/providers/AuthProvider"
+import { SessionGuard } from "@/components/providers/SessionGuard"
 import { redirect } from "next/navigation"
 
 export default async function PortalLayout({ children }: { children: ReactNode }) {
@@ -15,6 +16,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
 
   return (
     <AuthProvider user={session.user}>
+      <SessionGuard />
       <div className="flex min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-700">
         <PortalSidebar />
         <div className="flex-1 flex flex-col ml-72 print:ml-0">
