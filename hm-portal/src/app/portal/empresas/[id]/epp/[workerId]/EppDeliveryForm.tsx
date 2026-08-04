@@ -111,14 +111,7 @@ export default function EppDeliveryForm({ company, worker, existingDelivery }: {
       `}} />
       
       {/* Action Bar - Hidden when printing */}
-      <div className="print:hidden flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-        <Link 
-          href={`/portal/empresas/${company.id}/epp`}
-          className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Volver
-        </Link>
+      <div className="print:hidden flex items-center justify-end bg-white p-4 rounded-xl shadow-sm border border-slate-100">
         <div className="flex items-center gap-3">
           <button
             onClick={handlePrint}

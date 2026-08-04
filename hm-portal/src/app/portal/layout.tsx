@@ -5,6 +5,7 @@ import { PortalHeader } from "@/components/layout/PortalHeader"
 import { getSession } from "@/lib/auth"
 import { AuthProvider } from "@/components/providers/AuthProvider"
 import { SessionGuard } from "@/components/providers/SessionGuard"
+import { GlobalBackButton } from "@/components/ui/GlobalBackButton"
 import { redirect } from "next/navigation"
 
 export default async function PortalLayout({ children }: { children: ReactNode }) {
@@ -21,7 +22,8 @@ export default async function PortalLayout({ children }: { children: ReactNode }
         <PortalSidebar />
         <div className="flex-1 flex flex-col ml-72 print:ml-0">
           <PortalHeader />
-          <main className="flex-1 overflow-y-auto p-10 print:p-0 bg-slate-50/50 print:bg-transparent min-h-[calc(100vh-6rem)] print:min-h-0">
+          <main className="flex-1 overflow-y-auto p-10 print:p-0 bg-slate-50/50 print:bg-transparent min-h-[calc(100vh-6rem)] print:min-h-0 relative">
+            <GlobalBackButton />
             {children}
           </main>
         </div>
