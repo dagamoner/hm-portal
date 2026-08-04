@@ -31,15 +31,15 @@ export const MODULES = [
 
 export function CompanyTabs({ companyId }: { companyId: string }) {
     const pathname = usePathname();
-    const { role, isClient } = useAuth();
+    const { isClient, isAdmin, isInspector } = useAuth();
 
     const allowedModules = MODULES.filter(m => {
-        if (role === "CLIENT" && (m.path === "/log-auditoria" || m.path === "/mediciones")) return false;
-        if (role === "INSPECTOR" && m.path === "/log-auditoria") return false;
+        if (isClient && (m.path === "/log-auditoria" || m.path === "/mediciones")) return false;
+        if (isInspector && m.path === "/log-auditoria") return false;
         return true;
     });
 
-    if (role === "ADMIN") {
+    if (isAdmin) {
         allowedModules.push({ name: "Facturación", path: "/facturacion", icon: Receipt });
     }
 
