@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Users, ShieldAlert, CheckCircle, Search, User, ChevronRight, ChevronLeft, Pencil, Trash2, Edit } from "lucide-react";
+import { Plus, Users, ShieldAlert, CheckCircle, Search, User, ChevronRight, ChevronLeft, Pencil, Trash2, Edit, X } from "lucide-react";
 import { createActualWorkers, deleteWorker, updateWorker } from "@/app/actions/personal";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { BulkImportModal } from "@/components/workers/BulkImportModal";
 
 export default function PersonalClient({ companyId, initialWorkers }: { companyId: string, initialWorkers: any[] }) {
   const router = useRouter();
   const { isClient } = useAuth();
   const [workers, setWorkers] = useState(initialWorkers);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -124,13 +126,22 @@ export default function PersonalClient({ companyId, initialWorkers }: { companyI
           />
         </div>
         {!isClient && (
-          <button 
-            onClick={() => { resetModal(); setIsModalOpen(true); }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center space-x-2 w-full md:w-auto justify-center"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Generar Perfiles Operativos</span>
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <button 
+              onClick={() => setIsBulkModalOpen(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center space-x-2 justify-center"
+            >
+              <Users className="w-4 h-4" />
+              <span>Importación Masiva</span>
+            </button>
+            <button 
+              onClick={() => { resetModal(); setIsModalOpen(true); }}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center space-x-2 justify-center"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Nuevo Personal</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -433,14 +444,18 @@ export default function PersonalClient({ companyId, initialWorkers }: { companyI
           </div>
         </div>
       )}
-      {/* MODAL EDICION DE PERFIL */}
+
+      {/* Edit Modal */}
       {isEditModalOpen && editingWorker && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200 my-8">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 sticky top-0 z-10">
-              <h2 className="text-xl font-bold text-slate-800">Editar Perfil</h2>
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <Edit className="w-6 h-6 text-blue-600" />
+                Editar Perfil
+              </h2>
               <button onClick={() => setIsEditModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                &times;
+                <X className="w-6 h-6" />
               </button>
             </div>
             
@@ -502,72 +517,22 @@ export default function PersonalClient({ companyId, initialWorkers }: { companyI
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Teléfono *</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Teléfono</label>
                     <input 
-                      type="text" required
+                      type="text"
                       value={editingWorker.phone}
                       onChange={(e) => setEditingWorker({...editingWorker, phone: e.target.value})}
                       className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Fecha de Ingreso *</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Contacto de Emergencia</label>
                     <input 
-                      type="date" required
-                      value={editingWorker.hireDate}
-                      onChange={(e) => setEditingWorker({...editingWorker, hireDate: e.target.value})}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Contacto de emergencia</label>
-                    <input 
-                      type="text" 
-                      value={editingWorker.emergencyContact}
+                      type="text"
+                      value={editingWorker.emergencyContact || ''}
                       onChange={(e) => setEditingWorker({...editingWorker, emergencyContact: e.target.value})}
                       className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
                     />
-                  </div>
-                  <div className="col-span-full">
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Domicilio real</label>
-                    <input 
-                      type="text" 
-                      value={editingWorker.address}
-                      onChange={(e) => setEditingWorker({...editingWorker, address: e.target.value})}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Constancia de Entrega de EPP</label>
-                    <select
-                      value={editingWorker.eppDelivered}
-                      onChange={(e) => setEditingWorker({...editingWorker, eppDelivered: e.target.value})}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-                    >
-                      <option value="Sí">Sí</option>
-                      <option value="No">No</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Nivel de estudio</label>
-                    <select
-                      value={editingWorker.educationLevel}
-                      onChange={(e) => setEditingWorker({...editingWorker, educationLevel: e.target.value})}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-                    >
-                      <option value="">Seleccionar...</option>
-                      <option value="Primario">Primario</option>
-                      <option value="Primario incompleto">Primario incompleto</option>
-                      <option value="Secundario">Secundario</option>
-                      <option value="Secundario incompleto">Secundario incompleto</option>
-                      <option value="Terciario">Terciario</option>
-                      <option value="Terciario incompleto">Terciario incompleto</option>
-                      <option value="Universitario">Universitario</option>
-                      <option value="Universitario incompleto">Universitario incompleto</option>
-                      <option value="Posgrado">Posgrado</option>
-                      <option value="Posgrado en curso">Posgrado en curso</option>
-                      <option value="Sin nivel de estudio">Sin nivel de estudio</option>
-                    </select>
                   </div>
                 </div>
               </div>
@@ -584,6 +549,16 @@ export default function PersonalClient({ companyId, initialWorkers }: { companyI
           </div>
         </div>
       )}
+
+      {/* Bulk Import Modal */}
+      <BulkImportModal 
+        companyId={companyId}
+        isOpen={isBulkModalOpen}
+        onClose={() => {
+          setIsBulkModalOpen(false);
+          router.refresh(); // Refresh page to get latest data
+        }}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import * as xlsx from "xlsx";
 
 function calculateSafetyScore(worker: any) {
   let score = 50; // Base score
@@ -258,5 +259,100 @@ export async function deleteWorker(workerId: string, companyId: string) {
   } catch (error) {
     console.error("Error deleting worker:", error);
     return { success: false, error: "Error al eliminar perfil" };
+  }
+}
+
+export async function bulkImportWorkers(companyId: string, formData: FormData) {
+  try {
+    const file = formData.get("file") as File;
+    if (!file) {
+      return { success: false, error: "No se proporcionó ningún archivo." };
+    }
+
+    const buffer = await file.arrayBuffer();
+    const workbook = xlsx.read(buffer, { type: "array" });
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    
+    // Leer el JSON
+    const data: any[] = xlsx.utils.sheet_to_json(worksheet);
+
+    if (data.length === 0) {
+      return { success: false, error: "El archivo está vacío." };
+    }
+
+    // Obtener los documentId (DNI/Legajo) existentes para esta empresa
+    const existingWorkers = await prisma.worker.findMany({
+      where: { companyId },
+      select: { documentId: true }
+    });
+    
+    const existingDocs = new Set(existingWorkers.map(w => String(w.documentId).trim()));
+
+    const newWorkersData: any[] = [];
+    const skipped: string[] = [];
+
+    for (const row of data) {
+      // Normalizar nombres de columnas (ignorando mayúsculas/minúsculas y espacios extra)
+      const getField = (keys: string[]) => {
+        const rowKeys = Object.keys(row);
+        for (const key of rowKeys) {
+          if (keys.some(k => k.toLowerCase() === key.trim().toLowerCase())) {
+            return String(row[key]).trim();
+          }
+        }
+        return undefined;
+      };
+
+      const firstName = getField(["Nombre", "Nombres"]);
+      const lastName = getField(["Apellido", "Apellidos"]);
+      const documentId = getField(["DNI", "Documento", "Legajo", "CUIL"]);
+      const position = getField(["Puesto", "Cargo"]);
+      const cuil = getField(["CUIL", "CUIT"]);
+
+      if (!firstName || !lastName || !documentId) {
+        // Fila inválida, omitir silenciosamente o anotar
+        continue;
+      }
+
+      if (existingDocs.has(documentId)) {
+        skipped.push(`${firstName} ${lastName} (${documentId})`);
+        continue;
+      }
+
+      newWorkersData.push({
+        companyId,
+        firstName,
+        lastName,
+        documentId,
+        safetyScore: 100, // Valor por defecto
+        laborData: {
+          position: position || "Operario",
+          cuil: cuil || documentId, // Fallback a documentId si no hay CUIL específico
+        }
+      });
+      
+      // Agregar al set para no duplicar dentro del mismo archivo
+      existingDocs.add(documentId);
+    }
+
+    if (newWorkersData.length > 0) {
+      await prisma.$transaction(
+        newWorkersData.map(w => prisma.worker.create({ data: w }))
+      );
+      
+      revalidatePath(`/portal/empresas/${companyId}/personal`);
+    }
+
+    return { 
+      success: true, 
+      count: newWorkersData.length,
+      skippedCount: skipped.length,
+      skippedDetails: skipped.slice(0, 10) // Mandamos hasta 10 nombres para no desbordar
+    };
+
+  } catch (error) {
+    console.error("Error importing workers:", error);
+    return { success: false, error: "Ocurrió un error al procesar el archivo." };
   }
 }
