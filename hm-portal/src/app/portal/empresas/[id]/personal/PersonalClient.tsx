@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Users, ShieldAlert, CheckCircle, Search, User, ChevronRight, ChevronLeft, Pencil, Trash2, Edit, X } from "lucide-react";
+import { Plus, Users, ShieldAlert, CheckCircle, Search, User, ChevronRight, ChevronLeft, Pencil, Trash2, Edit, X, LayoutGrid, List } from "lucide-react";
 import { createActualWorkers, deleteWorker, updateWorker } from "@/app/actions/personal";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -15,6 +15,7 @@ export default function PersonalClient({ companyId, initialWorkers }: { companyI
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Wizard state
   const [step, setStep] = useState(1);
@@ -125,6 +126,22 @@ export default function PersonalClient({ companyId, initialWorkers }: { companyI
             className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
           />
         </div>
+        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl shrink-0">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+            title="Vista de Cuadrícula"
+          >
+            <LayoutGrid className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            className={`p-2 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+            title="Vista de Lista"
+          >
+            <List className="w-4 h-4" />
+          </button>
+        </div>
         {!isClient && (
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             <button 
@@ -145,14 +162,14 @@ export default function PersonalClient({ companyId, initialWorkers }: { companyI
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "flex flex-col gap-4"}>
         {filteredWorkers.map((w) => (
-          <div key={w.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-all flex flex-col">
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-lg border border-slate-200">
+          <div key={w.id} className={`bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all ${viewMode === 'grid' ? 'p-5 flex flex-col' : 'p-4 flex flex-row items-center justify-between'}`}>
+            <div className={`flex items-center space-x-4 ${viewMode === 'grid' ? 'mb-4' : ''}`}>
+              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-lg border border-slate-200 shrink-0">
                 {w.firstName.charAt(0)}{w.lastName.charAt(0)}
               </div>
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 overflow-hidden min-w-[150px]">
                 <h3 className="font-bold text-slate-800 truncate" title={`${w.firstName} ${w.lastName}`}>
                   {w.firstName} {w.lastName}
                 </h3>
@@ -162,8 +179,8 @@ export default function PersonalClient({ companyId, initialWorkers }: { companyI
               </div>
             </div>
 
-            <div className="mt-auto pt-4 border-t border-slate-100 grid grid-cols-2 gap-4 items-center">
-              <div>
+            <div className={`${viewMode === 'grid' ? 'mt-auto pt-4 border-t border-slate-100 grid grid-cols-2 gap-4 items-center' : 'flex items-center gap-6'}`}>
+              <div className={`${viewMode === 'grid' ? '' : 'flex flex-col items-end'}`}>
                 <p className="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Safety Score</p>
                 <div className="flex items-center space-x-1">
                   <ShieldAlert className={`w-4 h-4 ${
@@ -178,7 +195,7 @@ export default function PersonalClient({ companyId, initialWorkers }: { companyI
                   </span>
                 </div>
               </div>
-              <div className="text-right flex items-center justify-end gap-2">
+              <div className={`text-right flex items-center gap-2 ${viewMode === 'grid' ? 'justify-end' : ''}`}>
                 {!isClient && (
                   <button 
                     onClick={() => {
