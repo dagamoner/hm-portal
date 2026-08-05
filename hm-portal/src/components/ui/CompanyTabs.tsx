@@ -6,7 +6,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { 
     LayoutDashboard, FileText, Activity, Accessibility, Bug, AlertTriangle, 
     Search, ShieldAlert, Calendar, Truck, Server, Users, ClipboardCheck, 
-    History, GraduationCap, TableProperties, Siren, Shield, HardHat, Receipt
+    History, GraduationCap, TableProperties, Siren, Shield, HardHat, Receipt, Construction, BookOpenCheck, BookMarked, PieChart
 } from "lucide-react";
 
 export const MODULES = [
@@ -24,7 +24,9 @@ export const MODULES = [
     { name: "Equipos y Activos", path: "/equipos", icon: Server },
     { name: "Personal", path: "/personal", icon: Users },
     { name: "Entrega EPP", path: "/epp", icon: Shield },
-    { name: "Visitas", path: "/visitas", icon: ClipboardCheck },
+    { name: "Obras y Proyectos", path: "/obras", icon: Construction },
+    { name: "Políticas y PST", path: "/politicas-pst", icon: BookOpenCheck },
+    { name: "Inspecciones y Actas", path: "/visitas", icon: ClipboardCheck },
     { name: "Contratistas", path: "/contratistas", icon: HardHat },
     { name: "Capacitaciones", path: "/capacitaciones", icon: GraduationCap },
 ];
@@ -40,6 +42,7 @@ export function CompanyTabs({ companyId, companyName }: { companyId: string, com
     });
 
     if (isAdmin) {
+        allowedModules.push({ name: "Reportes Gerenciales", path: "/reportes", icon: PieChart });
         allowedModules.push({ name: "Facturación", path: "/facturacion", icon: Receipt });
     }
 

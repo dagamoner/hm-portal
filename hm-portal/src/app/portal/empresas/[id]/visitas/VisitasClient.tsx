@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Plus, ClipboardCheck, AlertCircle, Building2, MapPin, Calendar, CheckCircle2, ChevronRight, FileText, Settings } from 'lucide-react';
+import { Plus, ClipboardCheck, AlertCircle, Building2, MapPin, Calendar, CheckCircle2, ChevronRight, FileText, Settings, Book } from 'lucide-react';
 import VisitaWizard from './VisitaWizard';
 import DashboardCards from './components/DashboardCards';
 import FindingsList from './components/FindingsList';
 import VisitsList from './components/VisitsList';
 import PlantillasClient from './components/PlantillasClient';
+import LibroHySLClient from './components/LibroHySLClient';
 import { useAuth } from '@/components/providers/AuthProvider';
 
 export default function VisitasClient({ 
@@ -14,16 +15,18 @@ export default function VisitasClient({
   establishments,
   initialVisits,
   initialFindings,
-  initialTemplates = []
+  initialTemplates = [],
+  initialBookEntries = []
 }: { 
   company: any;
   establishments: any[];
   initialVisits: any[];
   initialFindings: any[];
   initialTemplates?: any[];
+  initialBookEntries?: any[];
 }) {
   const { canEdit, isClient } = useAuth();
-  const [activeTab, setActiveTab] = useState<'visitas' | 'desvios'>('visitas');
+  const [activeTab, setActiveTab] = useState<'visitas' | 'desvios' | 'libro'>('visitas');
   const [isCreating, setIsCreating] = useState(false);
   const [isManagingTemplates, setIsManagingTemplates] = useState(false);
   const [visits, setVisits] = useState(initialVisits);
@@ -67,6 +70,7 @@ export default function VisitasClient({
           <VisitaWizard 
             companyId={company.id} 
             establishments={establishments} 
+            templates={initialTemplates}
             onComplete={handleVisitCreated}
           />
         )}
@@ -91,9 +95,9 @@ export default function VisitasClient({
         <div>
           <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
             <ClipboardCheck className="w-8 h-8 text-indigo-600" />
-            Visitas e Inspecciones
+            Inspecciones y Libro Oficial
           </h1>
-          <p className="text-slate-500 mt-1">Gestión de actas, libros de HyS y desvíos (No Conformidades).</p>
+          <p className="text-slate-500 mt-1">Gestión de actas de visitas, check-lists, libro de HyS y desvíos.</p>
         </div>
         {!isClient && (
           <div className="flex items-center gap-3">
@@ -139,13 +143,29 @@ export default function VisitasClient({
           >
             <AlertCircle className="w-4 h-4" /> Desvíos / No Conformidades ({findings.filter(f => f.status !== 'CERRADO').length})
           </button>
+          <button
+            onClick={() => setActiveTab('libro')}
+            className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${
+              activeTab === 'libro' 
+                ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/50' 
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            <Book className="w-4 h-4" /> Libro Digital
+          </button>
         </div>
 
         <div className="p-6">
-          {activeTab === 'visitas' ? (
-            <VisitsList visits={visits} />
-          ) : (
-            <FindingsList findings={findings} onUpdate={handleFindingUpdated} />
+          {activeTab === 'visitas' && <VisitsList visits={visits} />}
+          {activeTab === 'desvios' && (
+            <FindingsList findings={findings} onFindingUpdated={handleFindingUpdated} companyId={company.id} />
+          )}
+          {activeTab === 'libro' && (
+            <LibroHySLClient 
+              companyId={company.id} 
+              companyName={company.name} 
+              initialEntries={initialBookEntries || []} 
+            />
           )}
         </div>
       </div>

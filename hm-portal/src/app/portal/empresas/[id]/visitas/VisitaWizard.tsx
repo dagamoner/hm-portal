@@ -2,109 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createVisit } from '@/app/actions/visits';
-import { ClipboardCheck, Building2, Save, AlertCircle, Plus, Trash2 } from 'lucide-react';
-
-const ESTABLECIMIENTO_TEMPLATE = [
-  {
-    name: "CONDUCTA DEL PERSONAL",
-    items: [
-      "¿El personal usa los EPP apropiados para las Tareas?",
-      "¿Utiliza los EPP correctamente?",
-      "¿Usa la herramienta adecuada para la tarea?",
-      "¿Utiliza la herramienta correctamente?",
-      "¿Adopta posturas seguras para evitar lesiones en manos y/o extremidades?",
-      "¿Adopta posturas seguras para evitar caídas?",
-      "¿Adopta posturas seguras para evitar lesiones musculares?",
-      "¿Sin ayuda levanta piezas que superen los 25 kg?",
-      "¿Empuja o arrastra piezas de manera incorrecta?",
-      "¿Ha consignado equipos desenergizados? Bloqueo y colocación de tarjeta",
-      "¿Controla que herramientas eléctricas estén en buen estado?",
-      "¿Controla herramientas manuales que estén en buen estado?",
-      "¿Mantiene Orden y Limpieza en su sector?",
-      "¿Señaliza los productos químicos?",
-      "¿Señaliza herramientas con que trabaja? Cap. Max.",
-      "¿Controla sus elementos de izajes?"
-    ]
-  },
-  {
-    name: "EQUIPOS Y HERRAMIENTAS DE TRABAJO",
-    items: [
-      "Soportes de equipo en buen estado, pintados y señalizados",
-      "Estado de herramientas manuales",
-      "Instalación, equipo o tablero eléctrico",
-      "Estado de andamios y escaleras",
-      "Estado de equipos, aparatos y/o elementos de izaje"
-    ]
-  },
-  {
-    name: "ELEMENTOS DE PROTECCION PERSONAL/COLECTIVO",
-    items: [
-      "Estado de la ropa de trabajo",
-      "Protección auditiva",
-      "Calzado de seguridad",
-      "Protección de miembros superiores",
-      "Protección Ocular",
-      "Arnés de seguridad, cola de amarre y cabo de vida"
-    ]
-  },
-  {
-    name: "PROTECCIÓN AMBIENTAL",
-    items: [
-      "¿Se observan residuos no peligrosos?",
-      "¿Se observan residuos peligrosos?",
-      "¿Se realiza clasificación de residuos?",
-      "¿Existen contenedores apropiados e identificados?"
-    ]
-  }
-];
-
-const OBRA_TEMPLATE = [
-  {
-    name: "TRABAJOS EN ALTURA Y ANDAMIOS",
-    items: [
-      "Arneses de seguridad en buen estado y con cabo de vida adecuado",
-      "Líneas de vida instaladas correctamente",
-      "Andamios tubulares armados según norma (rodapiés, barandas)",
-      "Protecciones perimetrales y de huecos aseguradas",
-      "Escaleras de mano en buen estado y aseguradas"
-    ]
-  },
-  {
-    name: "EXCAVACIONES Y ZANJAS",
-    items: [
-      "Entibamiento y apuntalamiento adecuado (según profundidad)",
-      "Vallado perimetral y señalización visibles",
-      "Medios de acceso y escape seguros",
-      "Acopio de material a distancia segura del borde"
-    ]
-  },
-  {
-    name: "RIESGO ELÉCTRICO (OBRA)",
-    items: [
-      "Tableros de obra normalizados y cerrados",
-      "Disyuntores diferenciales y llaves térmicas operativas",
-      "Cableado aéreo seguro, sin cables en el suelo",
-      "Puestas a tierra instaladas y verificadas"
-    ]
-  },
-  {
-    name: "MAQUINARIA PESADA E IZAJE",
-    items: [
-      "Grúas e hidroelevadores con certificaciones al día",
-      "Señaleros (riggers) designados y comunicados",
-      "Maquinaria pesada con alarmas de retroceso",
-      "Distancias de seguridad respetadas durante maniobras"
-    ]
-  },
-  {
-    name: "ORDEN, LIMPIEZA Y LOGÍSTICA",
-    items: [
-      "Vías de circulación peatonales despejadas y señalizadas",
-      "Acopio de materiales seguro (sin riesgo de derrumbe)",
-      "Gestión y retiro frecuente de escombros"
-    ]
-  }
-];
+import { ClipboardCheck, Building2, Save, AlertCircle, Plus, Trash2, ListChecks } from 'lucide-react';
 
 interface ChecklistAnswer {
   status: 'SI' | 'NO' | 'N/A' | null;
@@ -114,10 +12,12 @@ interface ChecklistAnswer {
 export default function VisitaWizard({ 
   companyId, 
   establishments, 
+  templates,
   onComplete 
 }: { 
   companyId: string;
   establishments: any[];
+  templates: any[];
   onComplete: (visit: any) => void;
 }) {
   const [isSaving, setIsSaving] = useState(false);
@@ -129,32 +29,38 @@ export default function VisitaWizard({
   const [inspectorName, setInspectorName] = useState('');
   const [observations, setObservations] = useState('');
   const [recommendedTrainings, setRecommendedTrainings] = useState('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState(templates.length > 0 ? templates[0].id : '');
 
   // Checklist Data state
   const [template, setTemplate] = useState<{name: string, items: {id: string, text: string}[]}[]>([]);
   const [answers, setAnswers] = useState<Record<string, ChecklistAnswer>>({});
 
-  // Initialize template based on selected establishment
+  // Initialize template based on selected dynamic template
   useEffect(() => {
-    const est = establishments.find(e => e.id === establishmentId);
-    let baseTemplate = ESTABLECIMIENTO_TEMPLATE;
-    
-    if (est?.type?.toLowerCase().includes('obra')) {
-      baseTemplate = OBRA_TEMPLATE;
+    if (!selectedTemplateId) {
+        setTemplate([]);
+        setAnswers({});
+        return;
     }
 
-    // Convert template to editable structure with unique IDs
-    const editableTemplate = baseTemplate.map((cat, cIdx) => ({
+    const selectedTpl = templates.find(t => t.id === selectedTemplateId);
+    if (!selectedTpl || !selectedTpl.categories) {
+        setTemplate([]);
+        setAnswers({});
+        return;
+    }
+
+    const editableTemplate = selectedTpl.categories.map((cat: any) => ({
       name: cat.name,
-      items: cat.items.map((item, iIdx) => ({
-        id: `item_${cIdx}_${iIdx}`,
-        text: item
+      items: cat.items.map((item: any) => ({
+        id: `item_${cat.id}_${item.id}`,
+        text: item.question
       }))
     }));
 
     setTemplate(editableTemplate);
-    setAnswers({}); // Reset answers when template changes
-  }, [establishmentId, establishments]);
+    setAnswers({});
+  }, [selectedTemplateId, templates]);
 
   const handleAnswerChange = (itemId: string, field: 'status' | 'peligro', value: string | null) => {
     setAnswers(prev => ({
@@ -244,9 +150,6 @@ export default function VisitaWizard({
     }
   };
 
-  const selectedEst = establishments.find(e => e.id === establishmentId);
-  const isObra = selectedEst?.type?.toLowerCase().includes('obra');
-
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
       <div className="p-6 border-b border-slate-100 bg-slate-50/50 space-y-6">
@@ -269,11 +172,6 @@ export default function VisitaWizard({
                 ))}
               </select>
             </div>
-            {isObra && (
-              <p className="text-[10px] font-bold text-amber-600 mt-1 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" /> Se cargó la plantilla específica para Obras de Construcción.
-              </p>
-            )}
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">Fecha</label>
@@ -283,6 +181,32 @@ export default function VisitaWizard({
               value={date}
               onChange={e => setDate(e.target.value)}
             />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2">
+            <label className="block text-xs font-bold text-slate-700 mb-1">Plantilla de Inspección a Utilizar</label>
+            <div className="relative">
+              <ListChecks className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+              <select
+                className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm font-medium appearance-none"
+                value={selectedTemplateId}
+                onChange={e => setSelectedTemplateId(e.target.value)}
+              >
+                <option value="">-- Seleccionar Plantilla --</option>
+                {templates.map(t => (
+                  <option key={t.id} value={t.id}>
+                    {t.name} ({t.type})
+                  </option>
+                ))}
+              </select>
+            </div>
+            {templates.length === 0 && (
+                <p className="text-[10px] font-bold text-amber-600 mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> No hay plantillas creadas. Ve a Settings para crear una.
+                </p>
+            )}
           </div>
         </div>
 
@@ -392,6 +316,13 @@ export default function VisitaWizard({
           </div>
         ))}
 
+        {template.length === 0 && (
+            <div className="text-center text-slate-400 py-12">
+                <ListChecks className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>Selecciona una plantilla para comenzar la inspección.</p>
+            </div>
+        )}
+
         {/* Footer info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white p-4 rounded-xl border border-slate-200">
@@ -421,7 +352,7 @@ export default function VisitaWizard({
       <div className="p-4 border-t border-slate-100 bg-white flex justify-end">
         <button
           onClick={handleSave}
-          disabled={isSaving}
+          disabled={isSaving || template.length === 0}
           className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all disabled:opacity-50"
         >
           {isSaving ? (

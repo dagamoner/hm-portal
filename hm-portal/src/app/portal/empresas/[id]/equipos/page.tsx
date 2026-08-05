@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import EquiposClient from "./EquiposClient";
 import { getEquipments } from "@/app/actions/equipos";
+import { getMaintenanceAlerts } from "@/app/actions/maintenance";
 
 export default async function EquiposPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,7 +15,10 @@ export default async function EquiposPage({ params }: { params: Promise<{ id: st
     notFound();
   }
 
-  const initialEquipments = await getEquipments(id);
+  const [initialEquipments, initialAlerts] = await Promise.all([
+      getEquipments(id),
+      getMaintenanceAlerts(id)
+  ]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -25,7 +29,7 @@ export default async function EquiposPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
       
-      <EquiposClient companyId={id} initialEquipments={initialEquipments} />
+      <EquiposClient companyId={id} initialEquipments={initialEquipments} initialAlerts={initialAlerts} />
     </div>
   );
 }

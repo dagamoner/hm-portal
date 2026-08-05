@@ -8,12 +8,17 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import { useAuth } from "@/components/providers/AuthProvider";
 
+import { format } from "date-fns";
+import { resolveMaintenanceAlert } from "@/app/actions/maintenance";
+
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export default function EquiposClient({ companyId, initialEquipments }: { companyId: string, initialEquipments: any[] }) {
+export default function EquiposClient({ companyId, initialEquipments, initialAlerts = [] }: { companyId: string, initialEquipments: any[], initialAlerts?: any[] }) {
   const router = useRouter();
   const { isClient } = useAuth();
   const [equipments, setEquipments] = useState(initialEquipments);
+  const [alerts, setAlerts] = useState(initialAlerts);
+  const [activeTab, setActiveTab] = useState<'equipos' | 'alertas'>('equipos');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -55,9 +60,46 @@ export default function EquiposClient({ companyId, initialEquipments }: { compan
     }]
   };
 
+  const handleResolveAlert = async (alertId: string) => {
+      const res = await resolveMaintenanceAlert(companyId, alertId, "Resuelto manualmente");
+      if (res.success) {
+          setAlerts(alerts.map(a => a.id === alertId ? { ...a, status: 'RESOLVED' } : a));
+      } else {
+          alert("Error al resolver alerta");
+      }
+  };
+
   return (
     <div>
-      {/* HEADER STATS */}
+      {/* TABS NAVEGACIÓN */}
+      <div className="flex space-x-2 border-b border-slate-200 mb-6">
+        <button
+          onClick={() => setActiveTab("equipos")}
+          className={`px-4 py-3 text-sm font-bold transition-all border-b-2 flex items-center gap-2 ${
+            activeTab === "equipos" 
+              ? "border-indigo-600 text-indigo-600" 
+              : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+          }`}
+        >
+          <Settings className="w-4 h-4" />
+          Directorio de Equipos
+        </button>
+        <button
+          onClick={() => setActiveTab("alertas")}
+          className={`px-4 py-3 text-sm font-bold transition-all border-b-2 flex items-center gap-2 ${
+            activeTab === "alertas" 
+              ? "border-indigo-600 text-indigo-600" 
+              : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+          }`}
+        >
+          <AlertTriangle className="w-4 h-4" />
+          Alertas de Mantenimiento ({alerts.filter(a => a.status === 'PENDING').length})
+        </button>
+      </div>
+
+      {activeTab === 'equipos' && (
+          <>
+          {/* HEADER STATS */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="md:col-span-1 bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-center">
           <div className="w-32 h-32">
@@ -209,6 +251,44 @@ export default function EquiposClient({ companyId, initialEquipments }: { compan
             </form>
           </div>
         </div>
+      )}
+      </>
+      )}
+
+      {activeTab === 'alertas' && (
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 min-h-[400px] p-6">
+              <h3 className="text-lg font-bold text-slate-800 mb-6">Cronograma de Mantenimiento Preventivo</h3>
+              {alerts.length === 0 ? (
+                  <div className="text-center py-20">
+                      <CheckCircle className="w-12 h-12 text-emerald-300 mx-auto mb-4" />
+                      <h4 className="text-slate-600 font-bold mb-2">Todo al día</h4>
+                      <p className="text-slate-500 text-sm">No hay alertas de mantenimiento pendientes.</p>
+                  </div>
+              ) : (
+                  <div className="space-y-4">
+                      {alerts.map(alert => (
+                          <div key={alert.id} className={`p-4 rounded-2xl border flex items-center justify-between ${alert.status === 'RESOLVED' ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-white border-rose-200 shadow-sm'}`}>
+                              <div>
+                                  <div className="flex items-center gap-2 mb-1">
+                                      <h4 className="font-bold text-slate-800">{alert.title}</h4>
+                                      <span className="text-[10px] font-black px-2 py-0.5 bg-slate-100 rounded-lg text-slate-600">{alert.type}</span>
+                                  </div>
+                                  <p className="text-sm text-slate-500">Equipo: {alert.equipment?.name || "Desconocido"} - Vencimiento: {format(new Date(alert.dueDate), "dd/MM/yyyy")}</p>
+                              </div>
+                              {alert.status === 'PENDING' && (
+                                  <button onClick={() => handleResolveAlert(alert.id)} className="px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl font-bold text-sm transition-colors border border-emerald-200 flex items-center gap-2">
+                                      <CheckCircle className="w-4 h-4" />
+                                      Marcar Resuelto
+                                  </button>
+                              )}
+                              {alert.status === 'RESOLVED' && (
+                                  <span className="text-sm font-bold text-slate-400">Resuelto</span>
+                              )}
+                          </div>
+                      ))}
+                  </div>
+              )}
+          </div>
       )}
     </div>
   );

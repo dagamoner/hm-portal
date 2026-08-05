@@ -3,7 +3,7 @@
 import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShieldAlert, Settings as SettingsIcon } from "lucide-react";
+import { ShieldAlert, Settings as SettingsIcon, ClipboardList } from "lucide-react";
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -30,6 +30,10 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
             <Link href="/portal/settings/log-auditoria" className={getLinkClass("/portal/settings/log-auditoria")}>
               <ShieldAlert size={20} />
               <span>Auditorías del sistema</span>
+            </Link>
+            <Link href="/portal/settings/checklists" className={getLinkClass("/portal/settings/checklists")}>
+              <ClipboardList size={20} />
+              <span>Plantillas Checklists</span>
             </Link>
           </nav>
         </div>

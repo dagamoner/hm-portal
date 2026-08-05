@@ -13,7 +13,8 @@ import {
   ChevronRight,
   CalendarDays,
   FileText,
-  Trash2
+  Trash2,
+  Users
 } from 'lucide-react';
 import Link from 'next/link';
 import { createTraining, deleteTraining } from '@/app/actions/trainings';
@@ -82,6 +83,17 @@ export default function CapacitacionesClient({ companyId, companyName, initialPl
   return (
     <div className="space-y-8 animate-fade-in">
       
+      {/* Charlas de 5 Minutos Link */}
+      <div className="flex justify-end mb-4">
+        <Link 
+          href={`/portal/empresas/${companyId}/capacitaciones/charlas`}
+          className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-600/20 flex items-center gap-2"
+        >
+          <Users className="w-5 h-5" />
+          Registro Rápido en Campo (Charlas 5 Min)
+        </Link>
+      </div>
+
       {/* Dashboard KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">

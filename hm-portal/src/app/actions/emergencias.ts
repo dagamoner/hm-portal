@@ -261,3 +261,68 @@ export async function deleteEmergencyEquipment(companyId: string, equipmentId: s
   
   revalidatePath(`/portal/empresas/${companyId}/emergencias`);
 }
+
+// ==========================================
+// EMERGENCY CONTACTS
+// ==========================================
+
+export async function getEmergencyContacts(companyId: string) {
+    try {
+        return await prisma.emergencyContact.findMany({
+            where: { 
+                OR: [
+                    { project: { companyId } },
+                    { establishment: { companyId } }
+                ]
+            },
+            include: { project: true, establishment: true },
+            orderBy: { name: 'asc' }
+        });
+    } catch (error) {
+        console.error("Error fetching emergency contacts:", error);
+        return [];
+    }
+}
+
+export async function createEmergencyContact(companyId: string, data: any) {
+    try {
+        const contact = await prisma.emergencyContact.create({
+            data: {
+                projectId: data.projectId || null,
+                establishmentId: data.establishmentId || null,
+                name: data.name,
+                phone: data.phone,
+                type: data.type,
+                routeContext: data.routeContext
+            }
+        });
+        revalidatePath(`/portal/empresas/${companyId}/emergencias`);
+        return { success: true, contact };
+    } catch (error) {
+        console.error("Error creating emergency contact:", error);
+        return { success: false, error: "Error al guardar el contacto." };
+    }
+}
+
+export async function deleteEmergencyContact(companyId: string, id: string) {
+    try {
+        await prisma.emergencyContact.delete({ where: { id } });
+        revalidatePath(`/portal/empresas/${companyId}/emergencias`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error deleting emergency contact:", error);
+        return { success: false, error: "Error al eliminar el contacto." };
+    }
+}
+
+export async function getProjectsForEmergency(companyId: string) {
+    try {
+        return await prisma.project.findMany({
+            where: { companyId },
+            orderBy: { name: 'asc' }
+        });
+    } catch (error) {
+        console.error("Error fetching projects:", error);
+        return [];
+    }
+}

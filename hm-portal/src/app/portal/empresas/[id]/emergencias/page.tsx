@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { getEmergencyPlans, getEmergencyDrills, getBrigadeMembers, getEmergencyEquipment } from "@/app/actions/emergencias";
+import { getEmergencyPlans, getEmergencyDrills, getBrigadeMembers, getEmergencyEquipment, getEmergencyContacts, getProjectsForEmergency } from "@/app/actions/emergencias";
 import { getWorkers } from "@/app/actions/personal";
+import { getEstablishments } from "@/app/actions/risks";
 import EmergencyClient from "./EmergencyClient";
 
 export default async function EmergenciasPage({ params }: { params: Promise<{ id: string }> }) {
@@ -16,12 +17,15 @@ export default async function EmergenciasPage({ params }: { params: Promise<{ id
   }
 
   // Fetch initial data
-  const [plans, drills, brigadistas, equipment, workers] = await Promise.all([
+  const [plans, drills, brigadistas, equipment, workers, contacts, projects, establishments] = await Promise.all([
     getEmergencyPlans(id),
     getEmergencyDrills(id),
     getBrigadeMembers(id),
     getEmergencyEquipment(id),
-    getWorkers(id)
+    getWorkers(id),
+    getEmergencyContacts(id),
+    getProjectsForEmergency(id),
+    getEstablishments(id)
   ]);
 
   return (
@@ -40,6 +44,9 @@ export default async function EmergenciasPage({ params }: { params: Promise<{ id
         initialBrigadistas={brigadistas}
         initialEquipment={equipment}
         availableWorkers={workers}
+        initialContacts={contacts}
+        availableProjects={projects}
+        availableEstablishments={establishments}
       />
     </div>
   );

@@ -88,6 +88,7 @@ model Establishment {
   sectors          Sector[]
   workers          Worker[]
   visits           Visit[]
+  emergencyContacts EmergencyContact[]
   
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -165,6 +166,9 @@ model Task {
   
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  
+  // Relations to Procedures (PST)
+  psts             PST[]    @relation("TaskToPST")
 }
 
 model Hazard {
@@ -273,8 +277,17 @@ model Worker {
   brigadeMembers   BrigadeMember[]
   eppDeliveries    EppDelivery[]
   
+  projectId        String?
+  project          Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  
+  // Relations for Policies and PST
+  policySignatures PolicySignature[]
+  
+  // Transverse
+  toolboxSignatures ToolboxSignature[]
 }
 
 model Company {
@@ -352,6 +365,17 @@ model Company {
   // New Relations for Contractor Module
   projects            Project[]
   contractors         Contractor[]
+
+  // New Relations for Policies and PST
+  policies            CompanyPolicy[]
+  psts                PST[]
+
+  // New Relations for Reports and Safety Book
+  safetyBookEntries   SafetyBookEntry[]
+  managementReports   ManagementReport[]
+
+  // Toolbox Talks
+  toolboxTalks        ToolboxTalk[]
 }
 
 model CancerigenoEvaluation {
@@ -516,12 +540,14 @@ model Equipment {
   name        String
   category    String   
   status      String   @default("Operativo") 
+  statusLabel String?  // "Apto", "No Apto", etc.
   hours       Int      @default(0)
   
   companyId   String
   company     Company  @relation(fields: [companyId], references: [id])
   
   interventions Intervention[]
+  maintenanceAlerts MaintenanceAlert[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -787,6 +813,8 @@ model EmergencyEquipment {
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  
+  maintenanceAlerts MaintenanceAlert[]
 }
 
 model EppDelivery {
@@ -826,8 +854,64 @@ model Project {
   status          String   @default("Activo")
   
   description     String?
+  surfaceArea     Float?
+  clientName      String?
   
+  workers         Worker[]
+  documents       ProjectDocument[]
   projectContractors ProjectContractor[]
+  psos            ProjectPSO[]
+  emergencyContacts EmergencyContact[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ProjectDocument {
+  id              String   @id @default(uuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  type            String   // PROGRAMA_SEGURIDAD_911, AVISO_INICIO_OBRA, PLIEGO, OTRO
+  title           String
+  fileUrl         String?
+  status          String   @default("Presentado") // Presentado, Aprobado, Observado
+  validUntil      DateTime?
+  version         Int      @default(1)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ProjectPSO {
+  id              String   @id @default(uuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  art             String?
+  hysResponsible  String?
+  status          String   @default("Borrador") // Borrador, Presentado, Observado, Aprobado
+  approvalDate    DateTime?
+  dispositionNum  String?
+  
+  stages          PSOStage[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model PSOStage {
+  id              String   @id @default(uuid())
+  psoId           String
+  pso             ProjectPSO @relation(fields: [psoId], references: [id], onDelete: Cascade)
+  
+  name            String
+  description     String?
+  risks           String?
+  preventions     String?
+  
+  startDate       DateTime?
+  endDate         DateTime?
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -930,6 +1014,173 @@ model Invoice {
   amountPaid      Float    @default(0)
   paymentDate     DateTime?
   status          InvoiceStatus @default(PENDIENTE)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ==========================================
+// POLICIES AND PROCEDURES (PST) MODULE
+// ==========================================
+
+model CompanyPolicy {
+  id          String   @id @default(uuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  type        String   // Ej. HYS, ALCOHOL_DROGAS, VIOLENCIA_LABORAL
+  title       String
+  content     String   @db.Text
+  fileUrl     String?  // Opcional, si suben el pdf original
+  
+  status      String   @default("Vigente")
+  
+  signatures  PolicySignature[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PolicySignature {
+  id          String   @id @default(uuid())
+  policyId    String
+  policy      CompanyPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  workerId    String
+  worker      Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  
+  accepted    Boolean  @default(true)
+  signedAt    DateTime @default(now())
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([policyId, workerId])
+}
+
+model PST {
+  id          String   @id @default(uuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  title       String
+  description String?
+  content     Json     // Estructura del ATS/PST
+  status      String   @default("Borrador") // Borrador, Revisión, Aprobado
+  version     Int      @default(1)
+  
+  tasks       Task[]   @relation("TaskToPST")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ==========================================
+// REPORTS AND SAFETY BOOK MODULE
+// ==========================================
+
+model SafetyBookEntry {
+  id              String   @id @default(uuid())
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  folioNumber     Int      // Número de folio visado
+  date            DateTime // Fecha de la visación
+  
+  professional    String   // Profesional que firmó el libro
+  registryNumber  String?  // Matrícula
+  
+  observations    String   @db.Text
+  recommendations String?  @db.Text
+  deadlines       String?
+  
+  signature       Boolean  @default(true) // Validado digitalmente en el sistema
+  signedBy        String   // Nombre del usuario que asienta la firma en el sistema
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ManagementReport {
+  id              String   @id @default(uuid())
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  type            String   // SEMANAL, MENSUAL
+  period          String   // Ej. "Agosto 2026", "Semana 32 - 2026"
+  
+  // Snapshot metrics
+  workedHours     Int      @default(0)
+  incidentsCount  Int      @default(0)
+  inspectionsCount Int     @default(0)
+  trainedWorkers  Int      @default(0)
+  
+  fileUrl         String?  // En caso de querer guardar un link externo al pdf
+  generatedBy     String
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ==========================================
+// TRANSVERSE FEATURES
+// ==========================================
+
+model MaintenanceAlert {
+  id              String   @id @default(uuid())
+  title           String
+  description     String?
+  dueDate         DateTime
+  isCompleted     Boolean  @default(false)
+  completedAt     DateTime?
+  
+  equipmentId     String?
+  equipment       Equipment? @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  
+  emergencyEquipmentId String?
+  emergencyEquipment   EmergencyEquipment? @relation(fields: [emergencyEquipmentId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ToolboxTalk {
+  id              String   @id @default(uuid())
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  title           String
+  topic           String
+  date            DateTime
+  supervisor      String
+  
+  signatures      ToolboxSignature[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ToolboxSignature {
+  id              String   @id @default(uuid())
+  talkId          String
+  talk            ToolboxTalk @relation(fields: [talkId], references: [id], onDelete: Cascade)
+  workerId        String
+  worker          Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  
+  signedAt        DateTime @default(now())
+  
+  @@unique([talkId, workerId])
+}
+
+model EmergencyContact {
+  id              String   @id @default(uuid())
+  projectId       String?
+  project         Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  establishmentId String?
+  establishment   Establishment? @relation(fields: [establishmentId], references: [id], onDelete: Cascade)
+  
+  name            String   // Ej. Hospital Zonal, Bomberos, Grúa
+  phone           String
+  type            String   // HOSPITAL, POLICIA, BOMBEROS, GRUA, OTRO
+  routeContext    String?  // Ej. "Ruta Nacional 3, Km 45"
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
