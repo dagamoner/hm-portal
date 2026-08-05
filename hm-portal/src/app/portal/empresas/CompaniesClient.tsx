@@ -4,9 +4,12 @@ import React, { useState, useTransition } from 'react';
 import { 
     Building2, Plus, Search, CheckCircle2, ArrowRight, Trash2, Edit2, 
     Briefcase, Fingerprint, Phone, Key, Eye, EyeOff, Users, ShieldCheck, 
-    TrendingUp, FileText, AlertCircle, Save, X
+    TrendingUp, FileText, AlertCircle, Save, X, Download, Loader2
 } from 'lucide-react';
 import { createCompany, updateCompany, deleteCompany } from '@/app/actions/companies';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { getLegajoData } from '@/app/actions/legajo';
 
 // @ts-ignore
 export default function CompaniesClient({ initialCompanies }) {
@@ -16,6 +19,7 @@ export default function CompaniesClient({ initialCompanies }) {
     const [editingCompany, setEditingCompany] = useState<any | null>(null);
     const [companyToDelete, setCompanyToDelete] = useState<any | null>(null);
     const [showArtPass, setShowArtPass] = useState(false);
+    const [downloadingLegajo, setDownloadingLegajo] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
 
     const [formData, setFormData] = useState<any>({
@@ -74,7 +78,71 @@ export default function CompaniesClient({ initialCompanies }) {
         }
     };
 
-    const filteredCompanies = companies.filter((c: any) => 
+    const handleDownloadLegajo = async (company: any) => {
+        setDownloadingLegajo(company.id);
+        try {
+            const data = await getLegajoData(company.id);
+            if (!data || !data.success || !data.items) {
+                alert("Error obteniendo datos del legajo");
+                return;
+            }
+
+            const doc = new jsPDF();
+            
+            // Header
+            doc.setFillColor(79, 70, 229); // Indigo 600
+            doc.rect(0, 0, 210, 30, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(18);
+            doc.text("MH HIGIENE Y SEGURIDAD EN EL TRABAJO", 105, 15, { align: "center" });
+            doc.setFontSize(12);
+            doc.text("Legajo Tecnico Integral", 105, 23, { align: "center" });
+
+            doc.setTextColor(50, 50, 50);
+            doc.setFontSize(14);
+            doc.text(`Empresa: ${company.name}`, 14, 40);
+            doc.setFontSize(10);
+            doc.text(`CUIT: ${company.taxId}`, 14, 46);
+            doc.text(`Industria: ${company.industry}`, 14, 51);
+            doc.text(`Nivel de Riesgo: ${company.riskLevel}`, 14, 56);
+            doc.text(`Fecha de Emision: ${new Date().toLocaleDateString()}`, 14, 61);
+
+            const tableData = data.items.map((item: any) => [
+                item.name, 
+                item.status
+            ]);
+
+            autoTable(doc, {
+                startY: 70,
+                head: [['Item Evaluado', 'Estado']],
+                body: tableData,
+                theme: 'striped',
+                headStyles: { fillColor: [79, 70, 229] },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === 1) {
+                        if (data.cell.raw === 'Vigente') {
+                            data.cell.styles.textColor = [22, 163, 74];
+                            data.cell.styles.fontStyle = 'bold';
+                        } else if (data.cell.raw === 'Pendiente') {
+                            data.cell.styles.textColor = [202, 138, 4];
+                        } else {
+                            data.cell.styles.textColor = [220, 38, 38];
+                        }
+                    }
+                }
+            });
+
+            doc.save(`Legajo_Tecnico_${company.name.replace(/\s+/g, '_')}.pdf`);
+
+        } catch (error) {
+            console.error(error);
+            alert("Ocurrio un error al generar el legajo");
+        } finally {
+            setDownloadingLegajo(null);
+        }
+    };
+
+    const filteredCompanies = companies.filter((c: any) =>  
         c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.taxId.includes(searchTerm)
@@ -174,6 +242,14 @@ export default function CompaniesClient({ initialCompanies }) {
                                                 <TrendingUp className="w-4 h-4" />
                                                 <span className="text-[10px] font-black uppercase tracking-wider hidden md:inline">Empresa</span>
                                             </a>
+                                            <button 
+                                                onClick={() => handleDownloadLegajo(company)}
+                                                disabled={downloadingLegajo === company.id}
+                                                className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all bg-white shadow-sm border border-slate-100 disabled:opacity-50"
+                                                title="Descargar Legajo Técnico"
+                                            >
+                                                {downloadingLegajo === company.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                            </button>
                                             <button 
                                                 onClick={() => { setEditingCompany(company); setFormData(company); setIsModalOpen(true); }}
                                                 className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all bg-white shadow-sm border border-slate-100"
