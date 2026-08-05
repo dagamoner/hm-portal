@@ -21,9 +21,8 @@ export async function resolveMaintenanceAlert(companyId: string, alertId: string
         await prisma.maintenanceAlert.update({
             where: { id: alertId },
             data: {
-                status: 'RESOLVED',
-                resolvedAt: new Date(),
-                resolutionNotes
+                isCompleted: true,
+                completedAt: new Date()
             }
         });
         revalidatePath(`/portal/empresas/${companyId}/equipos`);

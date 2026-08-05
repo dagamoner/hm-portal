@@ -63,7 +63,7 @@ export default function EquiposClient({ companyId, initialEquipments, initialAle
   const handleResolveAlert = async (alertId: string) => {
       const res = await resolveMaintenanceAlert(companyId, alertId, "Resuelto manualmente");
       if (res.success) {
-          setAlerts(alerts.map(a => a.id === alertId ? { ...a, status: 'RESOLVED' } : a));
+          setAlerts(alerts.map(a => a.id === alertId ? { ...a, isCompleted: true } : a));
       } else {
           alert("Error al resolver alerta");
       }
@@ -93,7 +93,7 @@ export default function EquiposClient({ companyId, initialEquipments, initialAle
           }`}
         >
           <AlertTriangle className="w-4 h-4" />
-          Alertas de Mantenimiento ({alerts.filter(a => a.status === 'PENDING').length})
+          Alertas de Mantenimiento ({alerts.filter(a => !a.isCompleted).length})
         </button>
       </div>
 
@@ -267,7 +267,7 @@ export default function EquiposClient({ companyId, initialEquipments, initialAle
               ) : (
                   <div className="space-y-4">
                       {alerts.map(alert => (
-                          <div key={alert.id} className={`p-4 rounded-2xl border flex items-center justify-between ${alert.status === 'RESOLVED' ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-white border-rose-200 shadow-sm'}`}>
+                          <div key={alert.id} className={`p-4 rounded-2xl border flex items-center justify-between ${alert.isCompleted ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-white border-rose-200 shadow-sm'}`}>
                               <div>
                                   <div className="flex items-center gap-2 mb-1">
                                       <h4 className="font-bold text-slate-800">{alert.title}</h4>
@@ -275,13 +275,13 @@ export default function EquiposClient({ companyId, initialEquipments, initialAle
                                   </div>
                                   <p className="text-sm text-slate-500">Equipo: {alert.equipment?.name || "Desconocido"} - Vencimiento: {format(new Date(alert.dueDate), "dd/MM/yyyy")}</p>
                               </div>
-                              {alert.status === 'PENDING' && (
+                              {!alert.isCompleted && (
                                   <button onClick={() => handleResolveAlert(alert.id)} className="px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl font-bold text-sm transition-colors border border-emerald-200 flex items-center gap-2">
                                       <CheckCircle className="w-4 h-4" />
                                       Marcar Resuelto
                                   </button>
                               )}
-                              {alert.status === 'RESOLVED' && (
+                              {alert.isCompleted && (
                                   <span className="text-sm font-bold text-slate-400">Resuelto</span>
                               )}
                           </div>
