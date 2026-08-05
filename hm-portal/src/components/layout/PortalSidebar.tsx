@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Building2, ShieldAlert, Settings, Home, Users } from "lucide-react"
+import { Building2, ShieldAlert, Settings, Home, Users, BookOpen } from "lucide-react"
 import { useAuth } from "@/components/providers/AuthProvider"
 
 export function PortalSidebar() {
@@ -69,6 +69,17 @@ export function PortalSidebar() {
             </Link>
           </>
         )}
+
+        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-6 mb-2 px-4">Ayuda</div>
+        <a 
+          href={isClient ? "/manuals/Manual_Usuario_Cliente_MH.pdf" : "/manuals/Manual_Usuario_Profesionales_MH.pdf"} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-slate-700 hover:bg-slate-50 hover:text-indigo-600"
+        >
+          <BookOpen size={20} />
+          <span>Manual de Usuario</span>
+        </a>
       </div>
     </aside>
   )
