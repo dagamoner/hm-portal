@@ -4,29 +4,79 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth";
 
+async function calculateRealCompliance(companyId: string): Promise<number> {
+  const [workers, inspections, incidents, docsCount] = await Promise.all([
+    prisma.worker.findMany({ where: { companyId } }),
+    prisma.inspection.findMany({ where: { companyId } }),
+    prisma.incident.findMany({ where: { companyId } }),
+    prisma.document.count({ where: { companyId } })
+  ]);
+
+  let workerScore = 0;
+  if (workers.length > 0) {
+    const workersWithEpp = workers.filter(w => {
+      if (!w.laborData) return false;
+      const data = typeof w.laborData === 'string' ? JSON.parse(w.laborData) : (w.laborData as any);
+      return data.eppDelivered === 'Sí';
+    });
+    workerScore = (workersWithEpp.length / workers.length) * 30;
+  }
+
+  let inspectionScore = 0;
+  if (inspections.length > 0) {
+    const avgScore = inspections.reduce((acc, ins) => acc + (ins.score || 0), 0) / inspections.length;
+    inspectionScore = (avgScore / 100) * 30;
+  }
+
+  let incidentScore = 20;
+  if (incidents.length > 0) {
+    const closedIncidents = incidents.filter(i => i.status.toLowerCase() === 'cerrado' || i.status.toLowerCase() === 'resuelto');
+    incidentScore = (closedIncidents.length / incidents.length) * 20;
+  }
+
+  let docScore = docsCount > 0 ? 20 : 0;
+
+  return Math.round(workerScore + inspectionScore + incidentScore + docScore);
+}
+
 export async function getCompanies() {
   const user = await requireAuth(); 
   
   try {
+    let companies = [];
     if (user.role === 'ADMIN' || user.hasGlobalAccess) {
-      const companies = await prisma.company.findMany({
+      companies = await prisma.company.findMany({
         orderBy: { name: 'asc' }
       });
-      return companies;
     } else if (['MANAGER', 'INSPECTOR'].includes(user.role)) {
       const allowedCompanyIds = user.assignedCompanyIds || [];
-      const companies = await prisma.company.findMany({
+      companies = await prisma.company.findMany({
         where: { id: { in: allowedCompanyIds } },
         orderBy: { name: 'asc' }
       });
-      return companies;
     } else {
       if (!user.companyId) return [];
       const company = await prisma.company.findUnique({
         where: { id: user.companyId }
       });
-      return company ? [company] : [];
+      companies = company ? [company] : [];
     }
+
+    const enhancedCompanies = await Promise.all(
+      companies.map(async (company) => {
+        const realCompliance = await calculateRealCompliance(company.id);
+        
+        // Optional: Update it in DB asynchronously without blocking to keep data somewhat in sync
+        prisma.company.update({
+          where: { id: company.id },
+          data: { safetyCompliance: realCompliance }
+        }).catch(() => {});
+
+        return { ...company, safetyCompliance: realCompliance };
+      })
+    );
+
+    return enhancedCompanies;
   } catch (error) {
     console.error("Error fetching companies:", error);
     return [];
@@ -39,7 +89,10 @@ export async function getCompanyById(id: string) {
     const company = await prisma.company.findUnique({
       where: { id }
     });
-    return company;
+    if (!company) return null;
+
+    const realCompliance = await calculateRealCompliance(company.id);
+    return { ...company, safetyCompliance: realCompliance };
   } catch (error) {
     console.error("Error fetching company by id:", error);
     return null;
