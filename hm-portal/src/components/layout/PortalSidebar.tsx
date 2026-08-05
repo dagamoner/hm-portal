@@ -73,6 +73,7 @@ export function PortalSidebar() {
         <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-6 mb-2 px-4">Ayuda</div>
         <a 
           href={isClient ? "/manuals/Manual_Usuario_Cliente_MH.pdf" : "/manuals/Manual_Usuario_Profesionales_MH.pdf"} 
+          download={isClient ? "Manual_Usuario_Cliente_MH.pdf" : "Manual_Usuario_Profesionales_MH.pdf"}
           target="_blank" 
           rel="noopener noreferrer"
           className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-slate-700 hover:bg-slate-50 hover:text-indigo-600"
