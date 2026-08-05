@@ -44,7 +44,6 @@ export async function updateSession(request: NextRequest) {
     name: "mh_session",
     value: await encrypt(parsed),
     httpOnly: true,
-    expires: parsed.expires,
   });
   return res;
 }

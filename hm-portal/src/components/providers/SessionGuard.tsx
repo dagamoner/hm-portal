@@ -4,7 +4,7 @@ import { useEffect, useCallback } from "react";
 import { logout } from "@/app/actions/auth";
 
 export function SessionGuard() {
-  const INACTIVITY_LIMIT = 60 * 60 * 1000; // 1 hora en milisegundos
+  const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutos en milisegundos
 
   const handleLogout = useCallback(async () => {
     sessionStorage.removeItem("active_session");
