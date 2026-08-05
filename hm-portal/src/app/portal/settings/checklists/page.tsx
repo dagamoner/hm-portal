@@ -1,4 +1,4 @@
-import { getChecklistTemplates } from "@/app/actions/templates";
+import { getChecklistTemplates } from "@/app/actions/checklists";
 import ChecklistClient from "./ChecklistClient";
 
 export default async function ChecklistsPage() {

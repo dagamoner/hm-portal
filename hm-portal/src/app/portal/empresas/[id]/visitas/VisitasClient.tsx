@@ -158,7 +158,7 @@ export default function VisitasClient({
         <div className="p-6">
           {activeTab === 'visitas' && <VisitsList visits={visits} />}
           {activeTab === 'desvios' && (
-            <FindingsList findings={findings} onFindingUpdated={handleFindingUpdated} companyId={company.id} />
+            <FindingsList findings={findings} onUpdate={handleFindingUpdated} />
           )}
           {activeTab === 'libro' && (
             <LibroHySLClient 

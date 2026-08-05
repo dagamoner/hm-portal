@@ -35,16 +35,15 @@ export async function resolveMaintenanceAlert(companyId: string, alertId: string
 
 export async function createMaintenanceAlert(companyId: string, data: any) {
     try {
-        const alert = await prisma.maintenanceAlert.create({
+        await prisma.maintenanceAlert.create({
             data: {
                 title: data.title,
-                type: data.type,
                 dueDate: new Date(data.dueDate),
                 equipmentId: data.equipmentId
             }
         });
         revalidatePath(`/portal/empresas/${companyId}/equipos`);
-        return { success: true, alert };
+        return { success: true };
     } catch (error) {
         console.error("Error creating maintenance alert:", error);
         return { success: false, error: "Error al crear alerta." };

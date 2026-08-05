@@ -4,7 +4,7 @@ import React, { useState, useTransition } from "react";
 import { 
     ClipboardList, Plus, Trash2, Edit2, Save, X, GripVertical, CheckCircle2, ChevronRight, ChevronDown 
 } from "lucide-react";
-import { createChecklistTemplate, updateChecklistTemplate, deleteChecklistTemplate } from "@/app/actions/templates";
+import { createChecklistTemplate, updateChecklistTemplate, deleteChecklistTemplate } from "@/app/actions/checklists";
 
 type ChecklistItem = { id: string, question: string };
 type ChecklistCategory = { id: string, name: string, items: ChecklistItem[] };

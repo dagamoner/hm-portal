@@ -271,7 +271,6 @@ export default function EquiposClient({ companyId, initialEquipments, initialAle
                               <div>
                                   <div className="flex items-center gap-2 mb-1">
                                       <h4 className="font-bold text-slate-800">{alert.title}</h4>
-                                      <span className="text-[10px] font-black px-2 py-0.5 bg-slate-100 rounded-lg text-slate-600">{alert.type}</span>
                                   </div>
                                   <p className="text-sm text-slate-500">Equipo: {alert.equipment?.name || "Desconocido"} - Vencimiento: {format(new Date(alert.dueDate), "dd/MM/yyyy")}</p>
                               </div>
