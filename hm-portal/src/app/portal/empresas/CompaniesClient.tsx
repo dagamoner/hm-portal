@@ -89,23 +89,44 @@ export default function CompaniesClient({ initialCompanies }) {
 
             const doc = new jsPDF();
             
+            // Load Logo
+            const imgData = await new Promise<string>((resolve) => {
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.src = '/images/logo-transparent.png';
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) ctx.drawImage(img, 0, 0);
+                    resolve(canvas.toDataURL('image/png'));
+                };
+            });
+
             // Header
-            doc.setFillColor(79, 70, 229); // Indigo 600
-            doc.rect(0, 0, 210, 30, 'F');
-            doc.setTextColor(255, 255, 255);
+            doc.setFillColor(250, 204, 21); // Yellow 400
+            doc.rect(0, 0, 210, 32, 'F');
+            
+            // Logo
+            doc.addImage(imgData, 'PNG', 14, 6, 20, 20);
+
+            doc.setTextColor(30, 30, 30); // Dark text for yellow bg
             doc.setFontSize(18);
-            doc.text("MH HIGIENE Y SEGURIDAD EN EL TRABAJO", 105, 15, { align: "center" });
+            doc.text("MH HIGIENE Y SEGURIDAD EN EL TRABAJO", 105, 16, { align: "center" });
             doc.setFontSize(12);
-            doc.text("Legajo Tecnico Integral", 105, 23, { align: "center" });
+            doc.setFont("helvetica", "bold");
+            doc.text("Legajo Tecnico Integral", 105, 24, { align: "center" });
+            doc.setFont("helvetica", "normal");
 
             doc.setTextColor(50, 50, 50);
             doc.setFontSize(14);
-            doc.text(`Empresa: ${company.name}`, 14, 40);
+            doc.text(`Empresa: ${company.name}`, 14, 42);
             doc.setFontSize(10);
-            doc.text(`CUIT: ${company.taxId}`, 14, 46);
-            doc.text(`Industria: ${company.industry}`, 14, 51);
-            doc.text(`Nivel de Riesgo: ${company.riskLevel}`, 14, 56);
-            doc.text(`Fecha de Emision: ${new Date().toLocaleDateString()}`, 14, 61);
+            doc.text(`CUIT: ${company.taxId}`, 14, 48);
+            doc.text(`Industria: ${company.industry}`, 14, 53);
+            doc.text(`Nivel de Riesgo: ${company.riskLevel}`, 14, 58);
+            doc.text(`Fecha de Emision: ${new Date().toLocaleDateString()}`, 14, 63);
 
             const tableData = data.items.map((item: any) => [
                 item.name, 
@@ -113,11 +134,11 @@ export default function CompaniesClient({ initialCompanies }) {
             ]);
 
             autoTable(doc, {
-                startY: 70,
+                startY: 72,
                 head: [['Item Evaluado', 'Estado']],
                 body: tableData,
                 theme: 'striped',
-                headStyles: { fillColor: [79, 70, 229] },
+                headStyles: { fillColor: [250, 204, 21], textColor: [30, 30, 30] },
                 didParseCell: function(data) {
                     if (data.section === 'body' && data.column.index === 1) {
                         if (data.cell.raw === 'Vigente') {
