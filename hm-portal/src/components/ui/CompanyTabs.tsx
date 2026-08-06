@@ -6,7 +6,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { 
     LayoutDashboard, FileText, Activity, Accessibility, Bug, AlertTriangle, 
     Search, ShieldAlert, Calendar, Truck, Server, Users, ClipboardCheck, 
-    History, GraduationCap, TableProperties, Siren, Shield, HardHat, Receipt, Construction, BookOpenCheck, BookMarked, PieChart, Leaf
+    History, GraduationCap, TableProperties, Siren, Shield, HardHat, Receipt, Construction, BookOpenCheck, BookMarked, PieChart, Leaf, FlaskConical
 } from "lucide-react";
 
 export const MODULES = [
@@ -30,6 +30,7 @@ export const MODULES = [
     { name: "Contratistas", path: "/contratistas", icon: HardHat },
     { name: "Capacitaciones", path: "/capacitaciones", icon: GraduationCap },
     { name: "Gestión Ambiental", path: "/ambiental", icon: Leaf },
+    { name: "Productos Químicos", path: "/quimicos", icon: FlaskConical },
 ];
 
 export function CompanyTabs({ companyId, companyName }: { companyId: string, companyName?: string }) {

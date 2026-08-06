@@ -90,6 +90,7 @@ model Establishment {
   visits           Visit[]
   emergencyContacts EmergencyContact[]
   environmentalAspects EnvironmentalAspect[]
+  chemicalProducts ChemicalProduct[]
   
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -381,6 +382,7 @@ model Company {
   // Environmental Module
   environmentalAspects EnvironmentalAspect[]
   hazardousWastes      HazardousWaste[]
+  chemicalProducts     ChemicalProduct[]
 }
 
 model CancerigenoEvaluation {
@@ -1241,3 +1243,41 @@ model HazardousWaste {
   updatedAt       DateTime @updatedAt
 }
 
+// ==========================================
+// PRODUCTOS QUÍMICOS (SGA/GHS)
+// ==========================================
+
+model ChemicalProduct {
+  id                  String   @id @default(uuid())
+  companyId           String
+  company             Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  establishmentId     String?
+  establishment       Establishment? @relation(fields: [establishmentId], references: [id], onDelete: Cascade)
+  
+  // Identificación básica
+  name                String
+  casNumber           String?
+  commonUse           String?
+  
+  // Clasificación SGA/GHS
+  warningWord         String?  // PELIGRO, ATENCIÓN
+  pictograms          Json     @default("[]") // Ej: ["GHS01", "GHS02"]
+  hazardStatements    Json     @default("[]") // Frases H (Ej: ["H314: Provoca graves quemaduras..."])
+  precautionaryStatements Json @default("[]") // Frases P (Ej: ["P280: Usar guantes..."])
+  
+  // Ficha de Datos de Seguridad (FDS/SDS)
+  fdsUrl              String?  // Enlace al PDF subido
+  fdsCompliant        Boolean  @default(false)
+  fdsSections         Json     @default("{}") // Checklist de las 16 secciones IRAM 41400
+  
+  // Almacenamiento y Condiciones (IRAM 41401)
+  storageLocation     String?
+  incompatibilities   String?
+  ventilationRequired Boolean  @default(true)
+  
+  // Controles y Mediciones
+  airMeasurements     Json     @default("[]") // Historial de mediciones de contaminantes
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
