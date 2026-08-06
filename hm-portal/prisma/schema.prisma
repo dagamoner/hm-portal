@@ -89,6 +89,7 @@ model Establishment {
   workers          Worker[]
   visits           Visit[]
   emergencyContacts EmergencyContact[]
+  environmentalAspects EnvironmentalAspect[]
   
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -376,6 +377,10 @@ model Company {
 
   // Toolbox Talks
   toolboxTalks        ToolboxTalk[]
+
+  // Environmental Module
+  environmentalAspects EnvironmentalAspect[]
+  hazardousWastes      HazardousWaste[]
 }
 
 model CancerigenoEvaluation {
@@ -1185,3 +1190,54 @@ model EmergencyContact {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+// ==========================================
+// GESTIÓN AMBIENTAL Y RESIDUOS PELIGROSOS
+// ==========================================
+
+model EnvironmentalAspect {
+  id              String   @id @default(uuid())
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  establishmentId String?
+  establishment   Establishment? @relation(fields: [establishmentId], references: [id], onDelete: Cascade)
+  
+  process         String
+  aspect          String
+  impact          String
+  condition       String   @default("Normal") // Normal, Anormal, Emergencia
+  
+  probability     Int?
+  severity        Int?
+  significance    Int?
+  isSignificant   Boolean  @default(false)
+  
+  controls        String?
+  actionPlan      String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model HazardousWaste {
+  id              String   @id @default(uuid())
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  type            String
+  description     String
+  generationDate  DateTime
+  amountKg        Float
+  storageLocation String
+  
+  manifestNumber  String?
+  transportedBy   String?
+  disposalDate    DateTime?
+  certificateUrl  String?
+  
+  status          String   @default("Almacenado") // Almacenado, En Tránsito, Dispuesto
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
