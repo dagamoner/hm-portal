@@ -9,7 +9,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import Link from "next/link";
 
 export default function CharlasClient({ companyId, initialTalks, workers }: { companyId: string, initialTalks: any[], workers: any[] }) {
-    const { user } = useAuth();
+    const { user, isClient } = useAuth();
     const [isPending, startTransition] = useTransition();
     const [view, setView] = useState<'LIST' | 'NEW'>('LIST');
     const [talks, setTalks] = useState(initialTalks);
@@ -86,7 +86,7 @@ export default function CharlasClient({ companyId, initialTalks, workers }: { co
                         <p className="text-xs text-slate-500 font-medium">Registro rápido en campo</p>
                     </div>
                 </div>
-                {view === 'LIST' && (
+                {view === 'LIST' && !isClient && (
                     <button 
                         onClick={() => setView('NEW')}
                         className="bg-indigo-600 text-white p-3 rounded-xl shadow-lg shadow-indigo-600/30"

@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { Plus, Trash2, Truck, CheckCircle2, Package } from "lucide-react";
 import { createHazardousWaste, updateHazardousWasteStatus, deleteHazardousWaste } from "@/app/actions/environmental";
+import { useAuth } from "@/components/providers/AuthProvider";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
 
 export function WasteManagement({ companyId, waste, setWaste }: any) {
+  const { isClient } = useAuth();
   const [isAdding, setIsAdding] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -69,13 +71,15 @@ export function WasteManagement({ companyId, waste, setWaste }: any) {
           <h2 className="text-lg font-bold text-slate-800">Residuos Peligrosos</h2>
           <p className="text-sm text-slate-500">Registro, almacenamiento temporal y disposición final.</p>
         </div>
-        <button 
-          onClick={() => setIsAdding(!isAdding)}
-          className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
-        >
-          <Plus size={16} />
-          Registrar Residuo
-        </button>
+        {!isClient && (
+          <button 
+            onClick={() => setIsAdding(!isAdding)}
+            className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
+          >
+            <Plus size={16} />
+            Registrar Residuo
+          </button>
+        )}
       </div>
 
       {isAdding && (
@@ -154,20 +158,22 @@ export function WasteManagement({ companyId, waste, setWaste }: any) {
 
             <div className="pt-2 flex justify-between items-center mt-auto">
               <div className="flex gap-1">
-                {item.status === "Almacenado" && (
+                {!isClient && item.status === "Almacenado" && (
                   <button onClick={() => handleUpdateStatus(item.id, "En Tránsito")} className="text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition-colors border border-amber-200">
                     Marcar en Tránsito
                   </button>
                 )}
-                {item.status === "En Tránsito" && (
+                {!isClient && item.status === "En Tránsito" && (
                   <button onClick={() => handleUpdateStatus(item.id, "Dispuesto")} className="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg transition-colors border border-emerald-200">
                     Marcar Dispuesto
                   </button>
                 )}
               </div>
-              <button onClick={() => handleDelete(item.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                <Trash2 size={16} />
-              </button>
+              {!isClient && (
+                <button onClick={() => handleDelete(item.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                  <Trash2 size={16} />
+                </button>
+              )}
             </div>
           </div>
         ))}

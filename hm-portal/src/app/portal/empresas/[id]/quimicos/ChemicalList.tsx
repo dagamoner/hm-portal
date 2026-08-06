@@ -1,7 +1,8 @@
 "use client";
 
-import { Trash2, FileText, Download, AlertTriangle } from "lucide-react";
+import { Trash2, FileText, Download, AlertTriangle, CheckCircle, Info } from "lucide-react";
 import { deleteChemicalProduct } from "@/app/actions/chemicals";
+import { useAuth } from "@/components/providers/AuthProvider";
 import toast from "react-hot-toast";
 
 const PICTOGRAMS: Record<string, string> = {
@@ -26,6 +27,7 @@ const PICTOGRAMS: Record<string, string> = {
 };
 
 export function ChemicalList({ companyId, products, setProducts }: any) {
+  const { isClient } = useAuth();
   const handleDelete = async (id: string) => {
     if (!confirm("¿Eliminar este producto químico del inventario?")) return;
     const res = await deleteChemicalProduct(companyId, id);
@@ -99,9 +101,11 @@ export function ChemicalList({ companyId, products, setProducts }: any) {
                   </span>
                 )}
               </div>
-              <button onClick={() => handleDelete(item.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                <Trash2 size={16} />
-              </button>
+              {!isClient && (
+                <button onClick={() => handleDelete(item.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                  <Trash2 size={16} />
+                </button>
+              )}
             </div>
           </div>
         ))}

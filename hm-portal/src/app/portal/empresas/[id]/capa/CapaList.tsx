@@ -2,6 +2,7 @@
 
 import { Trash2, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { deleteCapa, updateCapa } from "@/app/actions/capa";
+import { useAuth } from "@/components/providers/AuthProvider";
 import toast from "react-hot-toast";
 
 const RISK_COLORS: Record<string, string> = {
@@ -17,6 +18,8 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export function CapaList({ companyId, capas, setCapas }: any) {
+  const { isClient } = useAuth();
+  
   const handleDelete = async (id: string) => {
     if (!confirm("¿Eliminar este caso CAPA permanentemente?")) return;
     const res = await deleteCapa(companyId, id);
@@ -57,7 +60,8 @@ export function CapaList({ companyId, capas, setCapas }: any) {
               <select 
                 value={item.status} 
                 onChange={(e) => handleStatusChange(item.id, e.target.value)}
-                className={`text-xs font-bold rounded-lg px-2 py-1 border outline-none cursor-pointer ${STATUS_COLORS[item.status]}`}
+                disabled={isClient}
+                className={`text-xs font-bold rounded-lg px-2 py-1 border outline-none cursor-pointer disabled:opacity-80 disabled:cursor-not-allowed ${STATUS_COLORS[item.status]}`}
               >
                 <option value="ABIERTO">ABIERTO</option>
                 <option value="VERIFICANDO">VERIFICANDO</option>
@@ -102,9 +106,11 @@ export function CapaList({ companyId, capas, setCapas }: any) {
                   </span>
                 )}
               </div>
-              <button onClick={() => handleDelete(item.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                <Trash2 size={16} />
-              </button>
+              {!isClient && (
+                <button onClick={() => handleDelete(item.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                  <Trash2 size={16} />
+                </button>
+              )}
             </div>
           </div>
         ))}

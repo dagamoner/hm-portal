@@ -4,9 +4,11 @@ import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ShieldAlert, Settings as SettingsIcon, ClipboardList } from "lucide-react";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { isClient } = useAuth();
 
   const getLinkClass = (path: string) => {
     const isActive = pathname === path;
@@ -27,14 +29,18 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
               <SettingsIcon size={20} />
               <span>General</span>
             </Link>
-            <Link href="/portal/settings/log-auditoria" className={getLinkClass("/portal/settings/log-auditoria")}>
-              <ShieldAlert size={20} />
-              <span>Auditorías del sistema</span>
-            </Link>
-            <Link href="/portal/settings/checklists" className={getLinkClass("/portal/settings/checklists")}>
-              <ClipboardList size={20} />
-              <span>Plantillas Checklists</span>
-            </Link>
+            {!isClient && (
+              <>
+                <Link href="/portal/settings/log-auditoria" className={getLinkClass("/portal/settings/log-auditoria")}>
+                  <ShieldAlert size={20} />
+                  <span>Auditorías del sistema</span>
+                </Link>
+                <Link href="/portal/settings/checklists" className={getLinkClass("/portal/settings/checklists")}>
+                  <ClipboardList size={20} />
+                  <span>Plantillas Checklists</span>
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       </div>

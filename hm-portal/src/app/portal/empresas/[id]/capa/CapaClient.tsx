@@ -4,8 +4,10 @@ import { useState } from "react";
 import { Target, Plus } from "lucide-react";
 import { CapaList } from "./CapaList";
 import { CapaForm } from "./CapaForm";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 export function CapaClient({ companyId, initialCapas }: any) {
+  const { isClient } = useAuth();
   const [activeTab, setActiveTab] = useState<"list" | "form">("list");
   const [capas, setCapas] = useState(initialCapas);
 
@@ -24,17 +26,19 @@ export function CapaClient({ companyId, initialCapas }: any) {
           <Target size={18} />
           Casos CAPA
         </button>
-        <button
-          onClick={() => setActiveTab("form")}
-          className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
-            activeTab === "form"
-              ? "bg-white text-indigo-700 shadow-sm border border-slate-200/60"
-              : "text-slate-500 hover:bg-white/60"
-          }`}
-        >
-          <Plus size={18} />
-          Nuevo Caso CAPA
-        </button>
+        {!isClient && (
+          <button
+            onClick={() => setActiveTab("form")}
+            className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
+              activeTab === "form"
+                ? "bg-white text-indigo-700 shadow-sm border border-slate-200/60"
+                : "text-slate-500 hover:bg-white/60"
+            }`}
+          >
+            <Plus size={18} />
+            Nuevo Caso CAPA
+          </button>
+        )}
       </div>
 
       {/* Content */}
