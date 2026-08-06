@@ -95,7 +95,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-[var(--color-secondary)] mb-4">Nuestros Servicios</h2>
             <p className="text-[var(--color-muted-foreground)] max-w-2xl mx-auto">
-              Adaptamos nuestros servicios a las necesidades específicas de tu industria, asegurando los más altos estándares de calidad y seguridad. Estos son algunos de los servicios que ofrecemos:
+              Adaptamos nuestros servicios a las necesidades específicas de tu Empresa, asegurando los más altos estándares de calidad y seguridad. Estos son algunos de los servicios que ofrecemos:
             </p>
           </div>
           
