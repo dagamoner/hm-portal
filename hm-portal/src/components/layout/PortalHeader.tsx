@@ -3,6 +3,7 @@ import { logout } from "@/app/actions/auth"
 import { NotificationBell } from "./NotificationBell"
 import { getSession } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { SidebarToggle } from "@/components/ui/SidebarToggle"
 
 export async function PortalHeader() {
   const session = await getSession();
@@ -38,7 +39,8 @@ export async function PortalHeader() {
   return (
     <header className="print:hidden h-24 px-10 flex items-center justify-between border-b border-slate-200/60 bg-white/70 backdrop-blur-md sticky top-0 z-40">
       <div className="flex items-center gap-4">
-        <div className="p-3 bg-slate-100 rounded-xl hidden md:block">
+        <SidebarToggle />
+        <div className="p-3 bg-slate-100 rounded-xl hidden lg:block">
           <Search className="w-5 h-5 text-slate-400" />
         </div>
         <div>
