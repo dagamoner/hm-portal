@@ -91,6 +91,7 @@ model Establishment {
   emergencyContacts EmergencyContact[]
   environmentalAspects EnvironmentalAspect[]
   chemicalProducts ChemicalProduct[]
+  capas            Capa[]
   
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -383,6 +384,7 @@ model Company {
   environmentalAspects EnvironmentalAspect[]
   hazardousWastes      HazardousWaste[]
   chemicalProducts     ChemicalProduct[]
+  capas                Capa[]
 }
 
 model CancerigenoEvaluation {
@@ -1280,4 +1282,44 @@ model ChemicalProduct {
   
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+}
+
+// ==========================================
+// MÓDULO CAPA (ACCIONES CORRECTIVAS Y PREVENTIVAS)
+// ==========================================
+
+model Capa {
+  id              String   @id @default(uuid())
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  establishmentId String?
+  establishment   Establishment? @relation(fields: [establishmentId], references: [id], onDelete: Cascade)
+  
+  // 1. Identificación y Contención
+  reportDate      DateTime @default(now())
+  area            String
+  deviationType   String
+  riskLevel       String   // CRITICAL, MAJOR, MINOR
+  description     String
+  immediateCorrection String?
+  notifiedPersons String?
+  
+  // 2. Investigación (Causa Raíz)
+  backgroundCheck String?
+  interviews      String?
+  inspections     String?
+  rootCause       String?
+  
+  // 3. Plan de Acción (CAPA)
+  actionPlan      Json     @default("[]")
+  
+  // 4. Verificación y Cierre
+  verificationTests String?
+  verificationResults String?
+  sopUpdated      Boolean  @default(false)
+  status          String   @default("ABIERTO") // ABIERTO, VERIFICANDO, CERRADO
+  closedAt        DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
