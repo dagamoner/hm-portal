@@ -303,7 +303,7 @@ export default function CompaniesClient({ initialCompanies }) {
                     <div>
                         <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Trabajadores (Ops + Admin)</p>
                         <p className="text-3xl font-black text-slate-800 mt-1">
-                            {companies.reduce((acc: number, c: any) => acc + (c.workersAdmin || 0) + (c.workersOps || 0), 0).toLocaleString()}
+                            {companies.reduce((acc: number, c: any) => acc + (c.realWorkerCount || 0), 0).toLocaleString()}
                         </p>
                     </div>
                 </div>
@@ -325,9 +325,9 @@ export default function CompaniesClient({ initialCompanies }) {
                         <TrendingUp className="w-7 h-7" />
                     </div>
                     <div>
-                        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Sectores Auditados</p>
+                        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Auditorías Realizadas</p>
                         <p className="text-3xl font-black text-slate-800 mt-1">
-                            {new Set(companies.map((c: any) => c.industry)).size}
+                            {companies.reduce((acc: number, c: any) => acc + (c.realAuditCount || 0), 0)}
                         </p>
                     </div>
                 </div>

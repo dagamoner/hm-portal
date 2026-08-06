@@ -64,7 +64,11 @@ export async function getCompanies() {
 
     const enhancedCompanies = await Promise.all(
       companies.map(async (company) => {
-        const realCompliance = await calculateRealCompliance(company.id);
+        const [realCompliance, realWorkerCount, realAuditCount] = await Promise.all([
+          calculateRealCompliance(company.id),
+          prisma.worker.count({ where: { companyId: company.id } }),
+          prisma.inspection.count({ where: { companyId: company.id } })
+        ]);
         
         // Optional: Update it in DB asynchronously without blocking to keep data somewhat in sync
         prisma.company.update({
@@ -72,7 +76,7 @@ export async function getCompanies() {
           data: { safetyCompliance: realCompliance }
         }).catch(() => {});
 
-        return { ...company, safetyCompliance: realCompliance };
+        return { ...company, safetyCompliance: realCompliance, realWorkerCount, realAuditCount };
       })
     );
 
