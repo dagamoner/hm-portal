@@ -3,6 +3,7 @@ import { ReactNode } from "react"
 import { getSession } from "@/lib/auth"
 import { AuthProvider } from "@/components/providers/AuthProvider"
 import { SessionGuard } from "@/components/providers/SessionGuard"
+import { SidebarProvider } from "@/components/providers/SidebarProvider"
 import { PortalClientWrapper } from "@/components/layout/PortalClientWrapper"
 import { PortalHeader } from "@/components/layout/PortalHeader"
 import { redirect } from "next/navigation"
@@ -16,10 +17,12 @@ export default async function PortalLayout({ children }: { children: ReactNode }
 
   return (
     <AuthProvider user={session.user}>
-      <SessionGuard />
-      <PortalClientWrapper header={<PortalHeader />}>
-        {children}
-      </PortalClientWrapper>
+      <SidebarProvider>
+        <SessionGuard />
+        <PortalClientWrapper header={<PortalHeader />}>
+          {children}
+        </PortalClientWrapper>
+      </SidebarProvider>
     </AuthProvider>
   )
 }
