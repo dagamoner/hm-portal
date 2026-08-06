@@ -1,12 +1,13 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { 
     LayoutDashboard, FileText, Activity, Accessibility, Bug, AlertTriangle, 
     Search, ShieldAlert, Calendar, Truck, Server, Users, ClipboardCheck, 
-    History, GraduationCap, TableProperties, Siren, Shield, HardHat, Receipt, Construction, BookOpenCheck, BookMarked, PieChart, Leaf, FlaskConical, Target
+    History, GraduationCap, TableProperties, Siren, Shield, HardHat, Receipt, Construction, BookOpenCheck, BookMarked, PieChart, Leaf, FlaskConical, Target, ChevronDown
 } from "lucide-react";
 
 export const MODULES = [
@@ -36,7 +37,20 @@ export const MODULES = [
 
 export function CompanyTabs({ companyId, companyName }: { companyId: string, companyName?: string }) {
     const pathname = usePathname();
+    const router = useRouter();
     const { isClient, isAdmin, isInspector } = useAuth();
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const allowedModules = MODULES.filter(m => {
         if (isClient && (m.path === "/log-auditoria" || m.path === "/mediciones")) return false;
@@ -54,34 +68,65 @@ export function CompanyTabs({ companyId, companyName }: { companyId: string, com
         ...allowedModules
     ];
 
+    const activeModule = tabsToRender.find(m => pathname === `/portal/empresas/${companyId}${m.path}`);
+
     return (
         <div className="print:hidden w-full bg-white/60 backdrop-blur-md border-b border-white/50 sticky top-0 z-30">
-            <div className="max-w-7xl mx-auto px-6">
+            <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 {companyName && (
-                    <div className="pt-4 pb-2 flex items-center gap-2 text-slate-800">
+                    <div className="flex items-center gap-2 text-slate-800">
                         <span className="text-xs uppercase font-bold tracking-widest text-slate-400">Trabajando en:</span>
                         <h2 className="text-xl font-black truncate">{companyName}</h2>
                     </div>
                 )}
-                <div className="flex space-x-1 overflow-x-auto custom-scrollbar pb-3 pt-1">
-                    {tabsToRender.map((module) => {
-                        const href = `/portal/empresas/${companyId}${module.path}`;
-                        const isActive = pathname === href;
-                        return (
-                            <Link 
-                                key={module.path} 
-                                href={href}
-                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl whitespace-nowrap text-sm font-bold transition-all ${
-                                    isActive 
-                                        ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" 
-                                        : "text-slate-500 hover:bg-white hover:text-indigo-600 hover:shadow-sm"
-                                }`}
-                            >
-                                <module.icon className="w-4 h-4" />
-                                {module.name}
-                            </Link>
-                        );
-                    })}
+                
+                <div className="relative" ref={dropdownRef}>
+                    <button 
+                        onClick={() => setIsOpen(!isOpen)}
+                        className="flex items-center justify-between gap-3 w-full sm:w-[300px] px-5 py-3 bg-white border border-slate-200 shadow-sm rounded-2xl hover:bg-slate-50 transition-colors"
+                    >
+                        <div className="flex flex-col items-start text-left truncate">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Módulos de trabajo</span>
+                            <span className="font-bold text-slate-800 text-sm truncate w-full flex items-center gap-2 mt-0.5">
+                                {activeModule ? (
+                                    <>
+                                        <activeModule.icon className="w-4 h-4 text-indigo-600 shrink-0" />
+                                        {activeModule.name}
+                                    </>
+                                ) : "Seleccionar módulo..."}
+                            </span>
+                        </div>
+                        <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {isOpen && (
+                        <div className="absolute top-full right-0 sm:left-0 mt-2 w-full sm:w-[350px] bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col max-h-[60vh]">
+                            <div className="overflow-y-auto custom-scrollbar p-2 grid grid-cols-1 gap-1">
+                                {tabsToRender.map((module) => {
+                                    const href = `/portal/empresas/${companyId}${module.path}`;
+                                    const isActive = pathname === href;
+                                    return (
+                                        <button 
+                                            key={module.path} 
+                                            onClick={() => {
+                                                setIsOpen(false);
+                                                router.push(href);
+                                            }}
+                                            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-left w-full transition-all ${
+                                                isActive 
+                                                    ? "bg-indigo-50 text-indigo-700 font-bold" 
+                                                    : "text-slate-600 font-medium hover:bg-slate-50"
+                                            }`}
+                                        >
+                                            <module.icon className={`w-4 h-4 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
+                                            {module.name}
+                                            {isActive && <div className="ml-auto w-2 h-2 rounded-full bg-indigo-600"></div>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
