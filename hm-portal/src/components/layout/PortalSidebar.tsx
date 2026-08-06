@@ -9,7 +9,7 @@ import { useSidebar } from "@/components/providers/SidebarProvider"
 export function PortalSidebar() {
   const pathname = usePathname();
   const { isAdmin, isManager, isClient, user } = useAuth();
-  const { isCollapsed } = useSidebar();
+  const { isCollapsed, toggleSidebar } = useSidebar();
 
   const getLinkClass = (path: string) => {
     const isActive = pathname.startsWith(path);
