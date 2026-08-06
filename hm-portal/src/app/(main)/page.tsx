@@ -70,7 +70,7 @@ export default function Home() {
                 Protegemos lo más <span className="text-[var(--color-primary)]">valioso</span> de tu empresa
               </h1>
               <p className="text-lg md:text-xl text-gray-200 max-w-xl drop-shadow-md">
-                Soluciones integrales B2B. Garantizamos el cumplimiento normativo y el bienestar absoluto de tus colaboradores.
+                Soluciones integrales en Higiene y Seguridad Laboral. Garantizamos el cumplimiento normativo y el bienestar absoluto de tus colaboradores.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4 w-full sm:w-auto">
                 <Link href="/contacto" className="w-full sm:w-auto">
