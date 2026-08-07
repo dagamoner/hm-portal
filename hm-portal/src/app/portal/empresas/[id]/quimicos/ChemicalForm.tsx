@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Upload, Check } from "lucide-react";
+import { Upload, Check, FlaskConical } from "lucide-react";
 import { createChemicalProduct } from "@/app/actions/chemicals";
 import toast from "react-hot-toast";
 
@@ -17,7 +17,7 @@ const ALL_PICTOGRAMS = [
   { id: "GHS09", label: "Peligro Ambiente", icon: "🐟" },
 ];
 
-export function ChemicalForm({ companyId, onSuccess, onCancel }: any) {
+export function ChemicalForm({ companyId, onSuccess, onCancel, sgaLibrary = [] }: any) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -64,11 +64,26 @@ export function ChemicalForm({ companyId, onSuccess, onCancel }: any) {
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* 1. Identificación */}
       <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl space-y-4">
-        <h3 className="font-black text-slate-800 border-b border-slate-200 pb-2">1. Identificación del Producto</h3>
+        <h3 className="font-black text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
+          <FlaskConical size={18} /> 1. Identificación del Producto
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2">
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre Comercial / Químico</label>
-            <input required type="text" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Ej. Ácido Sulfúrico 98%" />
+            <input 
+              required 
+              type="text" 
+              list="sga-chemicals"
+              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500" 
+              value={formData.name} 
+              onChange={e => setFormData({...formData, name: e.target.value})} 
+              placeholder="Ej. Ácido Sulfúrico 98%" 
+            />
+            <datalist id="sga-chemicals">
+              {sgaLibrary.map((item: any) => (
+                <option key={item.id} value={item.name} />
+              ))}
+            </datalist>
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nº CAS</label>

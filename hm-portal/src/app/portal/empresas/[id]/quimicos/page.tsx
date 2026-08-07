@@ -10,6 +10,11 @@ export default async function QuimicosPage({ params }: { params: Promise<{ id: s
     orderBy: { createdAt: "desc" }
   });
 
+  // Fetch SGA Library
+  const sgaLibrary = await prisma.sgaLibraryItem.findMany({
+    orderBy: { name: 'asc' }
+  });
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div>
@@ -19,7 +24,8 @@ export default async function QuimicosPage({ params }: { params: Promise<{ id: s
 
       <ChemicalsClient 
         companyId={id} 
-        initialProducts={products} 
+        initialProducts={products}
+        sgaLibrary={sgaLibrary}
       />
     </div>
   );

@@ -1323,3 +1323,19 @@ model Capa {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+// ==========================================
+// BIBLIOTECA SGA GLOBAL
+// ==========================================
+
+model SgaLibraryItem {
+  id                  String   @id @default(uuid())
+  name                String   @unique
+  casNumber           String?
+  warningWord         String?  // PELIGRO, ATENCIÓN
+  pictograms          Json     @default("[]") // Ej: ["SGA01", "SGA02"]
+  fdsUrl              String?  // Enlace al archivo FDS en public/sga/fds/
+  labelUrl            String?  // Enlace al archivo Etiqueta en public/sga/etiquetas/
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}

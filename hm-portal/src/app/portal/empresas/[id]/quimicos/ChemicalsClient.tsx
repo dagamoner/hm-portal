@@ -6,9 +6,12 @@ import { ChemicalList } from "./ChemicalList";
 import { ChemicalForm } from "./ChemicalForm";
 import { useAuth } from "@/components/providers/AuthProvider";
 
-export function ChemicalsClient({ companyId, initialProducts }: any) {
+import { Library } from "lucide-react";
+import { SgaLibraryClient } from "./SgaLibraryClient";
+
+export function ChemicalsClient({ companyId, initialProducts, sgaLibrary = [] }: any) {
   const { isClient } = useAuth();
-  const [activeTab, setActiveTab] = useState<"list" | "form">("list");
+  const [activeTab, setActiveTab] = useState<"list" | "form" | "library">("list");
   const [products, setProducts] = useState(initialProducts);
 
   return (
@@ -39,25 +42,42 @@ export function ChemicalsClient({ companyId, initialProducts }: any) {
             Registrar Producto Químico
           </button>
         )}
+        <button
+          onClick={() => setActiveTab("library")}
+          className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
+            activeTab === "library"
+              ? "bg-white text-indigo-700 shadow-sm border border-slate-200/60"
+              : "text-slate-500 hover:bg-white/60"
+          }`}
+        >
+          <Library size={18} />
+          Biblioteca SGA
+        </button>
       </div>
 
       {/* Content */}
       <div className="p-6">
-        {activeTab === "list" ? (
+        {activeTab === "list" && (
           <ChemicalList 
             companyId={companyId} 
             products={products} 
             setProducts={setProducts} 
+            sgaLibrary={sgaLibrary}
           />
-        ) : (
+        )}
+        {activeTab === "form" && (
           <ChemicalForm 
             companyId={companyId} 
+            sgaLibrary={sgaLibrary}
             onSuccess={(newProduct: any) => {
               setProducts([newProduct, ...products]);
               setActiveTab("list");
             }} 
             onCancel={() => setActiveTab("list")}
           />
+        )}
+        {activeTab === "library" && (
+          <SgaLibraryClient items={sgaLibrary} />
         )}
       </div>
     </div>
