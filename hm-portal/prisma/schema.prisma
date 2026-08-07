@@ -53,6 +53,9 @@ model User {
   // Role-based access control
   hasGlobalAccess    Boolean  @default(false)
   assignedCompanyIds String[] @default([])
+  
+  // Relations
+  internalMessages   InternalMessage[]
 }
 
 // ==========================================
@@ -385,7 +388,11 @@ model Company {
   hazardousWastes      HazardousWaste[]
   chemicalProducts     ChemicalProduct[]
   capas                Capa[]
+  
+  // Communications
+  internalMessages     InternalMessage[]
 }
+
 
 model CancerigenoEvaluation {
   id          String   @id @default(uuid())
@@ -1338,4 +1345,25 @@ model SgaLibraryItem {
   labelUrl            String?  // Enlace al archivo Etiqueta en public/sga/etiquetas/
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+}
+
+// ==========================================
+// COMUNICACIONES INTERNAS
+// ==========================================
+
+model InternalMessage {
+  id           String   @id @default(uuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  senderId     String
+  sender       User     @relation(fields: [senderId], references: [id])
+  
+  content      String
+  
+  isFromClient Boolean  // True si lo envió el cliente, False si fue ADMIN/MANAGER/INSPECTOR
+  readByAdmin  Boolean  @default(false)
+  readByClient Boolean  @default(false)
+
+  createdAt    DateTime @default(now())
 }

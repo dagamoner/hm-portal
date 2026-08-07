@@ -4,6 +4,7 @@ import { NotificationBell } from "./NotificationBell"
 import { getSession } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { SidebarToggle } from "@/components/ui/SidebarToggle"
+import { ClientChatWidget } from "@/components/chat/ClientChatWidget"
 
 export async function PortalHeader() {
   const session = await getSession();
@@ -51,6 +52,9 @@ export async function PortalHeader() {
       </div>
       
       <div className="flex items-center gap-6">
+        {user?.role === "CLIENT" && user.companyId && (
+          <ClientChatWidget companyId={user.companyId} />
+        )}
         <NotificationBell />
         <div className="h-10 w-px bg-slate-200/60 hidden sm:block"></div>
         <div className="flex items-center gap-4 group cursor-pointer">

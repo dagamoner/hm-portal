@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 
 export type NotificationAlert = {
   id: string;
@@ -40,10 +41,29 @@ export async function getSystemNotifications(): Promise<NotificationAlert[]> {
       date: doc.expirationDate
     }));
 
-    // Aquí a futuro se pueden agregar alertas de incidentes, mediciones pendientes, etc.
-    // Ejemplo:
-    // const pendingIncidents = await prisma.incident.findMany({ where: { status: 'Abierto' } })
-    // y agregarlos al array de notifications
+    // Obtener notificaciones de mensajes no leídos
+    const session = await getSession();
+    if (session?.user) {
+      const isClient = session.user.role === "CLIENT";
+      const unreadMessagesCount = isClient && session.user.companyId
+        ? await prisma.internalMessage.count({
+            where: { companyId: session.user.companyId, readByClient: false, isFromClient: false }
+          })
+        : await prisma.internalMessage.count({
+            where: { readByAdmin: false, isFromClient: true }
+          });
+
+      if (unreadMessagesCount > 0) {
+        notifications.push({
+          id: 'unread-messages',
+          title: `Nuevos Mensajes`,
+          message: `Tienes ${unreadMessagesCount} mensaje(s) sin leer.`,
+          type: 'info',
+          link: isClient ? `/portal/empresas/${session.user.companyId}` : `/portal/settings/log-auditoria?tab=comunicaciones`,
+          date: new Date()
+        });
+      }
+    }
 
     return notifications;
   } catch (error) {

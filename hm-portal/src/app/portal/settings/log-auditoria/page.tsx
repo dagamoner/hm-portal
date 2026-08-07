@@ -1,9 +1,11 @@
 import { getAuditLogs } from "@/app/actions/auditoria";
 import { getUsersWithAuditStats } from "@/app/actions/users";
+import { getAllCommunications } from "@/app/actions/messages";
 import AuditClient from "./AuditClient";
 import UsersActivityClient from "./UsersActivityClient";
+import CommunicationsClient from "./CommunicationsClient";
 import Link from "next/link";
-import { FileText, Users } from "lucide-react";
+import { FileText, Users, MessageSquare } from "lucide-react";
 
 export default async function AuditLogPage({ searchParams }: { searchParams: Promise<{ period?: string, tab?: string }> }) {
   const { period, tab } = await searchParams;
@@ -12,6 +14,7 @@ export default async function AuditLogPage({ searchParams }: { searchParams: Pro
   
   const initialLogs = activeTab === 'bitacora' ? await getAuditLogs(timeRange) : [];
   const enrichedUsers = activeTab === 'usuarios' ? await getUsersWithAuditStats() : [];
+  const communications = activeTab === 'comunicaciones' ? await getAllCommunications() : [];
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -38,11 +41,16 @@ export default async function AuditLogPage({ searchParams }: { searchParams: Pro
             <Users className="w-4 h-4" />
             <span>Estado y Actividad de Usuarios</span>
           </Link>
+          <Link href="/portal/settings/log-auditoria?tab=comunicaciones" className={`flex items-center space-x-2 py-4 px-4 font-medium text-sm transition-colors border-b-2 ${activeTab === 'comunicaciones' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
+            <MessageSquare className="w-4 h-4" />
+            <span>Comunicaciones</span>
+          </Link>
         </div>
       </div>
       
       {activeTab === 'bitacora' && <AuditClient initialLogs={initialLogs} currentTimeRange={timeRange} />}
       {activeTab === 'usuarios' && <UsersActivityClient users={enrichedUsers} />}
+      {activeTab === 'comunicaciones' && <CommunicationsClient communications={communications} />}
     </div>
   );
 }
