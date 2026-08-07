@@ -1357,8 +1357,8 @@ model InternalMessage {
   companyId    String
   company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   
-  senderId     String
-  sender       User     @relation("SentMessages", fields: [senderId], references: [id])
+  senderId     String?
+  sender       User?    @relation("SentMessages", fields: [senderId], references: [id], onDelete: SetNull)
   
   content      String
   
@@ -1367,7 +1367,7 @@ model InternalMessage {
   readByClient Boolean  @default(false)
 
   attendedById String?
-  attendedBy   User?    @relation("AttendedMessages", fields: [attendedById], references: [id])
+  attendedBy   User?    @relation("AttendedMessages", fields: [attendedById], references: [id], onDelete: SetNull)
 
   createdAt    DateTime @default(now())
 }
