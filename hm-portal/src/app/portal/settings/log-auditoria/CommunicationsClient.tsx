@@ -167,11 +167,18 @@ export default function CommunicationsClient({ communications }: { communication
                       >
                         {msg.content}
                       </div>
-                      {isMe && (
+                      {isMe ? (
                         <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-400">
                           {msg.readByClient ? <CheckCircle2 className="w-3 h-3 text-indigo-400" /> : <CheckCircle2 className="w-3 h-3 text-slate-300" />}
                           {msg.readByClient ? "Leído" : "Enviado"}
                         </div>
+                      ) : (
+                        msg.readByAdmin && msg.attendedBy && (
+                          <div className="mt-1 flex items-center gap-1 text-[10px] text-emerald-600">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                            Atendido por {msg.attendedBy.name}
+                          </div>
+                        )
                       )}
                     </div>
                   );

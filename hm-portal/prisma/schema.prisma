@@ -55,7 +55,8 @@ model User {
   assignedCompanyIds String[] @default([])
   
   // Relations
-  internalMessages   InternalMessage[]
+  internalMessages   InternalMessage[] @relation("SentMessages")
+  attendedMessages   InternalMessage[] @relation("AttendedMessages")
 }
 
 // ==========================================
@@ -1357,13 +1358,16 @@ model InternalMessage {
   company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   
   senderId     String
-  sender       User     @relation(fields: [senderId], references: [id])
+  sender       User     @relation("SentMessages", fields: [senderId], references: [id])
   
   content      String
   
   isFromClient Boolean  // True si lo envió el cliente, False si fue ADMIN/MANAGER/INSPECTOR
   readByAdmin  Boolean  @default(false)
   readByClient Boolean  @default(false)
+
+  attendedById String?
+  attendedBy   User?    @relation("AttendedMessages", fields: [attendedById], references: [id])
 
   createdAt    DateTime @default(now())
 }

@@ -48,6 +48,9 @@ export async function getCompanyChat(companyId: string) {
       include: {
         sender: {
           select: { name: true, role: true }
+        },
+        attendedBy: {
+          select: { name: true, role: true }
         }
       }
     });
@@ -74,7 +77,10 @@ export async function markMessagesAsRead(companyId: string) {
     } else {
       await prisma.internalMessage.updateMany({
         where: { companyId, readByAdmin: false },
-        data: { readByAdmin: true }
+        data: { 
+          readByAdmin: true,
+          attendedById: session.user.id
+        }
       });
     }
 
@@ -103,7 +109,10 @@ export async function markAllMessagesAsRead() {
     } else {
       await prisma.internalMessage.updateMany({
         where: { readByAdmin: false },
-        data: { readByAdmin: true }
+        data: { 
+          readByAdmin: true,
+          attendedById: session.user.id
+        }
       });
     }
 

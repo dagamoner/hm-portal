@@ -123,6 +123,11 @@ export function ClientChatWidget({ companyId }: ClientChatWidgetProps) {
                     >
                       {msg.content}
                     </div>
+                    {isMe && msg.readByAdmin && (
+                      <div className="text-[10px] text-indigo-400 mt-1 flex items-center gap-1">
+                        Leído
+                      </div>
+                    )}
                   </div>
                 );
               })
