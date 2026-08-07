@@ -12,7 +12,7 @@ import autoTable from 'jspdf-autotable';
 import { getLegajoData } from '@/app/actions/legajo';
 
 // @ts-ignore
-export default function CompaniesClient({ initialCompanies }) {
+export default function CompaniesClient({ initialCompanies, userRole }: { initialCompanies: any, userRole?: string }) {
     const [companies, setCompanies] = useState(initialCompanies);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -179,12 +179,14 @@ export default function CompaniesClient({ initialCompanies }) {
                     </h2>
                     <p className="text-slate-500 mt-1">Seleccione una empresa para gestionar sus riesgos e indicadores 365.</p>
                 </div>
-                <button 
-                    onClick={() => { setFormData({ establishmentsCount: 1, safetyCompliance: 80, riskLevel: 'MEDIUM', status: 'Activa' }); setEditingCompany(null); setIsModalOpen(true); }}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all active:scale-95"
-                >
-                    <Plus className="w-5 h-5" /> Alta Nueva Empresa
-                </button>
+                {userRole !== 'CLIENT' && (
+                    <button 
+                        onClick={() => { setFormData({ establishmentsCount: 1, safetyCompliance: 80, riskLevel: 'MEDIUM', status: 'Activa' }); setEditingCompany(null); setIsModalOpen(true); }}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all active:scale-95"
+                    >
+                        <Plus className="w-5 h-5" /> Alta Nueva Empresa
+                    </button>
+                )}
             </div>
 
             <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-sm border border-white/50 overflow-hidden">
@@ -271,20 +273,24 @@ export default function CompaniesClient({ initialCompanies }) {
                                             >
                                                 {downloadingLegajo === company.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                                             </button>
-                                            <button 
-                                                onClick={() => { setEditingCompany(company); setFormData(company); setIsModalOpen(true); }}
-                                                className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all bg-white shadow-sm border border-slate-100"
-                                                title="Editar"
-                                            >
-                                                <Edit2 className="w-4 h-4" />
-                                            </button>
-                                            <button 
-                                                onClick={() => setCompanyToDelete(company)}
-                                                className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all bg-white shadow-sm border border-slate-100"
-                                                title="Eliminar"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                                            {userRole !== 'CLIENT' && (
+                                                <>
+                                                    <button 
+                                                        onClick={() => { setEditingCompany(company); setFormData(company); setIsModalOpen(true); }}
+                                                        className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all bg-white shadow-sm border border-slate-100"
+                                                        title="Editar"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => setCompanyToDelete(company)}
+                                                        className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all bg-white shadow-sm border border-slate-100"
+                                                        title="Eliminar"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

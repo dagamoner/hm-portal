@@ -10,6 +10,8 @@ interface AuthUser {
   name: string;
   role: UserRole;
   companyId?: string | null;
+  assignedCompanyIds?: string[];
+  hasGlobalAccess?: boolean;
 }
 
 interface AuthContextType {

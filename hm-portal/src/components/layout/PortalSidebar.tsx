@@ -50,14 +50,14 @@ export function PortalSidebar() {
           {!isCollapsed && <span>Dashboard</span>}
         </Link>
         
-        {(isAdmin || isManager) && (
+        {(isAdmin || isManager || (isClient && user?.assignedCompanyIds && user.assignedCompanyIds.length > 1)) && (
           <Link href="/portal/empresas" className={getLinkClass("/portal/empresas")} title="Empresas">
             <Building2 size={20} className="shrink-0" />
             {!isCollapsed && <span>Empresas</span>}
           </Link>
         )}
 
-        {(isClient && user?.companyId) && (
+        {(isClient && user?.companyId && (!user.assignedCompanyIds || user.assignedCompanyIds.length <= 1)) && (
           <Link href={`/portal/empresas/${user.companyId}`} className={getLinkClass(`/portal/empresas/${user.companyId}`)} title="Mi Empresa">
             <Building2 size={20} className="shrink-0" />
             {!isCollapsed && <span>Mi Empresa</span>}

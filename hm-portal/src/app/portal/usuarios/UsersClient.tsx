@@ -332,16 +332,31 @@ export default function UsersClient({ initialUsers, companies }) {
                             </div>
 
                             {formData.role === 'CLIENT' && (
-                                <div className="space-y-1">
-                                    <label className="text-xs font-black uppercase text-slate-600 ml-1">Asignar a Empresa (Obligatorio)</label>
-                                    <div className="relative">
-                                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                                        <select required value={formData.companyId} onChange={(e) => setFormData({...formData, companyId: e.target.value})} className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-slate-700 shadow-sm appearance-none">
-                                            <option value="">Seleccione una empresa...</option>
-                                            {companies.map((c: any) => (
-                                                <option key={c.id} value={c.id}>{c.name}</option>
-                                            ))}
-                                        </select>
+                                <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-100 mt-4">
+                                    <label className="text-xs font-black uppercase text-slate-600 ml-1 block">Asignar a Empresas</label>
+                                    <div className="max-h-48 overflow-y-auto space-y-2 pr-2">
+                                        {companies.map((c: any) => (
+                                            <label key={c.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-xl transition-all cursor-pointer">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={formData.assignedCompanyIds.includes(c.id) || formData.companyId === c.id}
+                                                    onChange={(e) => {
+                                                        let newIds = [...formData.assignedCompanyIds];
+                                                        if (formData.companyId && !newIds.includes(formData.companyId)) {
+                                                            newIds.push(formData.companyId);
+                                                        }
+                                                        if (e.target.checked) {
+                                                            newIds.push(c.id);
+                                                        } else {
+                                                            newIds = newIds.filter((id: string) => id !== c.id);
+                                                        }
+                                                        setFormData({...formData, assignedCompanyIds: newIds, companyId: newIds.length > 0 ? newIds[0] : ''});
+                                                    }}
+                                                    className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                                                />
+                                                <span className="text-sm text-slate-700">{c.name}</span>
+                                            </label>
+                                        ))}
                                     </div>
                                 </div>
                             )}

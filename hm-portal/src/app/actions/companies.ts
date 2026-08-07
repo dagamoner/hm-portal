@@ -43,7 +43,7 @@ export async function getCompanies() {
   const user = await requireAuth(); 
   
   try {
-    let companies = [];
+    let companies: any[] = [];
     if (user.role === 'ADMIN' || user.hasGlobalAccess) {
       companies = await prisma.company.findMany({
         orderBy: { name: 'asc' }
@@ -55,11 +55,19 @@ export async function getCompanies() {
         orderBy: { name: 'asc' }
       });
     } else {
-      if (!user.companyId) return [];
-      const company = await prisma.company.findUnique({
-        where: { id: user.companyId }
-      });
-      companies = company ? [company] : [];
+      const clientCompanyIds = [...(user.assignedCompanyIds || [])];
+      if (user.companyId && !clientCompanyIds.includes(user.companyId)) {
+        clientCompanyIds.push(user.companyId);
+      }
+      
+      if (clientCompanyIds.length > 0) {
+        companies = await prisma.company.findMany({
+          where: { id: { in: clientCompanyIds } },
+          orderBy: { name: 'asc' }
+        });
+      } else {
+        companies = [];
+      }
     }
 
     const enhancedCompanies = await Promise.all(
