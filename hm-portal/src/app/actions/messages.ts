@@ -86,6 +86,35 @@ export async function markMessagesAsRead(companyId: string) {
   }
 }
 
+export async function markAllMessagesAsRead() {
+  try {
+    const session = await getSession();
+    if (!session?.user) return { success: false };
+
+    const isClient = session.user.role === "CLIENT";
+
+    if (isClient) {
+      if (session.user.companyId) {
+        await prisma.internalMessage.updateMany({
+          where: { companyId: session.user.companyId, readByClient: false },
+          data: { readByClient: true }
+        });
+      }
+    } else {
+      await prisma.internalMessage.updateMany({
+        where: { readByAdmin: false },
+        data: { readByAdmin: true }
+      });
+    }
+
+    revalidatePath("/portal", "layout");
+    return { success: true };
+  } catch (error) {
+    console.error("Error marking all messages as read:", error);
+    return { success: false };
+  }
+}
+
 export async function getUnreadMessagesCount() {
   try {
     const session = await getSession();

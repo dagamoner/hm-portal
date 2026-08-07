@@ -22,15 +22,39 @@ export function NotificationBell() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const loadNotifications = async () => {
+    setIsLoading(true);
+    const data = await getSystemNotifications();
+    setNotifications(data);
+    setIsLoading(false);
+  };
+
   // Fetch notifications
   useEffect(() => {
-    async function loadNotifications() {
-      const data = await getSystemNotifications();
-      setNotifications(data);
-      setIsLoading(false);
-    }
     loadNotifications();
+
+    const handleRefresh = () => loadNotifications();
+    window.addEventListener("refresh-notifications", handleRefresh);
+    return () => window.removeEventListener("refresh-notifications", handleRefresh);
   }, []);
+
+  const handleMarkAllRead = async () => {
+    try {
+      setNotifications([]);
+      // Llamar al action para marcar todo como leido. Asumimos que lo importaremos arriba o podemos hacerlo luego
+      const { markAllMessagesAsRead } = await import('@/app/actions/messages');
+      await markAllMessagesAsRead();
+      window.dispatchEvent(new Event("refresh-notifications"));
+    } catch(e) {
+      console.error(e);
+    }
+  };
+
+  const handleNotificationClick = () => {
+    setIsOpen(false);
+    // Disparamos refresh un poco despues para que el layout cargue y las marque leídas
+    setTimeout(() => window.dispatchEvent(new Event("refresh-notifications")), 1000);
+  };
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -97,7 +121,7 @@ export function NotificationBell() {
                   <Link 
                     key={notif.id} 
                     href={notif.link}
-                    onClick={() => setIsOpen(false)}
+                    onClick={handleNotificationClick}
                     className={`block p-4 rounded-xl border transition-all hover:shadow-md ${getBgColor(notif.type)}`}
                   >
                     <div className="flex gap-3">
@@ -124,7 +148,10 @@ export function NotificationBell() {
           
           {notifications.length > 0 && (
             <div className="p-3 bg-slate-50 border-t border-slate-100 text-center">
-              <button className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
+              <button 
+                onClick={handleMarkAllRead}
+                className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+              >
                 Marcar todas como leídas
               </button>
             </div>

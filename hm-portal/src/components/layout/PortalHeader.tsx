@@ -1,4 +1,5 @@
-import { Search, LogOut } from "lucide-react"
+import { Search, LogOut, MessageSquare } from "lucide-react"
+import Link from "next/link"
 import { logout } from "@/app/actions/auth"
 import { NotificationBell } from "./NotificationBell"
 import { getSession } from "@/lib/auth"
@@ -52,8 +53,16 @@ export async function PortalHeader() {
       </div>
       
       <div className="flex items-center gap-6">
-        {user?.role === "CLIENT" && user.companyId && (
+        {user?.role === "CLIENT" && user.companyId ? (
           <ClientChatWidget companyId={user.companyId} />
+        ) : (
+          <Link 
+            href="/portal/settings/log-auditoria?tab=comunicaciones"
+            className="p-3 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-xl transition-all"
+            title="Comunicaciones"
+          >
+            <MessageSquare className="w-5 h-5" />
+          </Link>
         )}
         <NotificationBell />
         <div className="h-10 w-px bg-slate-200/60 hidden sm:block"></div>

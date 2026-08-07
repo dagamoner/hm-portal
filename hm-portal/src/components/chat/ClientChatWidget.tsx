@@ -45,6 +45,7 @@ export function ClientChatWidget({ companyId }: ClientChatWidgetProps) {
     // Mark as read when opening
     await markMessagesAsRead(companyId);
     setUnreadCount(0); // Reset local unread count
+    window.dispatchEvent(new Event("refresh-notifications"));
     setIsLoading(false);
   };
 

@@ -39,6 +39,7 @@ export default function CommunicationsClient({ communications }: { communication
     const data = await getCompanyChat(companyId);
     setMessages(data);
     await markMessagesAsRead(companyId);
+    window.dispatchEvent(new Event("refresh-notifications"));
     setIsLoading(false);
   };
 
