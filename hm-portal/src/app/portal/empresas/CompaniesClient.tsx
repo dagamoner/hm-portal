@@ -449,12 +449,12 @@ export default function CompaniesClient({ initialCompanies }) {
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-1.5">
                                                     <label className="text-[9px] font-black text-slate-400 uppercase">Usuario ART</label>
-                                                    <input type="text" value={formData.artUser || ''} onChange={(e) => setFormData({...formData, artUser: e.target.value})} className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-indigo-500" />
+                                                    <input type="text" autoComplete="new-password" value={formData.artUser || ''} onChange={(e) => setFormData({...formData, artUser: e.target.value})} className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-indigo-500" />
                                                 </div>
                                                 <div className="space-y-1.5">
                                                     <label className="text-[9px] font-black text-slate-400 uppercase">Password ART</label>
                                                     <div className="relative">
-                                                        <input type={showArtPass ? "text" : "password"} value={formData.artPass || ''} onChange={(e) => setFormData({...formData, artPass: e.target.value})} className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-indigo-500" />
+                                                        <input type={showArtPass ? "text" : "password"} autoComplete="new-password" value={formData.artPass || ''} onChange={(e) => setFormData({...formData, artPass: e.target.value})} className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-indigo-500" />
                                                         <button type="button" onClick={() => setShowArtPass(!showArtPass)} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600">
                                                             {showArtPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                                         </button>
