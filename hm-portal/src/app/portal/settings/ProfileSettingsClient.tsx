@@ -1,15 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { User, Mail, Phone, Hash, Shield, Building, Loader2, Key, Clock, Lock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { User, Mail, Phone, Hash, Shield, Building, Loader2, Key, Clock, Lock, Settings, Moon, Sun } from "lucide-react";
 import toast from "react-hot-toast";
 import { updateUserProfile, changeUserPassword } from "@/app/actions/users";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useTheme } from "next-themes";
 
 export function ProfileSettingsClient({ dbUser, userCompanies, recentLogins }: { dbUser: any, userCompanies: any[], recentLogins: any[] }) {
   const { user: authUser } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   
-  const [activeTab, setActiveTab] = useState<"profile" | "security">("profile");
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  const [activeTab, setActiveTab] = useState<"profile" | "security" | "preferences">("profile");
   const [loading, setLoading] = useState(false);
   const [pwdLoading, setPwdLoading] = useState(false);
   
@@ -80,18 +87,18 @@ export function ProfileSettingsClient({ dbUser, userCompanies, recentLogins }: {
     <div className="max-w-5xl mx-auto space-y-6">
       
       {/* Header Profile Card */}
-      <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center gap-6">
+      <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center gap-6 transition-colors">
         <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-amber-500 to-amber-400 flex items-center justify-center text-white text-3xl font-black shadow-lg shrink-0">
           {getInitials(dbUser.name)}
         </div>
         <div className="flex-1 text-center md:text-left">
-          <h1 className="text-2xl font-bold text-slate-800">{dbUser.name}</h1>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-white transition-colors">{dbUser.name}</h1>
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-2">
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold transition-colors">
               <Shield className="w-3.5 h-3.5" />
               {roleLabels[dbUser.role] || dbUser.role}
             </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold border border-amber-200">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-semibold border border-amber-200 dark:border-amber-700/50 transition-colors">
               <User className="w-3.5 h-3.5" />
               @{dbUser.username}
             </span>
@@ -100,7 +107,7 @@ export function ProfileSettingsClient({ dbUser, userCompanies, recentLogins }: {
       </div>
 
       {/* Tabs Layout */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
         
         {/* Tab Headers */}
         <div className="flex border-b border-slate-200 overflow-x-auto hide-scrollbar">
@@ -117,6 +124,13 @@ export function ProfileSettingsClient({ dbUser, userCompanies, recentLogins }: {
           >
             <Key className="w-4 h-4" />
             Seguridad
+          </button>
+          <button 
+            onClick={() => setActiveTab("preferences")}
+            className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'preferences' ? 'border-amber-500 text-amber-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
+          >
+            <Settings className="w-4 h-4" />
+            Preferencias
           </button>
         </div>
 
@@ -313,6 +327,51 @@ export function ProfileSettingsClient({ dbUser, userCompanies, recentLogins }: {
               </div>
             </div>
 
+          </div>
+        )}
+
+        {/* Tab Content: Preferences */}
+        {activeTab === "preferences" && (
+          <div className="p-6 md:p-8 max-w-2xl">
+            <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+              <Settings className="w-5 h-5 text-slate-500" />
+              Preferencias del Sistema
+            </h2>
+            
+            <div className="space-y-6">
+              {/* Theme Toggle */}
+              <div className="flex items-center justify-between p-5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                <div>
+                  <h3 className="font-semibold text-slate-800 dark:text-white">Tema Visual</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Alternar entre modo claro y oscuro.</p>
+                </div>
+                
+                {mounted && (
+                  <div className="flex bg-slate-200 dark:bg-slate-700 p-1 rounded-lg">
+                    <button
+                      onClick={() => setTheme('light')}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                        theme === 'light' 
+                          ? 'bg-white text-slate-800 shadow-sm' 
+                          : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                      }`}
+                    >
+                      <Sun className="w-4 h-4" /> Claro
+                    </button>
+                    <button
+                      onClick={() => setTheme('dark')}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                        theme === 'dark' 
+                          ? 'bg-slate-800 text-white shadow-sm' 
+                          : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                      }`}
+                    >
+                      <Moon className="w-4 h-4" /> Oscuro
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
