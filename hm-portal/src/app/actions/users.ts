@@ -196,9 +196,9 @@ export async function getUsersWithAuditStats() {
 }
 
 export async function updateUserProfile(data: { name: string; email: string; dni: string; phone: string }) {
-  const session = await requireAuth();
+  const currentUser = await requireAuth();
   try {
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    const user = await prisma.user.findUnique({ where: { id: currentUser.id } });
     if (!user) return { error: "Usuario no encontrado" };
 
     if (data.email && data.email !== user.email) {
@@ -209,7 +209,7 @@ export async function updateUserProfile(data: { name: string; email: string; dni
     }
 
     await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: currentUser.id },
       data: {
         name: data.name,
         email: data.email || null,
@@ -229,9 +229,9 @@ export async function updateUserProfile(data: { name: string; email: string; dni
 }
 
 export async function changeUserPassword(currentPassword: string, newPassword: string) {
-  const session = await requireAuth();
+  const currentUser = await requireAuth();
   try {
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    const user = await prisma.user.findUnique({ where: { id: currentUser.id } });
     if (!user) return { error: "Usuario no encontrado" };
 
     const isValid = await bcrypt.compare(currentPassword, user.password);
@@ -242,7 +242,7 @@ export async function changeUserPassword(currentPassword: string, newPassword: s
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: currentUser.id },
       data: {
         password: hashedPassword,
         needsPasswordChange: false
@@ -267,9 +267,9 @@ export async function changeUserPassword(currentPassword: string, newPassword: s
 }
 
 export async function reportSystemIssue(message: string) {
-  const session = await requireAuth();
+  const currentUser = await requireAuth();
   try {
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    const user = await prisma.user.findUnique({ where: { id: currentUser.id } });
     if (!user) return { error: "Usuario no encontrado" };
 
     await logAction(
