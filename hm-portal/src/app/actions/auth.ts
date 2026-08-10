@@ -84,3 +84,26 @@ export async function logout() {
   cookieStore.delete("mh_session");
   redirect("/login");
 }
+
+export async function updatePassword(userId: string, newPassword: string) {
+  try {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { 
+        password: hashedPassword,
+        needsPasswordChange: false
+      }
+    });
+
+    // Update the session
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const session = await encrypt({ user, expires });
+    const cookieStore = await cookies();
+    cookieStore.set("mh_session", session, { httpOnly: true, secure: process.env.NODE_ENV === "production" });
+
+    return { success: true };
+  } catch (error) {
+    return { error: "Error al actualizar la contraseña" };
+  }
+}

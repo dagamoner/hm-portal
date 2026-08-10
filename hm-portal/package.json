@@ -25,6 +25,7 @@
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "lucide-react": "^1.25.0",
+    "md-to-pdf": "^5.2.5",
     "next": "16.2.11",
     "pg": "^8.22.0",
     "pngjs": "^7.0.0",

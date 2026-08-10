@@ -50,6 +50,7 @@ export async function createUser(formData: FormData) {
         phone: phone || null,
         hasGlobalAccess,
         assignedCompanyIds,
+        needsPasswordChange: (role || 'CLIENT') === 'CLIENT',
       }
     });
     
@@ -130,7 +131,9 @@ export async function updateUser(id: string, formData: FormData) {
 export async function resetUserPassword(id: string, newPassword?: string) {
   await requireAuth(undefined, ['ADMIN']);
   try {
-    // If not provided, generate a random 8 char password
+    const targetUser = await prisma.user.findUnique({ where: { id } });
+    if (!targetUser) return { error: "Usuario no encontrado" };
+
     const passwordToSet = newPassword || Math.random().toString(36).slice(-8);
     const hashedPassword = await bcrypt.hash(passwordToSet, 10);
 
@@ -139,7 +142,8 @@ export async function resetUserPassword(id: string, newPassword?: string) {
       data: {
         password: hashedPassword,
         failedLogins: 0,
-        lockedUntil: null
+        lockedUntil: null,
+        needsPasswordChange: targetUser.role === 'CLIENT'
       }
     });
 

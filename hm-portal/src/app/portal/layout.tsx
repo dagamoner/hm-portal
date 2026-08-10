@@ -6,6 +6,7 @@ import { SessionGuard } from "@/components/providers/SessionGuard"
 import { SidebarProvider } from "@/components/providers/SidebarProvider"
 import { PortalClientWrapper } from "@/components/layout/PortalClientWrapper"
 import { PortalHeader } from "@/components/layout/PortalHeader"
+import { ForcePasswordChange } from "@/components/auth/ForcePasswordChange"
 import { redirect } from "next/navigation"
 
 export default async function PortalLayout({ children }: { children: ReactNode }) {
@@ -20,7 +21,11 @@ export default async function PortalLayout({ children }: { children: ReactNode }
       <SidebarProvider>
         <SessionGuard />
         <PortalClientWrapper header={<PortalHeader />}>
-          {children}
+          {session.user.role === 'CLIENT' && session.user.needsPasswordChange ? (
+            <ForcePasswordChange user={session.user} />
+          ) : (
+            children
+          )}
         </PortalClientWrapper>
       </SidebarProvider>
     </AuthProvider>

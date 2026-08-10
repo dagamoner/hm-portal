@@ -45,6 +45,7 @@ model User {
   // Security fields for brute-force mitigation
   failedLogins Int       @default(0)
   lockedUntil  DateTime?
+  needsPasswordChange Boolean @default(true)
 
   // Additional user data
   dni       String?
