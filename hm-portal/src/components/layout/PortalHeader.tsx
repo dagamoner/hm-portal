@@ -38,10 +38,10 @@ export async function PortalHeader() {
   }
 
   return (
-    <header className="print:hidden h-24 px-10 flex items-center justify-between border-b border-slate-200/60 bg-white/70 backdrop-blur-md sticky top-0 z-40">
+    <header className="print:hidden h-24 px-10 flex items-center justify-between border-b border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 transition-colors">
       <div className="flex items-center gap-4">
         <div>
-          <h1 className="text-xl font-black text-slate-900 capitalize tracking-tight">
+          <h1 className="text-xl font-black text-slate-900 dark:text-white capitalize tracking-tight transition-colors">
             Portal MH
           </h1>
         </div>
@@ -53,18 +53,18 @@ export async function PortalHeader() {
         ) : (
           <Link 
             href="/portal/settings/log-auditoria?tab=comunicaciones"
-            className="p-3 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-xl transition-all"
+            className="p-3 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all"
             title="Comunicaciones"
           >
             <MessageSquare className="w-5 h-5" />
           </Link>
         )}
         <NotificationBell />
-        <div className="h-10 w-px bg-slate-200/60 hidden sm:block"></div>
+        <div className="h-10 w-px bg-slate-200/60 dark:bg-slate-700/60 hidden sm:block transition-colors"></div>
         <div className="flex items-center gap-4 group cursor-pointer">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{nameText}</p>
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+            <p className="text-sm font-black text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{nameText}</p>
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">
               {roleText}
             </span>
           </div>
@@ -73,7 +73,7 @@ export async function PortalHeader() {
           </div>
         </div>
         <form action={logout}>
-          <button type="submit" className="p-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" title="Cerrar Sesión">
+          <button type="submit" className="p-3 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all" title="Cerrar Sesión">
             <LogOut className="w-5 h-5" />
           </button>
         </form>

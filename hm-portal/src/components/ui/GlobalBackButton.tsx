@@ -42,7 +42,7 @@ export function GlobalBackButton() {
   return (
     <button
       onClick={handleBack}
-      className="flex items-center gap-1 text-slate-500 hover:text-indigo-600 transition-colors mb-4 px-3 py-1.5 bg-white border border-slate-200 hover:border-indigo-300 shadow-sm rounded-lg group w-fit"
+      className="flex items-center gap-1 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors mb-4 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 shadow-sm rounded-lg group w-fit"
     >
       <ChevronLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
       <span className="text-sm font-medium">Volver</span>

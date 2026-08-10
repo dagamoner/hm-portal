@@ -137,28 +137,28 @@ export function ProfileSettingsClient({ dbUser, userCompanies, recentLogins }: {
         <div className="flex border-b border-slate-200 overflow-x-auto hide-scrollbar">
           <button 
             onClick={() => setActiveTab("profile")}
-            className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'profile' ? 'border-amber-500 text-amber-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
+            className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'profile' ? 'border-amber-500 text-amber-600' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
           >
             <User className="w-4 h-4" />
             Datos Personales
           </button>
           <button 
             onClick={() => setActiveTab("security")}
-            className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'security' ? 'border-amber-500 text-amber-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
+            className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'security' ? 'border-amber-500 text-amber-600' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
           >
             <Key className="w-4 h-4" />
             Seguridad
           </button>
           <button 
             onClick={() => setActiveTab("preferences")}
-            className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'preferences' ? 'border-amber-500 text-amber-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
+            className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'preferences' ? 'border-amber-500 text-amber-600' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
           >
             <Settings className="w-4 h-4" />
             Preferencias
           </button>
           <button 
             onClick={() => setActiveTab("help")}
-            className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'help' ? 'border-amber-500 text-amber-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
+            className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'help' ? 'border-amber-500 text-amber-600' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
           >
             <LifeBuoy className="w-4 h-4" />
             Ayuda y Soporte
@@ -175,53 +175,53 @@ export function ProfileSettingsClient({ dbUser, userCompanies, recentLogins }: {
               <form onSubmit={handleProfileSubmit} className="space-y-5">
                 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">Nombre Completo</label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Nombre Completo</label>
                   <input 
                     type="text"
                     required
                     value={formData.name}
                     onChange={e => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
                       <Mail className="w-4 h-4 text-slate-400" /> Correo Electrónico
                     </label>
                     <input 
                       type="email"
                       value={formData.email}
                       onChange={e => setFormData({...formData, email: e.target.value})}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all"
                       placeholder="ejemplo@correo.com"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
                       <Phone className="w-4 h-4 text-slate-400" /> Teléfono
                     </label>
                     <input 
                       type="text"
                       value={formData.phone}
                       onChange={e => setFormData({...formData, phone: e.target.value})}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all"
                       placeholder="+54 9 11 1234-5678"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
                     <Hash className="w-4 h-4 text-slate-400" /> DNI / Identificación
                   </label>
                   <input 
                     type="text"
                     value={formData.dni}
                     onChange={e => setFormData({...formData, dni: e.target.value})}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all"
                     placeholder="Documento de Identidad"
                   />
                 </div>
@@ -240,22 +240,22 @@ export function ProfileSettingsClient({ dbUser, userCompanies, recentLogins }: {
             </div>
 
             {/* Read-only Access Info */}
-            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 h-fit">
-              <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2 uppercase tracking-wide">
+            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 h-fit transition-colors">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2 uppercase tracking-wide">
                 <Building className="w-4 h-4 text-slate-500" />
                 Mis Accesos
               </h3>
               
               {dbUser.hasGlobalAccess ? (
-                <div className="bg-emerald-50 text-emerald-700 p-3 rounded-xl border border-emerald-200 text-sm font-medium">
+                <div className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 p-3 rounded-xl border border-emerald-200 dark:border-emerald-800/50 text-sm font-medium transition-colors">
                   Tienes acceso global a todas las empresas del sistema.
                 </div>
               ) : userCompanies.length > 0 ? (
                 <ul className="space-y-2">
                   {userCompanies.map(c => (
-                    <li key={c.id} className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col">
-                      <span className="font-semibold text-slate-800 text-sm">{c.name}</span>
-                      <span className="text-xs text-slate-500">{c.cuit}</span>
+                    <li key={c.id} className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col transition-colors">
+                      <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{c.name}</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">{c.cuit}</span>
                     </li>
                   ))}
                 </ul>
