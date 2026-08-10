@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Mail, Phone, Hash, Shield, Building, Loader2, Key, Clock, Lock, Settings, Moon, Sun } from "lucide-react";
+import { User, Mail, Phone, Hash, Shield, Building, Loader2, Key, Clock, Lock, Settings, Moon, Sun, LifeBuoy, FileText, Send, HelpCircle } from "lucide-react";
 import toast from "react-hot-toast";
-import { updateUserProfile, changeUserPassword } from "@/app/actions/users";
+import { updateUserProfile, changeUserPassword, reportSystemIssue } from "@/app/actions/users";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useTheme } from "next-themes";
 
@@ -16,9 +16,11 @@ export function ProfileSettingsClient({ dbUser, userCompanies, recentLogins }: {
     setMounted(true);
   }, []);
   
-  const [activeTab, setActiveTab] = useState<"profile" | "security" | "preferences">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "security" | "preferences" | "help">("profile");
   const [loading, setLoading] = useState(false);
   const [pwdLoading, setPwdLoading] = useState(false);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportMessage, setReportMessage] = useState("");
   
   const [pwdData, setPwdData] = useState({
     current: "",
@@ -82,6 +84,28 @@ export function ProfileSettingsClient({ dbUser, userCompanies, recentLogins }: {
       setPwdData({ current: "", new: "", confirm: "" });
     }
   };
+  const handleReportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reportMessage.trim()) {
+      toast.error("Por favor, describe el problema.");
+      return;
+    }
+    
+    setReportLoading(true);
+    try {
+      const res = await reportSystemIssue(reportMessage);
+      if (res.error) {
+        toast.error(res.error);
+      } else {
+        toast.success("Reporte enviado correctamente. El equipo técnico lo revisará a la brevedad.");
+        setReportMessage("");
+      }
+    } catch (error) {
+      toast.error("Error al enviar el reporte.");
+    } finally {
+      setReportLoading(false);
+    }
+  };
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -131,6 +155,13 @@ export function ProfileSettingsClient({ dbUser, userCompanies, recentLogins }: {
           >
             <Settings className="w-4 h-4" />
             Preferencias
+          </button>
+          <button 
+            onClick={() => setActiveTab("help")}
+            className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'help' ? 'border-amber-500 text-amber-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
+          >
+            <LifeBuoy className="w-4 h-4" />
+            Ayuda y Soporte
           </button>
         </div>
 
@@ -370,6 +401,74 @@ export function ProfileSettingsClient({ dbUser, userCompanies, recentLogins }: {
                     </button>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab Content: Help */}
+        {activeTab === "help" && (
+          <div className="p-6 md:p-8 max-w-2xl">
+            <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+              <LifeBuoy className="w-5 h-5 text-slate-500" />
+              Ayuda y Soporte
+            </h2>
+            
+            <div className="space-y-6">
+              {/* User Manual */}
+              <div className="flex items-start md:items-center justify-between p-5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex-col md:flex-row gap-4">
+                <div>
+                  <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-amber-500" />
+                    Manual de Usuario
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    Descarga el instructivo oficial de la plataforma para tu rol actual.
+                  </p>
+                </div>
+                
+                <a
+                  href={dbUser.role === 'CLIENT' ? '/manuals/Manual_Usuario_Cliente_MH.pdf' : '/manuals/Manual_Usuario_Profesionales_MH.pdf'}
+                  download
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-semibold transition-colors"
+                >
+                  Descargar PDF
+                </a>
+              </div>
+
+              {/* Report Issue */}
+              <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2 mb-2">
+                  <HelpCircle className="w-4 h-4 text-red-500" />
+                  Reportar un Problema Técnico
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                  ¿Encontraste un error en la plataforma o algo no funciona como debería? Envíanos un reporte detallado.
+                </p>
+                
+                <form onSubmit={handleReportSubmit} className="space-y-3">
+                  <textarea
+                    value={reportMessage}
+                    onChange={(e) => setReportMessage(e.target.value)}
+                    placeholder="Describe el problema técnico que estás experimentando..."
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm min-h-[100px] resize-y"
+                    disabled={reportLoading}
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={reportLoading}
+                      className="flex items-center gap-2 px-4 py-2 bg-slate-800 dark:bg-slate-700 hover:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                    >
+                      {reportLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4" />
+                      )}
+                      Enviar Reporte
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>

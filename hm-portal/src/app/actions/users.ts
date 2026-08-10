@@ -269,3 +269,25 @@ export async function changeUserPassword(currentPassword: string, newPassword: s
     return { error: "Ocurrió un error al cambiar la contraseña." };
   }
 }
+
+export async function reportSystemIssue(message: string) {
+  const session = await requireAuth();
+  try {
+    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    if (!user) return { error: "Usuario no encontrado" };
+
+    const { logAction } = await import("./auditoria");
+    await logAction(
+      'SOPORTE_TECNICO', 
+      'CREAR', 
+      `Problema técnico reportado: ${message}`, 
+      { originalMessage: message, severity: 'CRITICAL' }, 
+      user.companyId || undefined
+    );
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error reporting issue:", error);
+    return { error: "Ocurrió un error al enviar el reporte." };
+  }
+}
