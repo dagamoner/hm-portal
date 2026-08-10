@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { requireAuth } from "@/lib/auth";
+import { logAction } from "./auditoria";
 
 export async function getUsers() {
   await requireAuth(undefined, ['ADMIN']); // Only ADMIN can view all users
@@ -54,7 +55,6 @@ export async function createUser(formData: FormData) {
       }
     });
     
-    const { logAction } = await import("./auditoria");
     await logAction('Usuarios', 'CREAR', `Usuario creado: ${username}`, { role }, companyId || undefined);
 
     revalidatePath("/portal/usuarios");
@@ -76,7 +76,6 @@ export async function deleteUser(id: string) {
 
     await prisma.user.delete({ where: { id } });
     
-    const { logAction } = await import("./auditoria");
     await logAction('Usuarios', 'ELIMINAR', `Usuario eliminado: ${user?.username || id}`, {}, user?.companyId || undefined);
 
     revalidatePath("/portal/usuarios");
@@ -117,7 +116,6 @@ export async function updateUser(id: string, formData: FormData) {
       }
     });
     
-    const { logAction } = await import("./auditoria");
     await logAction('Usuarios', 'MODIFICAR', `Usuario modificado: ${user?.username || id}`, { role }, companyId || undefined);
 
     revalidatePath("/portal/usuarios");
@@ -220,14 +218,13 @@ export async function updateUserProfile(data: { name: string; email: string; dni
       }
     });
 
-    const { logAction } = await import("./auditoria");
     await logAction('Perfil', 'MODIFICAR', 'El usuario actualizó sus datos de perfil', {}, user.companyId || undefined);
 
     revalidatePath("/portal/settings");
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating profile:", error);
-    return { error: "Ocurrió un error al actualizar el perfil." };
+    return { error: `Ocurrió un error al actualizar el perfil: ${error?.message || String(error)}` };
   }
 }
 
@@ -252,7 +249,6 @@ export async function changeUserPassword(currentPassword: string, newPassword: s
       }
     });
 
-    const { logAction } = await import("./auditoria");
     await logAction('Perfil', 'MODIFICAR', 'El usuario cambió su contraseña voluntariamente', {}, user.companyId || undefined);
 
     // Update the session
@@ -276,7 +272,6 @@ export async function reportSystemIssue(message: string) {
     const user = await prisma.user.findUnique({ where: { id: session.user.id } });
     if (!user) return { error: "Usuario no encontrado" };
 
-    const { logAction } = await import("./auditoria");
     await logAction(
       'SOPORTE_TECNICO', 
       'CREAR', 
