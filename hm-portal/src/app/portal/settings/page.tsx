@@ -29,9 +29,22 @@ export default async function SettingsGeneralPage() {
     if (mainCompany) userCompanies = [mainCompany];
   }
 
+  const recentLogins = await prisma.auditLog.findMany({
+    where: { 
+      userId: session.user.id,
+      action: 'LOGIN'
+    },
+    orderBy: { timestamp: 'desc' },
+    take: 5
+  });
+
   return (
     <div>
-      <ProfileSettingsClient dbUser={dbUser} userCompanies={userCompanies} />
+      <ProfileSettingsClient 
+        dbUser={dbUser} 
+        userCompanies={userCompanies} 
+        recentLogins={recentLogins} 
+      />
     </div>
   );
 }

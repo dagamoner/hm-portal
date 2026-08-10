@@ -230,3 +230,42 @@ export async function updateUserProfile(data: { name: string; email: string; dni
     return { error: "Ocurrió un error al actualizar el perfil." };
   }
 }
+
+export async function changeUserPassword(currentPassword: string, newPassword: string) {
+  const session = await requireAuth();
+  try {
+    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    if (!user) return { error: "Usuario no encontrado" };
+
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isValid) {
+      return { error: "La contraseña actual es incorrecta." };
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        password: hashedPassword,
+        needsPasswordChange: false
+      }
+    });
+
+    const { logAction } = await import("./auditoria");
+    await logAction('Perfil', 'MODIFICAR', 'El usuario cambió su contraseña voluntariamente', {}, user.companyId || undefined);
+
+    // Update the session
+    const { encrypt } = await import("@/lib/auth");
+    const { cookies } = await import("next/headers");
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const newSession = await encrypt({ user: { ...user, password: hashedPassword }, expires });
+    const cookieStore = await cookies();
+    cookieStore.set("mh_session", newSession, { httpOnly: true, secure: process.env.NODE_ENV === "production" });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error changing password:", error);
+    return { error: "Ocurrió un error al cambiar la contraseña." };
+  }
+}

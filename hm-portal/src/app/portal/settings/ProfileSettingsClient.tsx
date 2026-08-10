@@ -1,16 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { User, Mail, Phone, Hash, Shield, Building, Loader2, Key } from "lucide-react";
+import { User, Mail, Phone, Hash, Shield, Building, Loader2, Key, Clock, Lock } from "lucide-react";
 import toast from "react-hot-toast";
-import { updateUserProfile } from "@/app/actions/users";
+import { updateUserProfile, changeUserPassword } from "@/app/actions/users";
 import { useAuth } from "@/components/providers/AuthProvider";
 
-export function ProfileSettingsClient({ dbUser, userCompanies }: { dbUser: any, userCompanies: any[] }) {
+export function ProfileSettingsClient({ dbUser, userCompanies, recentLogins }: { dbUser: any, userCompanies: any[], recentLogins: any[] }) {
   const { user: authUser } = useAuth();
   
   const [activeTab, setActiveTab] = useState<"profile" | "security">("profile");
   const [loading, setLoading] = useState(false);
+  const [pwdLoading, setPwdLoading] = useState(false);
+  
+  const [pwdData, setPwdData] = useState({
+    current: "",
+    new: "",
+    confirm: ""
+  });
   
   const [formData, setFormData] = useState({
     name: dbUser.name || "",
@@ -45,6 +52,27 @@ export function ProfileSettingsClient({ dbUser, userCompanies }: { dbUser: any, 
       toast.error(result.error);
     } else {
       toast.success("Perfil actualizado correctamente");
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pwdData.new !== pwdData.confirm) {
+      return toast.error("Las nuevas contraseñas no coinciden");
+    }
+    if (pwdData.new.length < 6) {
+      return toast.error("La contraseña debe tener al menos 6 caracteres");
+    }
+
+    setPwdLoading(true);
+    const result = await changeUserPassword(pwdData.current, pwdData.new);
+    setPwdLoading(false);
+
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success("Contraseña actualizada exitosamente");
+      setPwdData({ current: "", new: "", confirm: "" });
     }
   };
 
@@ -196,10 +224,95 @@ export function ProfileSettingsClient({ dbUser, userCompanies }: { dbUser: any, 
 
         {/* Tab Content: Security */}
         {activeTab === "security" && (
-          <div className="p-6 md:p-8 text-center py-16">
-            <Key className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <h3 className="text-lg font-bold text-slate-700">Cambio de Contraseña</h3>
-            <p className="text-slate-500 mt-1 max-w-md mx-auto text-sm">Esta funcionalidad se implementará en la próxima actualización para que puedas cambiar tu contraseña manualmente.</p>
+          <div className="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            {/* Password Change Form */}
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <Lock className="w-5 h-5 text-amber-500" />
+                Cambiar Contraseña
+              </h2>
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Contraseña Actual</label>
+                  <input 
+                    type="password"
+                    required
+                    value={pwdData.current}
+                    onChange={e => setPwdData({...pwdData, current: e.target.value})}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Nueva Contraseña</label>
+                  <input 
+                    type="password"
+                    required
+                    value={pwdData.new}
+                    onChange={e => setPwdData({...pwdData, new: e.target.value})}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Confirmar Nueva Contraseña</label>
+                  <input 
+                    type="password"
+                    required
+                    value={pwdData.confirm}
+                    onChange={e => setPwdData({...pwdData, confirm: e.target.value})}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition-all"
+                  />
+                </div>
+                
+                <div className="pt-2">
+                  <button 
+                    type="submit"
+                    disabled={pwdLoading}
+                    className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-70 disabled:active:scale-100 flex items-center justify-center gap-2"
+                  >
+                    {pwdLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    Actualizar Contraseña
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Login History */}
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-slate-500" />
+                Historial de Accesos
+              </h2>
+              
+              <div className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+                {recentLogins.length > 0 ? (
+                  <div className="divide-y divide-slate-200">
+                    {recentLogins.map((log) => (
+                      <div key={log.id} className="p-4 flex items-center justify-between hover:bg-slate-100 transition-colors">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800">
+                            {new Date(log.timestamp).toLocaleDateString("es-AR", { 
+                              day: '2-digit', month: 'short', year: 'numeric' 
+                            })}
+                          </p>
+                          <p className="text-xs text-slate-500">Inicio de sesión exitoso</p>
+                        </div>
+                        <span className="text-sm font-medium text-slate-600 bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-sm">
+                          {new Date(log.timestamp).toLocaleTimeString("es-AR", { 
+                            hour: '2-digit', minute: '2-digit' 
+                          })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-slate-500 text-sm">
+                    No hay registros de acceso recientes.
+                  </div>
+                )}
+              </div>
+            </div>
+
           </div>
         )}
       </div>
