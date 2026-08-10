@@ -196,3 +196,37 @@ export async function getUsersWithAuditStats() {
     return [];
   }
 }
+
+export async function updateUserProfile(data: { name: string; email: string; dni: string; phone: string }) {
+  const session = await requireAuth();
+  try {
+    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    if (!user) return { error: "Usuario no encontrado" };
+
+    if (data.email && data.email !== user.email) {
+      const existingEmail = await prisma.user.findUnique({ where: { email: data.email } });
+      if (existingEmail && existingEmail.id !== user.id) {
+        return { error: "El correo electrónico ya está en uso." };
+      }
+    }
+
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        name: data.name,
+        email: data.email || null,
+        dni: data.dni || null,
+        phone: data.phone || null,
+      }
+    });
+
+    const { logAction } = await import("./auditoria");
+    await logAction('Perfil', 'MODIFICAR', 'El usuario actualizó sus datos de perfil', {}, user.companyId || undefined);
+
+    revalidatePath("/portal/settings");
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    return { error: "Ocurrió un error al actualizar el perfil." };
+  }
+}
