@@ -11,13 +11,19 @@ export function DigestoClient() {
   const currentModule = digestoData.find((m) => m.id === activeModule) || digestoData[0];
 
   const filteredEntries = currentModule.entries.filter((entry) => {
-    const term = searchTerm.toLowerCase();
+    const normalize = (str: string) => 
+      str.toLowerCase()
+         .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accents
+         .replace(/\./g, ""); // remove dots
+    
+    const term = normalize(searchTerm);
+    
     return (
-      entry.type.toLowerCase().includes(term) ||
-      entry.topic.toLowerCase().includes(term) ||
-      entry.description.toLowerCase().includes(term) ||
-      entry.number.toLowerCase().includes(term) ||
-      entry.year.toLowerCase().includes(term)
+      normalize(entry.type).includes(term) ||
+      normalize(entry.topic).includes(term) ||
+      normalize(entry.description).includes(term) ||
+      normalize(entry.number).includes(term) ||
+      normalize(entry.year).includes(term)
     );
   });
 
