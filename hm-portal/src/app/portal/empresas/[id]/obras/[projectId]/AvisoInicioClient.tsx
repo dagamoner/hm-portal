@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useRef } from "react";
-import { Download, FileText, Building2, MapPin, Calendar, Building, User } from "lucide-react";
+import { Download, FileText, Building2, MapPin, Calendar, Building, User, FileUp, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
-export default function AvisoInicioClient({ project, company }: { project: any, company: any }) {
+export default function AvisoInicioClient({ project, company, onOpenUploadModal, onDeleteDoc, isPending: parentIsPending }: { project: any, company: any, onOpenUploadModal?: () => void, onDeleteDoc?: (id: string) => void, isPending?: boolean }) {
     const componentRef = useRef<HTMLDivElement>(null);
+    const avisoDocs = project.documents?.filter((d: any) => d.type === 'AVISO_INICIO_OBRA') || [];
 
     const handleDownload = () => {
         // Simplified print triggering. In a real scenario you would use html2canvas + jsPDF.
@@ -22,13 +23,68 @@ export default function AvisoInicioClient({ project, company }: { project: any, 
                     </h2>
                     <p className="text-slate-500 mt-1">Generación automática del formulario estándar (Anexo I).</p>
                 </div>
-                <button 
-                    onClick={handleDownload}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all active:scale-95 print:hidden"
-                >
-                    <Download className="w-5 h-5" /> Exportar / Imprimir
-                </button>
+                <div className="flex gap-2">
+                    {onOpenUploadModal && (
+                        <button onClick={onOpenUploadModal} className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 transition-all">
+                            <FileUp className="w-5 h-5 text-indigo-500" /> Subir Generado
+                        </button>
+                    )}
+                    <button 
+                        onClick={handleDownload}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all active:scale-95 print:hidden"
+                    >
+                        <Download className="w-5 h-5" /> Exportar
+                    </button>
+                </div>
             </div>
+
+            {avisoDocs.length > 0 && (
+                <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-sm border border-white/50 overflow-hidden print:hidden">
+                    <div className="p-6 border-b border-slate-100">
+                        <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-indigo-500" />
+                            Avisos de Inicio Subidos / Adjuntos
+                        </h3>
+                    </div>
+                    <div className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {avisoDocs.map((doc: any) => (
+                                <div key={doc.id} className="bg-white border border-slate-100 p-5 rounded-2xl flex justify-between">
+                                    <div>
+                                        <h4 className="font-bold text-slate-800">{doc.title}</h4>
+                                        <div className="flex items-center gap-4 mt-3 text-xs text-slate-500">
+                                            <span className="px-2 py-1 rounded-md border font-bold bg-amber-50 text-amber-700 border-amber-200">
+                                                {doc.status}
+                                            </span>
+                                            {doc.validUntil && (
+                                                <span className="flex items-center gap-1">
+                                                    <Calendar className="w-3 h-3" /> Vence: {new Date(doc.validUntil).toLocaleDateString()}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        {doc.fileUrl && (
+                                            <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors" title="Ver Documento">
+                                                <FileText className="w-4 h-4" />
+                                            </a>
+                                        )}
+                                        {onDeleteDoc && (
+                                            <button 
+                                                onClick={() => onDeleteDoc(doc.id)}
+                                                disabled={parentIsPending}
+                                                className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors disabled:opacity-50"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="flex justify-center print:p-0">
                 <div 

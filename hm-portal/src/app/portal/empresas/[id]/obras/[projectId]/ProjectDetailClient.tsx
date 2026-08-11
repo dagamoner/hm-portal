@@ -16,18 +16,17 @@ export default function ProjectDetailClient({ companyId, project, companyWorkers
     const [activeTab, setActiveTab] = useState<'workers' | 'pso' | 'aviso' | 'pliegos'>('workers');
     const [isWorkerModalOpen, setIsWorkerModalOpen] = useState(false);
     const [isDocModalOpen, setIsDocModalOpen] = useState(false);
+    const [docData, setDocData] = useState({ type: 'PLIEGO', title: '', fileUrl: '', status: 'Presentado', validUntil: '' });
     const [isPending, startTransition] = useTransition();
+
+    const handleOpenDocModal = (type = 'PLIEGO') => {
+        setDocData({ type, title: '', fileUrl: '', status: 'Presentado', validUntil: '' });
+        setIsDocModalOpen(true);
+    };
 
     const assignedWorkerIds = new Set(project.workers?.map((w: any) => w.id) || []);
     const availableWorkers = companyWorkers.filter(w => !assignedWorkerIds.has(w.id));
 
-    const [docData, setDocData] = useState({
-        type: "PROGRAMA_SEGURIDAD_911",
-        title: "",
-        fileUrl: "",
-        status: "Presentado",
-        validUntil: ""
-    });
 
     const handleAssignWorker = (workerId: string) => {
         startTransition(async () => {
@@ -175,11 +174,11 @@ export default function ProjectDetailClient({ companyId, project, companyWorkers
             )}
 
             {activeTab === 'pso' && (
-                <PSOClient project={project} />
+                <PSOClient project={project} onOpenUploadModal={() => handleOpenDocModal('PROGRAMA_SEGURIDAD_911')} onDeleteDoc={handleDeleteDoc} isPending={isPending} />
             )}
 
             {activeTab === 'aviso' && (
-                <AvisoInicioClient project={project} company={project.company || { name: 'Empresa', cuit: '00-00000000-0' }} />
+                <AvisoInicioClient project={project} company={project.company || { name: 'Empresa', cuit: '00-00000000-0' }} onOpenUploadModal={() => handleOpenDocModal('AVISO_INICIO_OBRA')} onDeleteDoc={handleDeleteDoc} isPending={isPending} />
             )}
 
             {activeTab === 'pliegos' && (
@@ -309,6 +308,8 @@ export default function ProjectDetailClient({ companyId, project, companyWorkers
                                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Tipo de Documento</label>
                                     <select value={docData.type} onChange={(e) => setDocData({...docData, type: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-white text-sm">
                                         <option value="PLIEGO">Pliego de Condiciones HyS</option>
+                                        <option value="PROGRAMA_SEGURIDAD_911">Programa de Seguridad (PSO)</option>
+                                        <option value="AVISO_INICIO_OBRA">Aviso de Inicio de Obra</option>
                                         <option value="ANEXO">Documento Anexo</option>
                                         <option value="OTRO">Otro</option>
                                     </select>

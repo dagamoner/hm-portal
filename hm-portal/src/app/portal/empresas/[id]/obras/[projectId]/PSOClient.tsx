@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Plus, CheckCircle2, ShieldCheck, FileText, Trash2, Save, X, Calendar, Edit2 } from "lucide-react";
+import { Plus, CheckCircle2, ShieldCheck, FileText, Trash2, Save, X, Calendar, Edit2, FileUp } from "lucide-react";
 import { createPSO, updatePSO, createPSOStage, deletePSOStage } from "@/app/actions/projects-pso";
 
-export default function PSOClient({ project }: { project: any }) {
+export default function PSOClient({ project, onOpenUploadModal, onDeleteDoc, isPending: parentIsPending }: { project: any, onOpenUploadModal?: () => void, onDeleteDoc?: (id: string) => void, isPending?: boolean }) {
     const [isPending, startTransition] = useTransition();
     const [isCreatingPSO, setIsCreatingPSO] = useState(false);
     const [isCreatingStage, setIsCreatingStage] = useState(false);
@@ -55,18 +55,27 @@ export default function PSOClient({ project }: { project: any }) {
         }
     };
 
-    if (!activePso && !isCreatingPSO) {
+    const psoDocs = project.documents?.filter((d: any) => d.type === 'PROGRAMA_SEGURIDAD_911') || [];
+
+    if (!activePso && !isCreatingPSO && psoDocs.length === 0) {
         return (
             <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-sm border border-white/50 p-12 text-center">
                 <ShieldCheck className="w-16 h-16 mx-auto text-indigo-300 mb-4" />
                 <h3 className="text-xl font-bold text-slate-800 mb-2">Programa de Seguridad de Obra (PSO)</h3>
-                <p className="text-slate-500 mb-6 max-w-md mx-auto">No hay un Programa de Seguridad redactado para esta obra. Comienza estructurándolo por etapas.</p>
-                <button 
-                    onClick={() => setIsCreatingPSO(true)}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 mx-auto"
-                >
-                    <Plus className="w-5 h-5" /> Iniciar Redacción del PSO
-                </button>
+                <p className="text-slate-500 mb-6 max-w-md mx-auto">No hay un Programa de Seguridad redactado o subido para esta obra.</p>
+                <div className="flex items-center justify-center gap-4">
+                    <button 
+                        onClick={() => setIsCreatingPSO(true)}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2"
+                    >
+                        <Plus className="w-5 h-5" /> Iniciar Redacción Digital
+                    </button>
+                    {onOpenUploadModal && (
+                        <button onClick={onOpenUploadModal} className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-6 py-3 rounded-2xl font-bold shadow-sm transition-all flex items-center justify-center gap-2">
+                            <FileText className="w-5 h-5 text-indigo-500" /> Subir PSO Existente
+                        </button>
+                    )}
+                </div>
             </div>
         );
     }
@@ -195,7 +204,63 @@ export default function PSOClient({ project }: { project: any }) {
                         )}
                     </div>
                 </div>
-            </div>
+            )}
+
+            {psoDocs.length > 0 && (
+                <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-sm border border-white/50 overflow-hidden mt-6">
+                    <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <FileText className="w-5 h-5 text-indigo-500" />
+                                PSOs Subidos / Adjuntos
+                            </h3>
+                            <p className="text-sm text-slate-500 mt-1">Documentos PDF adjuntados como Programa de Seguridad.</p>
+                        </div>
+                        {onOpenUploadModal && (
+                            <button onClick={onOpenUploadModal} className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2">
+                                <FileUp className="w-4 h-4" /> Subir Otro
+                            </button>
+                        )}
+                    </div>
+                    <div className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {psoDocs.map((doc: any) => (
+                                <div key={doc.id} className="bg-white border border-slate-100 p-5 rounded-2xl flex justify-between">
+                                    <div>
+                                        <h4 className="font-bold text-slate-800">{doc.title}</h4>
+                                        <div className="flex items-center gap-4 mt-3 text-xs text-slate-500">
+                                            <span className="px-2 py-1 rounded-md border font-bold bg-amber-50 text-amber-700 border-amber-200">
+                                                {doc.status}
+                                            </span>
+                                            {doc.validUntil && (
+                                                <span className="flex items-center gap-1">
+                                                    <Calendar className="w-3 h-3" /> Vence: {new Date(doc.validUntil).toLocaleDateString()}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        {doc.fileUrl && (
+                                            <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors" title="Ver Documento">
+                                                <FileText className="w-4 h-4" />
+                                            </a>
+                                        )}
+                                        {onDeleteDoc && (
+                                            <button 
+                                                onClick={() => onDeleteDoc(doc.id)}
+                                                disabled={parentIsPending}
+                                                className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors disabled:opacity-50"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
