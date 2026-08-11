@@ -7,7 +7,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { 
     LayoutDashboard, FileText, Activity, Accessibility, Bug, AlertTriangle, 
     Search, ShieldAlert, Calendar, Truck, Server, Users, ClipboardCheck, 
-    History, GraduationCap, TableProperties, Siren, Shield, HardHat, Receipt, Construction, BookOpenCheck, BookMarked, PieChart, Leaf, FlaskConical, Target, ChevronDown, Award
+    History, GraduationCap, TableProperties, Siren, Shield, HardHat, Receipt, Construction, BookOpenCheck, BookMarked, PieChart, Leaf, FlaskConical, Target, ChevronDown, Award, TrendingUp
 } from "lucide-react";
 
 export const MODULES = [
@@ -33,6 +33,7 @@ export const MODULES = [
     { name: "Gestión Ambiental", path: "/ambiental", icon: Leaf },
     { name: "Productos Químicos", path: "/quimicos", icon: FlaskConical },
     { name: "Gestión CAPA", path: "/capa", icon: Target },
+    { name: "Estadísticas SRT", path: "/siniestralidad", icon: TrendingUp },
     { name: "Normas ISO/IRAM/AEA", path: "/iso-iram", icon: Award },
 ];
 
