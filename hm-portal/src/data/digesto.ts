@@ -596,5 +596,119 @@ export const digestoData: DigestoModule[] = [
         link: "https://boe.mendoza.gov.ar/default/public/publico/verpdf/32409"
       }
     ]
+  },
+  {
+    id: "modulo-8",
+    title: "Módulo 8: Normativa Específica para la Industria de la Construcción",
+    entries: [
+      {
+        id: "m8-1",
+        type: "Decreto",
+        number: "911",
+        year: "1996",
+        topic: "Reglamento H&S Construcción",
+        description: "Reglamento de Higiene y Seguridad para la Industria de la Construcción.",
+        link: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/35000-39999/38568/texact.htm"
+      },
+      {
+        id: "m8-2",
+        type: "Resolución (SRT)",
+        number: "231",
+        year: "1996",
+        topic: "Reglamentación Dec. 911/96",
+        description: "Condiciones básicas de Higiene y Seguridad para inicio de obras.",
+        link: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/35000-39999/39097/norma.htm"
+      },
+      {
+        id: "m8-3",
+        type: "Resolución (SRT)",
+        number: "51",
+        year: "1997",
+        topic: "Aviso de Obra y Programas",
+        description: "Comunicación de inicio de obra y confección del Programa de Seguridad.",
+        link: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/45000-49999/45084/norma.htm"
+      },
+      {
+        id: "m8-4",
+        type: "Resolución (SRT)",
+        number: "35",
+        year: "1998",
+        topic: "Coordinación de Programas",
+        description: "Mecanismo para coordinación, verificación y medidas correctivas en Programas de Seguridad.",
+        link: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/50000-54999/50175/norma.htm"
+      },
+      {
+        id: "m8-5",
+        type: "Resolución (SRT)",
+        number: "319",
+        year: "1999",
+        topic: "Obras repetitivas y simultáneas",
+        description: "Coordinación en actividades simultáneas. Programas para obras repetitivas y corta duración.",
+        link: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/55000-59999/59846/norma.htm"
+      },
+      {
+        id: "m8-6",
+        type: "Decreto",
+        number: "144",
+        year: "2001",
+        topic: "Ampliación Facultades SRT",
+        description: "Amplía facultades de la SRT para dictar normas complementarias y de actualización tecnológica en construcción.",
+        link: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/65000-69999/66008/norma.htm"
+      },
+      {
+        id: "m8-7",
+        type: "Resolución (SRT)",
+        number: "1642",
+        year: "2009",
+        topic: "Comisión Alta Siniestralidad",
+        description: "Créase la Comisión de Trabajo para Empresas con Establecimientos que Registren Alta Siniestralidad en Construcción.",
+        link: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/155000-159999/160682/norma.htm"
+      },
+      {
+        id: "m8-8",
+        type: "Resolución (SRT)",
+        number: "550",
+        year: "2011",
+        topic: "Demolición y Excavación",
+        description: "Mecanismo de intervención en etapas de demolición de edificaciones, excavación para subsuelos y submuraciones.",
+        link: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/180000-184999/181829/norma.htm"
+      },
+      {
+        id: "m8-9",
+        type: "Disposición (SRT)",
+        number: "1",
+        year: "2011",
+        topic: "Avisos de Obra a SRT",
+        description: "Disposición de la Gerencia de Prevención. Indicaciones a las ART para comunicar los Avisos de Obra a la SRT.",
+        link: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/180000-184999/183769/norma.htm"
+      },
+      {
+        id: "m8-10",
+        type: "Resolución (SRT)",
+        number: "503",
+        year: "2014",
+        topic: "Excavaciones a cielo abierto",
+        description: "Medidas de prevención para trabajos de movimiento de suelos y excavaciones a cielo abierto superiores a 1,20m.",
+        link: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/225000-229999/227918/norma.htm"
+      },
+      {
+        id: "m8-11",
+        type: "Resolución (SRT)",
+        number: "42",
+        year: "2018",
+        topic: "Manipulación bolsas cemento",
+        description: "Manipulación y desplazamiento de bolsas de cemento superiores a 25 Kg mediante asistencia de medios mecánicos.",
+        link: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/310000-314999/310405/norma.htm"
+      },
+      {
+        id: "m8-12",
+        type: "Resolución (SRT)",
+        number: "61",
+        year: "2023",
+        topic: "Trabajos en Altura",
+        description: "Aprueba medidas de seguridad para trabajos en altura.",
+        link: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/390000-394999/394625/norma.htm"
+      }
+    ]
   }
 ];
