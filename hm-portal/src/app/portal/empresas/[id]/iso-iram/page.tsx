@@ -21,6 +21,22 @@ export default async function IsoIramPage({
     notFound();
   }
 
+  // Fetch real CAPAs (No Conformities)
+  const capas = await prisma.capa.findMany({
+    where: { companyId: id },
+    orderBy: { reportDate: 'desc' },
+    take: 5
+  });
+
+  const openCapasCount = await prisma.capa.count({
+    where: { companyId: id, status: 'ABIERTO' }
+  });
+
+  const realData = {
+    capas,
+    openCapasCount
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div>
@@ -32,7 +48,7 @@ export default async function IsoIramPage({
         </p>
       </div>
 
-      <IsoIramClient companyId={id} />
+      <IsoIramClient companyId={id} realData={realData} />
     </div>
   );
 }

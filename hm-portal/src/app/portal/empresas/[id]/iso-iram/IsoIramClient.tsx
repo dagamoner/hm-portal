@@ -5,22 +5,26 @@ import { Award, ShieldCheck, FileText, AlertTriangle, CheckCircle2, ChevronRight
 import Link from "next/link";
 import { useAuth } from "@/components/providers/AuthProvider";
 
-export function IsoIramClient({ companyId }: { companyId: string }) {
+export function IsoIramClient({ 
+  companyId,
+  realData
+}: { 
+  companyId: string,
+  realData: {
+    capas: any[];
+    openCapasCount: number;
+  }
+}) {
   const { isClient } = useAuth();
   const [activeTab, setActiveTab] = useState<"dashboard" | "iso45001" | "aea" | "iram">("dashboard");
 
-  // Mock data for readiness score
-  const readinessISO = 68;
-  const readinessAEA = 85;
-  const nonConformities = 3;
+  // Al no existir un motor de auditoría ISO real aún en la BD, la preparación es "N/D" (No Determinada)
+  const readinessISO = "N/D";
+  const readinessAEA = "N/D";
+  const nonConformities = realData.openCapasCount;
 
-  const isoChecklist = [
-    { id: 1, section: "4. Contexto de la Organización", status: "Cumple", pct: 100 },
-    { id: 2, section: "5. Liderazgo y Participación", status: "Observación", pct: 75 },
-    { id: 3, section: "6. Planificación", status: "No Cumple", pct: 40 },
-    { id: 4, section: "7. Apoyo", status: "Cumple", pct: 90 },
-    { id: 5, section: "8. Operación", status: "Cumple", pct: 85 },
-  ];
+  // Lista de control vacía hasta que se configure una auditoría real
+  const isoChecklist: any[] = [];
 
   return (
     <div className="flex flex-col gap-6">
@@ -76,19 +80,19 @@ export function IsoIramClient({ companyId }: { companyId: string }) {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center transition-colors">
-              <div className="w-24 h-24 rounded-full border-8 border-emerald-500 flex items-center justify-center mb-4">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">{readinessISO}%</span>
+              <div className="w-24 h-24 rounded-full border-8 border-slate-200 dark:border-slate-700 flex items-center justify-center mb-4">
+                <span className="text-xl font-black text-slate-800 dark:text-white">{readinessISO}</span>
               </div>
               <h3 className="font-bold text-slate-800 dark:text-white">Readiness ISO 45001</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Preparación para certificación</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Pendiente de evaluación</p>
             </div>
 
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center transition-colors">
-              <div className="w-24 h-24 rounded-full border-8 border-amber-400 flex items-center justify-center mb-4">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">{readinessAEA}%</span>
+              <div className="w-24 h-24 rounded-full border-8 border-slate-200 dark:border-slate-700 flex items-center justify-center mb-4">
+                <span className="text-xl font-black text-slate-800 dark:text-white">{readinessAEA}</span>
               </div>
               <h3 className="font-bold text-slate-800 dark:text-white">Cumplimiento AEA</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Instalaciones Eléctricas</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Pendiente de evaluación</p>
             </div>
 
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center transition-colors">
@@ -110,27 +114,22 @@ export function IsoIramClient({ companyId }: { companyId: string }) {
               Últimas Tareas de Mejora Continua (CAPA vinculadas)
             </h3>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <FileWarning className="w-5 h-5 text-rose-500" />
-                  <div>
-                    <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">Falta tablero principal según AEA 90364</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Origen: Auditoría Eléctrica - Vence: 15/09/2026</p>
+              {realData.capas.length > 0 ? realData.capas.map((capa) => (
+                <div key={capa.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    {capa.status === 'ABIERTO' ? <FileWarning className="w-5 h-5 text-rose-500" /> : <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
+                    <div>
+                      <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm truncate max-w-sm">{capa.description}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Tipo: {capa.deviationType} - Reportado: {new Date(capa.reportDate).toLocaleDateString()}</p>
+                    </div>
                   </div>
+                  <span className={`px-3 py-1 text-xs font-bold rounded-lg uppercase ${capa.status === 'ABIERTO' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400' : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'}`}>
+                    {capa.status}
+                  </span>
                 </div>
-                <span className="px-3 py-1 bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 text-xs font-bold rounded-lg uppercase">Abierta</span>
-              </div>
-              
-              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                  <div>
-                    <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">Política de SST firmada por dirección (ISO 45001)</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Origen: Auditoría ISO - Cerrado: 01/08/2026</p>
-                  </div>
-                </div>
-                <span className="px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold rounded-lg uppercase">Cerrada</span>
-              </div>
+              )) : (
+                <p className="text-sm text-slate-500 italic">No hay acciones correctivas cargadas en la base de datos.</p>
+              )}
             </div>
           </div>
         </div>
@@ -154,7 +153,7 @@ export function IsoIramClient({ companyId }: { companyId: string }) {
           </div>
           
           <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
-            {isoChecklist.map((item) => (
+            {isoChecklist.length > 0 ? isoChecklist.map((item) => (
               <div key={item.id} className="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                 <div className="flex-1">
                   <p className="font-semibold text-slate-800 dark:text-slate-200">{item.section}</p>
@@ -180,7 +179,11 @@ export function IsoIramClient({ companyId }: { companyId: string }) {
                   )}
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="p-8 text-center text-slate-500 dark:text-slate-400">
+                <p>No se han configurado listas de verificación ISO 45001 en la base de datos para esta empresa.</p>
+              </div>
+            )}
           </div>
         </div>
       )}
