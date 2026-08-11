@@ -46,12 +46,14 @@ export async function getCompanies() {
     let companies: any[] = [];
     if (user.role === 'ADMIN' || user.hasGlobalAccess) {
       companies = await prisma.company.findMany({
+        include: { establishments: true },
         orderBy: { name: 'asc' }
       });
     } else if (['MANAGER', 'INSPECTOR'].includes(user.role)) {
       const allowedCompanyIds = user.assignedCompanyIds || [];
       companies = await prisma.company.findMany({
         where: { id: { in: allowedCompanyIds } },
+        include: { establishments: true },
         orderBy: { name: 'asc' }
       });
     } else {
@@ -63,6 +65,7 @@ export async function getCompanies() {
       if (clientCompanyIds.length > 0) {
         companies = await prisma.company.findMany({
           where: { id: { in: clientCompanyIds } },
+          include: { establishments: true },
           orderBy: { name: 'asc' }
         });
       } else {
@@ -114,7 +117,14 @@ export async function getCompanyById(id: string) {
 export async function createCompany(formData: FormData) {
   await requireAuth(undefined, ['ADMIN']); // Only ADMIN can create a new company
   try {
-    await prisma.company.create({
+    const estsJSON = formData.get("establishmentsJSON") as string;
+    let establishments = [];
+    if (estsJSON) {
+      establishments = JSON.parse(estsJSON);
+    }
+    const estsCount = establishments.length > 0 ? establishments.length : (Number(formData.get("establishmentsCount")) || 1);
+
+    const company = await prisma.company.create({
       data: {
         name: formData.get("name") as string,
         legalName: formData.get("legalName") as string || null,
@@ -124,7 +134,7 @@ export async function createCompany(formData: FormData) {
         workContact: formData.get("workContact") as string,
         insuranceART: formData.get("insuranceART") as string,
         selfInsured: formData.get("selfInsured") === "on" || formData.get("selfInsured") === "true",
-        establishmentsCount: Number(formData.get("establishmentsCount")) || 1,
+        establishmentsCount: estsCount,
         workersAdmin: Number(formData.get("workersAdmin")) || 0,
         workersOps: Number(formData.get("workersOps")) || 0,
         keyData: formData.get("keyData") as string || null,
@@ -139,6 +149,21 @@ export async function createCompany(formData: FormData) {
         safetyCompliance: Number(formData.get("safetyCompliance")) || 0,
       }
     });
+
+    if (establishments.length > 0) {
+      for (const est of establishments) {
+        await prisma.establishment.create({
+          data: {
+            companyId: company.id,
+            name: est.name,
+            address: est.address,
+            staffing: JSON.stringify({ workersAdmin: est.workersAdmin, workersOps: est.workersOps, total: (est.workersAdmin || 0) + (est.workersOps || 0) }),
+            regulatoryRegime: JSON.stringify({ activities: est.activities }),
+          }
+        });
+      }
+    }
+
     revalidatePath("/portal/empresas");
     return { success: true };
   } catch (error) {
@@ -150,6 +175,13 @@ export async function createCompany(formData: FormData) {
 export async function updateCompany(id: string, formData: FormData) {
   await requireAuth(id, ['ADMIN', 'MANAGER']); // Only ADMIN/MANAGER can update company profile
   try {
+    const estsJSON = formData.get("establishmentsJSON") as string;
+    let establishments = [];
+    if (estsJSON) {
+      establishments = JSON.parse(estsJSON);
+    }
+    const estsCount = establishments.length > 0 ? establishments.length : (Number(formData.get("establishmentsCount")) || 1);
+
     await prisma.company.update({
       where: { id },
       data: {
@@ -161,7 +193,7 @@ export async function updateCompany(id: string, formData: FormData) {
         workContact: formData.get("workContact") as string,
         insuranceART: formData.get("insuranceART") as string,
         selfInsured: formData.get("selfInsured") === "on" || formData.get("selfInsured") === "true",
-        establishmentsCount: Number(formData.get("establishmentsCount")) || 1,
+        establishmentsCount: estsCount,
         workersAdmin: Number(formData.get("workersAdmin")) || 0,
         workersOps: Number(formData.get("workersOps")) || 0,
         keyData: formData.get("keyData") as string || null,
@@ -176,6 +208,37 @@ export async function updateCompany(id: string, formData: FormData) {
         safetyCompliance: Number(formData.get("safetyCompliance")) || 0,
       }
     });
+
+    if (establishments.length > 0) {
+      // For simplicity in sync: delete existing establishments created here?
+      // No, better to just let the Risk Manager handle edits of existing ones.
+      // But if we want to sync, we might need a way to track IDs.
+      // Assuming new establishments don't have an ID, or we just add them if they don't have an ID.
+      for (const est of establishments) {
+        if (!est.id) {
+          await prisma.establishment.create({
+            data: {
+              companyId: id,
+              name: est.name,
+              address: est.address,
+              staffing: JSON.stringify({ workersAdmin: est.workersAdmin, workersOps: est.workersOps, total: (est.workersAdmin || 0) + (est.workersOps || 0) }),
+              regulatoryRegime: JSON.stringify({ activities: est.activities }),
+            }
+          });
+        } else {
+          await prisma.establishment.update({
+            where: { id: est.id },
+            data: {
+              name: est.name,
+              address: est.address,
+              staffing: JSON.stringify({ workersAdmin: est.workersAdmin, workersOps: est.workersOps, total: (est.workersAdmin || 0) + (est.workersOps || 0) }),
+              regulatoryRegime: JSON.stringify({ activities: est.activities }),
+            }
+          });
+        }
+      }
+    }
+
     revalidatePath("/portal/empresas");
     return { success: true };
   } catch (error) {

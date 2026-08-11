@@ -26,7 +26,8 @@ export default function CompaniesClient({ initialCompanies, userRole }: { initia
         name: '', owner: '', taxId: '', address: '', workContact: '', insuranceART: '',
         establishmentsCount: 1, workersAdmin: 0, workersOps: 0, keyData: '',
         remarks: '', artUser: '', artPass: '', industry: '', riskLevel: 'MEDIUM',
-        status: 'Activa', safetyCompliance: 80
+        status: 'Activa', safetyCompliance: 80,
+        establishments: []
     });
 
     const handleSave = async (e: React.FormEvent) => {
@@ -34,7 +35,9 @@ export default function CompaniesClient({ initialCompanies, userRole }: { initia
         
         const data = new FormData();
         Object.keys(formData).forEach(key => {
-            if (formData[key] !== null && formData[key] !== undefined) {
+            if (key === 'establishments') {
+                data.append('establishmentsJSON', JSON.stringify(formData.establishments));
+            } else if (formData[key] !== null && formData[key] !== undefined) {
                 data.append(key, formData[key].toString());
             }
         });
@@ -181,7 +184,7 @@ export default function CompaniesClient({ initialCompanies, userRole }: { initia
                 </div>
                 {userRole !== 'CLIENT' && (
                     <button 
-                        onClick={() => { setFormData({ establishmentsCount: 1, safetyCompliance: 80, riskLevel: 'MEDIUM', status: 'Activa' }); setEditingCompany(null); setIsModalOpen(true); }}
+                        onClick={() => { setFormData({ establishmentsCount: 1, safetyCompliance: 80, riskLevel: 'MEDIUM', status: 'Activa', establishments: [] }); setEditingCompany(null); setIsModalOpen(true); }}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all active:scale-95"
                     >
                         <Plus className="w-5 h-5" /> Alta Nueva Empresa
@@ -276,7 +279,23 @@ export default function CompaniesClient({ initialCompanies, userRole }: { initia
                                             {userRole !== 'CLIENT' && (
                                                 <>
                                                     <button 
-                                                        onClick={() => { setEditingCompany(company); setFormData(company); setIsModalOpen(true); }}
+                                                        onClick={() => {
+                                                        const existingEsts = company.establishments?.map((est: any) => {
+                                                            const staffing = typeof est.staffing === 'string' ? JSON.parse(est.staffing) : (est.staffing || {});
+                                                            const reg = typeof est.regulatoryRegime === 'string' ? JSON.parse(est.regulatoryRegime) : (est.regulatoryRegime || {});
+                                                            return {
+                                                                id: est.id,
+                                                                name: est.name,
+                                                                address: est.address || '',
+                                                                workersAdmin: staffing.workersAdmin || 0,
+                                                                workersOps: staffing.workersOps || 0,
+                                                                activities: reg.activities || ''
+                                                            };
+                                                        }) || [];
+                                                        setFormData({ ...company, establishments: existingEsts });
+                                                        setEditingCompany(company);
+                                                        setIsModalOpen(true);
+                                                    }}
                                                         className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all bg-white shadow-sm border border-slate-100"
                                                         title="Editar"
                                                     >
@@ -469,18 +488,81 @@ export default function CompaniesClient({ initialCompanies, userRole }: { initia
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-3 gap-3">
-                                            <div className="space-y-2">
-                                                <label className="text-[9px] font-black text-slate-500 uppercase">Establec.</label>
-                                                <input type="number" value={formData.establishmentsCount || 1} onChange={(e) => setFormData({...formData, establishmentsCount: +e.target.value})} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-center" />
+                                        <div className="pt-4 border-t border-slate-100">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h4 className="text-[11px] font-black text-indigo-600 uppercase tracking-[0.2em]">Establecimientos de la Empresa</h4>
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => setFormData({...formData, establishments: [...(formData.establishments || []), { name: '', address: '', workersAdmin: 0, workersOps: 0, activities: '' }]})}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors"
+                                                >
+                                                    <Plus className="w-3.5 h-3.5" /> Agregar Establecimiento
+                                                </button>
                                             </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[9px] font-black text-slate-500 uppercase">Admin</label>
-                                                <input type="number" value={formData.workersAdmin || 0} onChange={(e) => setFormData({...formData, workersAdmin: +e.target.value})} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-center" />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[9px] font-black text-slate-500 uppercase">Operativos</label>
-                                                <input type="number" value={formData.workersOps || 0} onChange={(e) => setFormData({...formData, workersOps: +e.target.value})} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-center" />
+
+                                            <div className="space-y-4">
+                                                {(!formData.establishments || formData.establishments.length === 0) && (
+                                                    <div className="text-center p-6 bg-slate-50 border border-slate-100 rounded-2xl">
+                                                        <p className="text-sm text-slate-500 font-medium">No se han agregado establecimientos específicos. Se creará uno por defecto.</p>
+                                                    </div>
+                                                )}
+                                                {formData.establishments?.map((est: any, idx: number) => (
+                                                    <div key={idx} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl relative group">
+                                                        <button 
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const newEsts = [...formData.establishments];
+                                                                newEsts.splice(idx, 1);
+                                                                setFormData({...formData, establishments: newEsts});
+                                                            }}
+                                                            className="absolute top-4 right-4 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[9px] font-black text-slate-500 uppercase">Nombre del Establecimiento</label>
+                                                                <input type="text" required value={est.name} onChange={(e) => {
+                                                                    const newEsts = [...formData.establishments];
+                                                                    newEsts[idx].name = e.target.value;
+                                                                    setFormData({...formData, establishments: newEsts});
+                                                                }} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold" placeholder="Ej: Planta Sur" />
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[9px] font-black text-slate-500 uppercase">Dirección</label>
+                                                                <input type="text" required value={est.address} onChange={(e) => {
+                                                                    const newEsts = [...formData.establishments];
+                                                                    newEsts[idx].address = e.target.value;
+                                                                    setFormData({...formData, establishments: newEsts});
+                                                                }} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold" placeholder="Calle 123..." />
+                                                            </div>
+                                                            <div className="space-y-1.5 sm:col-span-2">
+                                                                <label className="text-[9px] font-black text-slate-500 uppercase">Actividades (Ej: Producción, Oficinas)</label>
+                                                                <input type="text" value={est.activities || ''} onChange={(e) => {
+                                                                    const newEsts = [...formData.establishments];
+                                                                    newEsts[idx].activities = e.target.value;
+                                                                    setFormData({...formData, establishments: newEsts});
+                                                                }} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm" placeholder="Tareas y rubro..." />
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[9px] font-black text-slate-500 uppercase">Admin</label>
+                                                                <input type="number" required value={est.workersAdmin} onChange={(e) => {
+                                                                    const newEsts = [...formData.establishments];
+                                                                    newEsts[idx].workersAdmin = +e.target.value;
+                                                                    setFormData({...formData, establishments: newEsts});
+                                                                }} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-center" />
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[9px] font-black text-slate-500 uppercase">Operativos</label>
+                                                                <input type="number" required value={est.workersOps} onChange={(e) => {
+                                                                    const newEsts = [...formData.establishments];
+                                                                    newEsts[idx].workersOps = +e.target.value;
+                                                                    setFormData({...formData, establishments: newEsts});
+                                                                }} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-center" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
 

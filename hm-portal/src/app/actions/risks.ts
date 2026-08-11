@@ -48,6 +48,10 @@ export async function getEstablishments(companyId: string) {
 
 export async function createEstablishment(companyId: string, formData: FormData) {
   try {
+    const workersAdmin = Number(formData.get("workersAdmin")) || 0;
+    const workersOps = Number(formData.get("workersOps")) || 0;
+    const activities = formData.get("activities") as string || '';
+
     await prisma.establishment.create({
       data: {
         companyId,
@@ -59,6 +63,8 @@ export async function createEstablishment(companyId: string, formData: FormData)
         coveredArea: Number(formData.get("coveredArea")) || null,
         uncoveredArea: Number(formData.get("uncoveredArea")) || null,
         floors: Number(formData.get("floors")) || null,
+        staffing: JSON.stringify({ workersAdmin, workersOps, total: workersAdmin + workersOps }),
+        regulatoryRegime: JSON.stringify({ activities })
       }
     });
     revalidatePath(`/portal/empresas/${companyId}/riesgos`);

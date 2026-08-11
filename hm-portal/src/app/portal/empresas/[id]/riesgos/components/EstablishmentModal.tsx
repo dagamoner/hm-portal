@@ -88,6 +88,22 @@ export default function EstablishmentModal({ companyId, onClose }: { companyId: 
                                     <input name="floors" type="number" className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold text-sm text-center" placeholder="1" />
                                 </div>
                             </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-black uppercase text-slate-600 ml-1">Actividades Principales</label>
+                                <input name="activities" type="text" className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold text-sm" placeholder="Ej: Producción, Logística, Oficinas comerciales" />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-slate-600 ml-1">Personal Administrativo</label>
+                                    <input name="workersAdmin" type="number" className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold text-sm text-center" placeholder="0" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-slate-600 ml-1">Personal Operativo</label>
+                                    <input name="workersOps" type="number" className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold text-sm text-center" placeholder="0" />
+                                </div>
+                            </div>
                         </div>
                     )}
 
