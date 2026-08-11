@@ -8,7 +8,7 @@ import { useSidebar } from "@/components/providers/SidebarProvider"
 
 export function PortalSidebar() {
   const pathname = usePathname();
-  const { isAdmin, isManager, isClient, user } = useAuth();
+  const { isAdmin, isManager, isInspector, isClient, user } = useAuth();
   const { isCollapsed, toggleSidebar } = useSidebar();
 
   const getLinkClass = (path: string) => {
@@ -61,6 +61,13 @@ export function PortalSidebar() {
           <Link href={`/portal/empresas/${user.companyId}`} className={getLinkClass(`/portal/empresas/${user.companyId}`)} title="Mi Empresa">
             <Building2 size={20} className="shrink-0" />
             {!isCollapsed && <span>Mi Empresa</span>}
+          </Link>
+        )}
+
+        {(isAdmin || isManager || isInspector) && (
+          <Link href="/portal/digesto" className={getLinkClass("/portal/digesto")} title="Digesto Normativo">
+            <BookOpen size={20} className="shrink-0" />
+            {!isCollapsed && <span>Digesto</span>}
           </Link>
         )}
 
