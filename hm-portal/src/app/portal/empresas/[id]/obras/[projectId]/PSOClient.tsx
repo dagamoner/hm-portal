@@ -108,8 +108,9 @@ export default function PSOClient({ project, onOpenUploadModal, onDeleteDoc, isP
 
     return (
         <div className="space-y-6">
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-6 border-b border-slate-100 flex justify-between items-start bg-slate-50/50">
+            {activePso && (
+                <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="p-6 border-b border-slate-100 flex justify-between items-start bg-slate-50/50">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
                             <h3 className="text-xl font-black text-slate-800">Programa de Seguridad (Dec. 911/96)</h3>
@@ -204,6 +205,7 @@ export default function PSOClient({ project, onOpenUploadModal, onDeleteDoc, isP
                         )}
                     </div>
                 </div>
+            </div>
             )}
 
             {psoDocs.length > 0 && (
