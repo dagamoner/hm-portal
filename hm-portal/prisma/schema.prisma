@@ -874,6 +874,7 @@ model Project {
   description     String?
   surfaceArea     Float?
   clientName      String?
+  progress        Int      @default(0)
   
   workers         Worker[]
   documents       ProjectDocument[]

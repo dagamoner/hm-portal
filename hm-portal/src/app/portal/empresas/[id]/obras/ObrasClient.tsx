@@ -25,7 +25,8 @@ export default function ObrasClient({ companyId, initialProjects }: { companyId:
         startDate: "",
         endDate: "",
         status: "Planificación",
-        description: ""
+        description: "",
+        progress: 0
     });
 
     const handleSave = async (e: React.FormEvent) => {
@@ -87,7 +88,7 @@ export default function ObrasClient({ companyId, initialProjects }: { companyId:
                 </div>
                 <button 
                     onClick={() => { 
-                        setFormData({ name: "", location: "", clientName: "", surfaceArea: "", startDate: "", endDate: "", status: "Planificación", description: "" }); 
+                        setFormData({ name: "", location: "", clientName: "", surfaceArea: "", startDate: "", endDate: "", status: "Planificación", description: "", progress: 0 }); 
                         setEditingProject(null); 
                         setIsModalOpen(true); 
                     }}
@@ -162,9 +163,17 @@ export default function ObrasClient({ companyId, initialProjects }: { companyId:
                                         </div>
                                     </td>
                                     <td className="px-6 py-5">
-                                        <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase border tracking-tighter ${getStatusColor(project.status)}`}>
-                                            {project.status}
-                                        </span>
+                                        <div className="flex flex-col gap-2">
+                                            <span className={`w-fit px-3 py-1.5 rounded-full text-[10px] font-black uppercase border tracking-tighter ${getStatusColor(project.status)}`}>
+                                                {project.status}
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                                    <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${project.progress || 0}%` }}></div>
+                                                </div>
+                                                <span className="text-xs font-bold text-slate-500">{project.progress || 0}%</span>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td className="px-6 py-5 text-center">
                                         <div className="flex items-center justify-center gap-1.5 text-slate-600 font-bold bg-slate-50 w-max mx-auto px-3 py-1.5 rounded-lg border border-slate-100">
@@ -187,10 +196,9 @@ export default function ObrasClient({ companyId, initialProjects }: { companyId:
                                                     setEditingProject(project); 
                                                     setFormData({
                                                         name: project.name, location: project.location, clientName: project.clientName || "",
-                                                        surfaceArea: project.surfaceArea?.toString() || "",
-                                                        startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : "",
+                                                        surfaceArea: project.surfaceArea || "", startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : "",
                                                         endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : "",
-                                                        status: project.status, description: project.description || ""
+                                                        status: project.status, description: project.description || "", progress: project.progress || 0
                                                     }); 
                                                     setIsModalOpen(true); 
                                                 }}
@@ -272,6 +280,10 @@ export default function ObrasClient({ companyId, initialProjects }: { companyId:
                                             <option value="Suspendida">Suspendida</option>
                                             <option value="Finalizada">Finalizada</option>
                                         </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Avance (%)</label>
+                                        <input type="number" min="0" max="100" value={formData.progress} onChange={(e) => setFormData({...formData, progress: parseInt(e.target.value) || 0})} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
                                     </div>
                                     <div className="md:col-span-2">
                                         <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Descripción General</label>

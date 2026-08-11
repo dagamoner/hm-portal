@@ -52,6 +52,7 @@ export async function createProject(companyId: string, formData: FormData) {
     const endDate = formData.get("endDate") ? new Date(formData.get("endDate") as string) : null;
     const status = formData.get("status") as string || "Planificación";
     const description = formData.get("description") as string;
+    const progress = parseInt(formData.get("progress") as string) || 0;
 
     const project = await prisma.project.create({
       data: {
@@ -64,6 +65,7 @@ export async function createProject(companyId: string, formData: FormData) {
         endDate,
         status,
         description,
+        progress,
       },
     });
 
@@ -85,6 +87,7 @@ export async function updateProject(projectId: string, formData: FormData) {
     const endDate = formData.get("endDate") ? new Date(formData.get("endDate") as string) : null;
     const status = formData.get("status") as string;
     const description = formData.get("description") as string;
+    const progress = parseInt(formData.get("progress") as string) || 0;
 
     const project = await prisma.project.update({
       where: { id: projectId },
@@ -97,6 +100,7 @@ export async function updateProject(projectId: string, formData: FormData) {
         endDate,
         status,
         description,
+        progress,
       },
     });
 
