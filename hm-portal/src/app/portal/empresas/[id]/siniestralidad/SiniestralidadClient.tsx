@@ -4,26 +4,38 @@ import { useState } from "react";
 import { TrendingUp, TrendingDown, Users, Clock, AlertTriangle, Calendar, Download, Edit2, ShieldAlert } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 
-export function SiniestralidadClient({ companyId }: { companyId: string }) {
+export function SiniestralidadClient({ 
+  companyId, 
+  realStats 
+}: { 
+  companyId: string, 
+  realStats: { 
+    trabajadoresPromedio: number, 
+    hhtMensuales: number, 
+    accidentesTotales: number, 
+    diasPerdidos: number 
+  } 
+}) {
   const { isClient } = useAuth();
   
-  // Datos mockeados del año en curso
-  const stats = {
-    trabajadoresPromedio: 145,
-    hhtMensuales: 24360,
-    accidentesTotales: 3,
-    diasPerdidos: 12,
-  };
+  // Usamos los datos reales provenientes de la base de datos
+  const stats = realStats;
 
   // Fórmulas oficiales SRT
   // II = (Accidentes / Trabajadores) * 1000
-  const indiceIncidencia = ((stats.accidentesTotales / stats.trabajadoresPromedio) * 1000).toFixed(1);
+  const indiceIncidencia = stats.trabajadoresPromedio > 0 
+    ? ((stats.accidentesTotales / stats.trabajadoresPromedio) * 1000).toFixed(1) 
+    : "0.0";
   
   // IF = (Accidentes / HHT) * 1.000.000
-  const indiceFrecuencia = ((stats.accidentesTotales / stats.hhtMensuales) * 1000000).toFixed(1);
+  const indiceFrecuencia = stats.hhtMensuales > 0 
+    ? ((stats.accidentesTotales / stats.hhtMensuales) * 1000000).toFixed(1) 
+    : "S/D";
   
   // IG = (Días perdidos / HHT) * 1000
-  const indiceGravedad = ((stats.diasPerdidos / stats.hhtMensuales) * 1000).toFixed(2);
+  const indiceGravedad = stats.hhtMensuales > 0 
+    ? ((stats.diasPerdidos / stats.hhtMensuales) * 1000).toFixed(2) 
+    : "S/D";
 
   return (
     <div className="flex flex-col gap-6">
@@ -169,7 +181,9 @@ export function SiniestralidadClient({ companyId }: { companyId: string }) {
               <div className="flex-1">
                 <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Horas Hombre (HHT)</p>
                 <div className="flex items-center justify-between">
-                  <p className="font-semibold text-slate-800 dark:text-slate-200">{stats.hhtMensuales.toLocaleString()}</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200">
+                    {stats.hhtMensuales > 0 ? stats.hhtMensuales.toLocaleString() : "Falta cargar"}
+                  </p>
                   {!isClient && <span className="text-[10px] text-indigo-500 font-bold uppercase cursor-pointer hover:underline">Actualizar</span>}
                 </div>
               </div>

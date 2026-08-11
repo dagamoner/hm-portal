@@ -21,6 +21,46 @@ export default async function SiniestralidadPage({
     notFound();
   }
 
+  const currentYear = new Date().getFullYear();
+  const startOfYear = new Date(currentYear, 0, 1);
+
+  // 1. Trabajadores Activos Reales
+  const workersCount = await prisma.worker.count({
+    where: { companyId: id }
+  });
+
+  // 2. Incidentes del año en curso
+  const incidents = await prisma.incident.findMany({
+    where: { 
+      companyId: id,
+      date: { gte: startOfYear }
+    }
+  });
+
+  const incidentCount = incidents.length;
+
+  // 3. Días Perdidos Reales (extraídos del JSON details si existen)
+  let lostDays = 0;
+  incidents.forEach(inc => {
+    const details = inc.details as any;
+    if (details) {
+      if (typeof details.diasPerdidos === 'number') {
+        lostDays += details.diasPerdidos;
+      } else if (typeof details.daysLost === 'number') {
+        lostDays += details.daysLost;
+      } else if (typeof details.dias_baja === 'number') {
+        lostDays += details.dias_baja;
+      }
+    }
+  });
+
+  const realStats = {
+    trabajadoresPromedio: workersCount,
+    hhtMensuales: 0, // Como es dato real y aún no hay tabla para ingresarlo mes a mes, arranca en 0.
+    accidentesTotales: incidentCount,
+    diasPerdidos: lostDays,
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div>
@@ -32,7 +72,7 @@ export default async function SiniestralidadPage({
         </p>
       </div>
 
-      <SiniestralidadClient companyId={id} />
+      <SiniestralidadClient companyId={id} realStats={realStats} />
     </div>
   );
 }
