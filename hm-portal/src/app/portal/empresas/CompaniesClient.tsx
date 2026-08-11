@@ -27,7 +27,7 @@ export default function CompaniesClient({ initialCompanies, userRole }: { initia
         establishmentsCount: 1, workersAdmin: 0, workersOps: 0, keyData: '',
         remarks: '', artUser: '', artPass: '', industry: '', riskLevel: 'MEDIUM',
         status: 'Activa', safetyCompliance: 80,
-        establishments: []
+        establishments: [{ name: 'Sede Principal', address: '', workersAdmin: 0, workersOps: 0, activities: '' }]
     });
 
     const handleSave = async (e: React.FormEvent) => {
@@ -184,7 +184,7 @@ export default function CompaniesClient({ initialCompanies, userRole }: { initia
                 </div>
                 {userRole !== 'CLIENT' && (
                     <button 
-                        onClick={() => { setFormData({ establishmentsCount: 1, safetyCompliance: 80, riskLevel: 'MEDIUM', status: 'Activa', establishments: [] }); setEditingCompany(null); setIsModalOpen(true); }}
+                        onClick={() => { setFormData({ establishmentsCount: 1, safetyCompliance: 80, riskLevel: 'MEDIUM', status: 'Activa', establishments: [{ name: 'Sede Principal', address: '', workersAdmin: 0, workersOps: 0, activities: '' }] }); setEditingCompany(null); setIsModalOpen(true); }}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all active:scale-95"
                     >
                         <Plus className="w-5 h-5" /> Alta Nueva Empresa
@@ -501,11 +501,6 @@ export default function CompaniesClient({ initialCompanies, userRole }: { initia
                                             </div>
 
                                             <div className="space-y-4">
-                                                {(!formData.establishments || formData.establishments.length === 0) && (
-                                                    <div className="text-center p-6 bg-slate-50 border border-slate-100 rounded-2xl">
-                                                        <p className="text-sm text-slate-500 font-medium">No se han agregado establecimientos específicos. Se creará uno por defecto.</p>
-                                                    </div>
-                                                )}
                                                 {formData.establishments?.map((est: any, idx: number) => (
                                                     <div key={idx} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl relative group">
                                                         <button 
