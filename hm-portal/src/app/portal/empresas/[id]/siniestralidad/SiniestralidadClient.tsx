@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { TrendingUp, TrendingDown, Users, Clock, AlertTriangle, Calendar, Download, Edit2, ShieldAlert } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { updateHHT } from "./actions";
 
 export function SiniestralidadClient({ 
   companyId, 
@@ -36,6 +37,24 @@ export function SiniestralidadClient({
   const indiceGravedad = stats.hhtMensuales > 0 
     ? ((stats.diasPerdidos / stats.hhtMensuales) * 1000).toFixed(2) 
     : "S/D";
+
+  const handleUpdateHHT = async () => {
+    const val = window.prompt("Ingrese la cantidad de Horas Hombre Trabajadas (HHT) mensuales reales para el cálculo de estadísticas:", stats.hhtMensuales.toString());
+    if (val !== null) {
+      const parsed = parseInt(val, 10);
+      if (!isNaN(parsed) && parsed >= 0) {
+        try {
+          await updateHHT(companyId, parsed);
+          // La página se refrescará sola gracias a revalidatePath
+        } catch (error) {
+          console.error("Error al actualizar HHT:", error);
+          alert("Ocurrió un error al intentar guardar.");
+        }
+      } else {
+        alert("Por favor ingrese un número válido.");
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -89,7 +108,10 @@ export function SiniestralidadClient({
             <h3 className="text-sm font-bold text-slate-300">Reporte SRT</h3>
             <p className="text-xl font-black mt-1 leading-tight">Generar Declaración Jurada</p>
           </div>
-          <button className="mt-4 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white text-xs font-bold rounded-lg transition-colors w-fit">
+          <button 
+            onClick={() => window.print()}
+            className="mt-4 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white text-xs font-bold rounded-lg transition-colors w-fit"
+          >
             Descargar PDF
           </button>
         </div>
@@ -184,7 +206,7 @@ export function SiniestralidadClient({
                   <p className="font-semibold text-slate-800 dark:text-slate-200">
                     {stats.hhtMensuales > 0 ? stats.hhtMensuales.toLocaleString() : "Falta cargar"}
                   </p>
-                  {!isClient && <span className="text-[10px] text-indigo-500 font-bold uppercase cursor-pointer hover:underline">Actualizar</span>}
+                  {!isClient && <span onClick={handleUpdateHHT} className="text-[10px] text-indigo-500 font-bold uppercase cursor-pointer hover:underline">Actualizar</span>}
                 </div>
               </div>
             </div>

@@ -54,9 +54,19 @@ export default async function SiniestralidadPage({
     }
   });
 
+  let hhtMensuales = 0;
+  if (company.keyData) {
+    try {
+      const parsed = JSON.parse(company.keyData);
+      if (parsed.hhtMensuales) hhtMensuales = Number(parsed.hhtMensuales);
+    } catch (e) {
+      // Ignorar errores de parseo
+    }
+  }
+
   const realStats = {
     trabajadoresPromedio: workersCount,
-    hhtMensuales: 0, // Como es dato real y aún no hay tabla para ingresarlo mes a mes, arranca en 0.
+    hhtMensuales, // Ahora lo leemos del keyData que actualiza el inspector
     accidentesTotales: incidentCount,
     diasPerdidos: lostDays,
   };
