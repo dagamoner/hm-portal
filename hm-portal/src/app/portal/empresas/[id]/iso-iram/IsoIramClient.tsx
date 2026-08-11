@@ -146,9 +146,9 @@ export function IsoIramClient({
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Evaluación de requisitos de la norma para certificar el Sistema de Gestión.</p>
             </div>
             {!isClient && (
-              <button className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm transition-colors shadow-sm">
+              <Link href={`/portal/empresas/${companyId}/auditorias`} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm transition-colors shadow-sm">
                 Nueva Auditoría
-              </button>
+              </Link>
             )}
           </div>
           
@@ -196,9 +196,9 @@ export function IsoIramClient({
             Módulo específico para inspecciones según la reglamentación de la Asociación Electrotécnica Argentina (Ej. AEA 90364).
           </p>
           {!isClient && (
-            <button className="mt-6 px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-sm transition-colors">
+            <Link href={`/portal/empresas/${companyId}/auditorias`} className="mt-6 inline-flex items-center justify-center px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-sm transition-colors">
               Iniciar Checklist AEA
-            </button>
+            </Link>
           )}
         </div>
       )}
@@ -211,9 +211,9 @@ export function IsoIramClient({
             Verificación de cumplimiento de normas específicas IRAM para extintores (3517), señalización (10005) y elementos de protección.
           </p>
           {!isClient && (
-            <button className="mt-6 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-colors">
+            <Link href="/portal/digesto" className="mt-6 inline-flex items-center justify-center px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-colors">
               Explorar Normas
-            </button>
+            </Link>
           )}
         </div>
       )}
