@@ -140,9 +140,26 @@ export default function ObrasClient({ companyId, initialProjects }: { companyId:
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-5 text-slate-600 font-medium flex items-center gap-2">
-                                        <MapPin className="w-4 h-4 text-slate-400" />
-                                        {project.location}
+                                    <td className="px-6 py-5 align-top w-64">
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center gap-2 text-slate-600 font-medium">
+                                                <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+                                                <span className="line-clamp-2" title={project.location}>{project.location}</span>
+                                            </div>
+                                            {project.location && (
+                                                <div className="w-full h-24 rounded-lg overflow-hidden border border-slate-200 shadow-inner mt-1 relative group-hover:border-indigo-200 transition-colors">
+                                                    <iframe 
+                                                        width="100%" 
+                                                        height="100%" 
+                                                        frameBorder="0" 
+                                                        style={{ border: 0 }}
+                                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(project.location)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                                                        allowFullScreen
+                                                    />
+                                                    <div className="absolute inset-0 bg-transparent cursor-pointer" title="Abrir en Google Maps" onClick={() => window.open(`https://maps.google.com/maps?q=${encodeURIComponent(project.location)}`, '_blank')}></div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-5">
                                         <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase border tracking-tighter ${getStatusColor(project.status)}`}>
