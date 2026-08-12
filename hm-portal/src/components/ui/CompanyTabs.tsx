@@ -36,7 +36,7 @@ export const MODULES = [
     { name: "Gestión CAPA", path: "/capa", icon: Target },
     { name: "Estadísticas SRT", path: "/siniestralidad", icon: TrendingUp },
     { name: "Normas ISO/IRAM/AEA", path: "/iso-iram", icon: Award },
-];
+].sort((a, b) => a.name.localeCompare(b.name));
 
 export function CompanyTabs({ companyId, companyName }: { companyId: string, companyName?: string }) {
     const pathname = usePathname();
