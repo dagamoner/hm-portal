@@ -219,6 +219,18 @@ export async function getDashboardMetrics(companyId?: string) {
     // Inspecciones
     const totalInspections = await prisma.inspection.count({ where: whereCompany });
 
+    // 10. CUMPLIMIENTO DE PERSONAL
+    const trainingRecords = await prisma.trainingRecord.findMany({ where: whereCompany });
+    const completedTrainings = trainingRecords.filter(r => r.completed).length;
+    const trainingCompliancePct = trainingRecords.length > 0 ? Math.round((completedTrainings / trainingRecords.length) * 100) : 0;
+
+    const eppDeliveries = await prisma.eppDelivery.findMany({ 
+      where: { ...whereCompany, signed: true },
+      select: { workerId: true }
+    });
+    const uniqueWorkersWithEPP = new Set(eppDeliveries.map(e => e.workerId)).size;
+    const eppCoveragePct = totalWorkers > 0 ? Math.round((uniqueWorkersWithEPP / totalWorkers) * 100) : 0;
+
     return {
       kpis: {
         frequencyRate: IF_12M.toFixed(1),
@@ -228,7 +240,9 @@ export async function getDashboardMetrics(companyId?: string) {
         overdueActions,
         pctClosedOnTime,
         pctControlsVerified,
-        totalInspections
+        totalInspections,
+        trainingCompliancePct,
+        eppCoveragePct
       },
       monthlyTrend,
       riskByEstArray,

@@ -125,6 +125,13 @@ export default function DashboardClient({ data }: DashboardClientProps) {
     }]
   });
 
+  const getGaugeColor = (val: number | undefined) => {
+    const v = val || 0;
+    if (v < 50) return '#ef4444';
+    if (v < 80) return '#f59e0b';
+    return '#10b981';
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       
@@ -185,10 +192,12 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         </div>
       </div>
 
-      {/* FILA 4: GAUGES (TACÓMETROS) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+      {/* FILA 4: GAUGES (TACÓMETROS) - CUMPLIMIENTO */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <GaugeCard title="Cierre en Término" value={kpis?.pctClosedOnTime || 0} color="#10b981" />
-        <GaugeCard title="Controles Críticos Eficaces" value={kpis?.pctControlsVerified || 0} color="#3b82f6" />
+        <GaugeCard title="Controles Verificados" value={kpis?.pctControlsVerified || 0} color="#3b82f6" />
+        <GaugeCard title="Cumplimiento Capacitaciones" value={kpis?.trainingCompliancePct || 0} color={getGaugeColor(kpis?.trainingCompliancePct)} />
+        <GaugeCard title="Cobertura Entrega EPP" value={kpis?.eppCoveragePct || 0} color={getGaugeColor(kpis?.eppCoveragePct)} />
       </div>
 
     </div>

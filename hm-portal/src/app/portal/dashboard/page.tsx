@@ -19,7 +19,7 @@ export default async function DashboardPage() {
 
   const globalData = await getDashboardMetrics(isGlobalAdmin ? undefined : companyId);
   const fallbackData = {
-    kpis: { frequencyRate: "0", severityRate: "0", lostDays: 0, openCriticalRisks: 0, overdueActions: 0, pctClosedOnTime: 0, pctControlsVerified: 0, totalInspections: 0 },
+    kpis: { frequencyRate: "0", severityRate: "0", lostDays: 0, openCriticalRisks: 0, overdueActions: 0, pctClosedOnTime: 0, pctControlsVerified: 0, totalInspections: 0, trainingCompliancePct: 0, eppCoveragePct: 0 },
     monthlyTrend: [],
     riskByEstArray: [],
     paretoData: [],
