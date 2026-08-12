@@ -10,17 +10,18 @@ export const metadata: Metadata = {
     description: "Gestión de extintores y protección contra incendios",
 };
 
-export default async function ExtintoresPage({ params }: { params: { id: string } }) {
-    await requireAuth(params.id);
+export default async function ExtintoresPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    await requireAuth(id);
 
     const company = await prisma.company.findUnique({
-        where: { id: params.id },
+        where: { id },
         select: { id: true, name: true, taxId: true }
     });
 
     if (!company) notFound();
 
-    const extintores = await getExtintores(params.id);
+    const extintores = await getExtintores(id);
 
     return (
         <div className="p-4 md:p-8 max-w-7xl mx-auto">
