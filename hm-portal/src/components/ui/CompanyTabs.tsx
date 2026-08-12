@@ -7,11 +7,12 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { 
     LayoutDashboard, FileText, Activity, Accessibility, Bug, AlertTriangle, 
     Search, ShieldAlert, Calendar, Truck, Server, Users, ClipboardCheck, 
-    History, GraduationCap, TableProperties, Siren, Shield, HardHat, Receipt, Construction, BookOpenCheck, BookMarked, PieChart, Leaf, FlaskConical, Target, ChevronDown, Award, TrendingUp
+    History, GraduationCap, TableProperties, Siren, Shield, HardHat, Receipt, Construction, BookOpenCheck, BookMarked, PieChart, Leaf, FlaskConical, Target, ChevronDown, Award, TrendingUp, Flame
 } from "lucide-react";
 
 export const MODULES = [
     { name: "Emergencias", path: "/emergencias", icon: Siren },
+    { name: "Protección c/ Incendios", path: "/extintores", icon: Flame },
     { name: "Documentación", path: "/documentacion", icon: FileText },
     { name: "Mediciones y Prot.", path: "/mediciones", icon: Activity },
     { name: "Ergonomía", path: "/ergonomia", icon: Accessibility },
