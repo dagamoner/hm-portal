@@ -11,9 +11,10 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import PSOClient from "./PSOClient";
 import AvisoInicioClient from "./AvisoInicioClient";
+import CertificadoPSOClient from "./CertificadoPSOClient";
 
 export default function ProjectDetailClient({ companyId, project, companyWorkers }: { companyId: string, project: any, companyWorkers: any[] }) {
-    const [activeTab, setActiveTab] = useState<'workers' | 'pso' | 'aviso' | 'pliegos'>('workers');
+    const [activeTab, setActiveTab] = useState<'workers' | 'pso' | 'certificado' | 'aviso' | 'pliegos'>('workers');
     const [isWorkerModalOpen, setIsWorkerModalOpen] = useState(false);
     const [isDocModalOpen, setIsDocModalOpen] = useState(false);
     const [docData, setDocData] = useState({ type: 'PLIEGO', title: '', fileUrl: '', status: 'Presentado', validUntil: '' });
@@ -108,6 +109,14 @@ export default function ProjectDetailClient({ companyId, project, companyWorkers
                     <ShieldCheck className="w-5 h-5" /> P.S.O.
                 </button>
                 <button 
+                    onClick={() => setActiveTab('certificado')}
+                    className={`px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+                        activeTab === 'certificado' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-white/60 text-slate-600 hover:bg-white'
+                    }`}
+                >
+                    <CheckCircle2 className="w-5 h-5" /> Certificado aprobación P.S.O.
+                </button>
+                <button 
                     onClick={() => setActiveTab('aviso')}
                     className={`px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
                         activeTab === 'aviso' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-white/60 text-slate-600 hover:bg-white'
@@ -175,6 +184,10 @@ export default function ProjectDetailClient({ companyId, project, companyWorkers
 
             {activeTab === 'pso' && (
                 <PSOClient project={project} onOpenUploadModal={() => handleOpenDocModal('PROGRAMA_SEGURIDAD_911')} onDeleteDoc={handleDeleteDoc} isPending={isPending} />
+            )}
+
+            {activeTab === 'certificado' && (
+                <CertificadoPSOClient project={project} onOpenUploadModal={() => handleOpenDocModal('CERTIFICADO_PSO')} onDeleteDoc={handleDeleteDoc} isPending={isPending} />
             )}
 
             {activeTab === 'aviso' && (
