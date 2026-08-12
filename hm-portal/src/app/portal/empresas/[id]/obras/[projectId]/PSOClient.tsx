@@ -208,23 +208,28 @@ export default function PSOClient({ project, onOpenUploadModal, onDeleteDoc, isP
             </div>
             )}
 
-            {psoDocs.length > 0 && (
-                <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-sm border border-white/50 overflow-hidden mt-6">
-                    <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-                        <div>
-                            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                <FileText className="w-5 h-5 text-indigo-500" />
-                                PSOs Subidos / Adjuntos
-                            </h3>
-                            <p className="text-sm text-slate-500 mt-1">Documentos PDF adjuntados como Programa de Seguridad.</p>
-                        </div>
-                        {onOpenUploadModal && (
-                            <button onClick={onOpenUploadModal} className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2">
-                                <FileUp className="w-4 h-4" /> Subir Otro
-                            </button>
-                        )}
+            <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-sm border border-white/50 overflow-hidden mt-6">
+                <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-indigo-500" />
+                            PSOs Subidos / Adjuntos
+                        </h3>
+                        <p className="text-sm text-slate-500 mt-1">Documentos PDF o links adjuntados como Programa de Seguridad.</p>
                     </div>
-                    <div className="p-6">
+                    {onOpenUploadModal && (
+                        <button onClick={onOpenUploadModal} className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2">
+                            <FileUp className="w-4 h-4" /> {psoDocs.length > 0 ? 'Subir Otro' : 'Subir Documento / Link'}
+                        </button>
+                    )}
+                </div>
+                <div className="p-6">
+                    {psoDocs.length === 0 ? (
+                        <div className="text-center py-8 text-slate-500">
+                            <FileText className="w-10 h-10 mx-auto text-slate-300 mb-2" />
+                            <p>No hay PSOs subidos manualmente o links externos guardados.</p>
+                        </div>
+                    ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {psoDocs.map((doc: any) => (
                                 <div key={doc.id} className="bg-white border border-slate-100 p-5 rounded-2xl flex justify-between">
@@ -260,9 +265,9 @@ export default function PSOClient({ project, onOpenUploadModal, onDeleteDoc, isP
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    )}
                 </div>
-            )}
+            </div>
         </div>
     );
 }
