@@ -12,7 +12,7 @@ import autoTable from 'jspdf-autotable';
 import { getLegajoData } from '@/app/actions/legajo';
 
 // @ts-ignore
-export default function CompaniesClient({ initialCompanies, userRole }: { initialCompanies: any, userRole?: string }) {
+export default function CompaniesClient({ initialCompanies, userRole, allUsers = [] }: { initialCompanies: any, userRole?: string, allUsers?: any[] }) {
     const [companies, setCompanies] = useState(initialCompanies);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,7 +27,8 @@ export default function CompaniesClient({ initialCompanies, userRole }: { initia
         establishmentsCount: 1, workersAdmin: 0, workersOps: 0, keyData: '',
         remarks: '', artUser: '', artPass: '', industry: '', riskLevel: 'MEDIUM',
         status: 'Activa', safetyCompliance: 80,
-        establishments: [{ name: 'Sede Principal', address: '', workersAdmin: 0, workersOps: 0, activities: '' }]
+        establishments: [{ name: 'Sede Principal', address: '', workersAdmin: 0, workersOps: 0, activities: '' }],
+        assignedUsers: []
     });
 
     const handleSave = async (e: React.FormEvent) => {
@@ -37,6 +38,10 @@ export default function CompaniesClient({ initialCompanies, userRole }: { initia
         Object.keys(formData).forEach(key => {
             if (key === 'establishments') {
                 data.append('establishmentsJSON', JSON.stringify(formData.establishments));
+            } else if (key === 'assignedUsers') {
+                formData.assignedUsers.forEach((userId: string) => {
+                    data.append('assignedUsers', userId);
+                });
             } else if (formData[key] !== null && formData[key] !== undefined) {
                 data.append(key, formData[key].toString());
             }
@@ -574,6 +579,44 @@ export default function CompaniesClient({ initialCompanies, userRole }: { initia
                                 </div>
 
                                 {/* Full width Sections */}
+                                {userRole === 'ADMIN' && !editingCompany && (
+                                    <div className="md:col-span-2 space-y-6 pt-6 border-t border-slate-100">
+                                        <div className="space-y-4">
+                                            <h4 className="text-[11px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-3">Asignación de Usuarios (Solo Administrador)</h4>
+                                            <p className="text-sm text-slate-500">Seleccione qué usuarios tendrán acceso a esta empresa. Usted (Admin) siempre tiene acceso.</p>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-60 overflow-y-auto custom-scrollbar p-2 bg-slate-50 rounded-xl border border-slate-100">
+                                                {allUsers?.filter(u => u.role !== 'ADMIN').map((u: any) => (
+                                                    <label key={u.id} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-indigo-300 hover:shadow-sm transition-all">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                                                            checked={formData.assignedUsers?.includes(u.id) || false}
+                                                            onChange={(e) => {
+                                                                const checked = e.target.checked;
+                                                                setFormData((prev: any) => ({
+                                                                    ...prev,
+                                                                    assignedUsers: checked 
+                                                                        ? [...(prev.assignedUsers || []), u.id]
+                                                                        : (prev.assignedUsers || []).filter((id: string) => id !== u.id)
+                                                                }));
+                                                            }}
+                                                        />
+                                                        <div>
+                                                            <div className="text-sm font-bold text-slate-700">{u.name}</div>
+                                                            <div className="text-xs text-slate-500">{u.role} - {u.username}</div>
+                                                        </div>
+                                                    </label>
+                                                ))}
+                                                {(!allUsers || allUsers.length <= 1) && (
+                                                    <div className="col-span-full text-center text-slate-500 text-sm py-4">
+                                                        No hay otros usuarios en el sistema.
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                
                                 <div className="md:col-span-2 space-y-6 pt-6 border-t border-slate-100">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-2">

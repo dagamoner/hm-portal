@@ -115,7 +115,7 @@ export async function getCompanyById(id: string) {
 }
 
 export async function createCompany(formData: FormData) {
-  await requireAuth(undefined, ['ADMIN']); // Only ADMIN can create a new company
+  const user = await requireAuth(undefined, ['ADMIN', 'MANAGER', 'INSPECTOR']); 
   try {
     const estsJSON = formData.get("establishmentsJSON") as string;
     let establishments = [];
@@ -161,6 +161,35 @@ export async function createCompany(formData: FormData) {
             regulatoryRegime: JSON.stringify({ activities: est.activities }),
           }
         });
+      }
+    }
+
+    // Logic for assigning users
+    if (user.role === 'ADMIN') {
+      const assignedUsers = formData.getAll('assignedUsers') as string[];
+      for (const userId of assignedUsers) {
+        const u = await prisma.user.findUnique({ where: { id: userId } });
+        if (u) {
+          const currentList = u.assignedCompanyIds || [];
+          if (!currentList.includes(company.id)) {
+            await prisma.user.update({
+              where: { id: userId },
+              data: { assignedCompanyIds: { push: company.id } }
+            });
+          }
+        }
+      }
+    } else {
+      // MANAGER or INSPECTOR automatically get assigned
+      const currentUser = await prisma.user.findUnique({ where: { id: user.id } });
+      if (currentUser) {
+        const currentList = currentUser.assignedCompanyIds || [];
+        if (!currentList.includes(company.id)) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { assignedCompanyIds: { push: company.id } }
+          });
+        }
       }
     }
 
