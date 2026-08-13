@@ -291,3 +291,20 @@ export async function deleteCompany(id: string) {
     return { error: "Failed to delete company." };
   }
 }
+
+export async function updateCompanyPciGeneralities(id: string, pciGeneralities: any) {
+  await requireAuth(id, ['ADMIN', 'MANAGER', 'INSPECTOR']); 
+  try {
+    await prisma.company.update({
+      where: { id },
+      data: {
+        pciGeneralities: pciGeneralities
+      }
+    });
+    revalidatePath(`/portal/empresas/${id}/extintores`);
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating PCI Generalities:", error);
+    return { error: "Failed to update PCI Generalities." };
+  }
+}

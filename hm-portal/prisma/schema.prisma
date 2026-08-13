@@ -392,6 +392,9 @@ model Company {
   chemicalProducts     ChemicalProduct[]
   capas                Capa[]
   
+  // PCI Module
+  pciGeneralities      Json?
+  
   // Communications
   internalMessages     InternalMessage[]
 }

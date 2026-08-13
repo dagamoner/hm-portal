@@ -1,16 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-import { FireExtinguisher, ShieldAlert, CheckCircle2, ShieldCheck, Plus, Eye, Flame, TriangleAlert } from "lucide-react";
+import { FireExtinguisher, ShieldAlert, CheckCircle2, ShieldCheck, Plus, Eye, Flame, TriangleAlert, Info } from "lucide-react";
 import ExtintorModal from "./modals/ExtintorModal";
 import ChecklistExtintorModal from "./modals/ChecklistExtintorModal";
+import GeneralidadesPCI from "./GeneralidadesPCI";
 
 export default function ExtintoresClient({ company, extintores }: { company: any, extintores: any[] }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
     const [selectedExtintor, setSelectedExtintor] = useState<any>(null);
     const [filter, setFilter] = useState("TODOS");
-    const [activeTab, setActiveTab] = useState<"extintores">("extintores");
+    const [activeTab, setActiveTab] = useState<"generalidades" | "extintores">("generalidades");
 
     const today = new Date();
     const thirtyDays = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
@@ -57,6 +58,17 @@ export default function ExtintoresClient({ company, extintores }: { company: any
 
             <div className="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto custom-scrollbar">
                 <button
+                    onClick={() => setActiveTab('generalidades')}
+                    className={`flex items-center gap-2 pb-3 px-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
+                        activeTab === 'generalidades' 
+                            ? 'border-indigo-600 text-indigo-600' 
+                            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                    }`}
+                >
+                    <Info className="w-4 h-4" />
+                    Generalidades del Establecimiento
+                </button>
+                <button
                     onClick={() => setActiveTab('extintores')}
                     className={`flex items-center gap-2 pb-3 px-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
                         activeTab === 'extintores' 
@@ -69,6 +81,10 @@ export default function ExtintoresClient({ company, extintores }: { company: any
                 </button>
                 {/* Future tabs will go here */}
             </div>
+
+            {activeTab === 'generalidades' && (
+                <GeneralidadesPCI company={company} />
+            )}
 
             {activeTab === 'extintores' && (
                 <div className="space-y-6">
