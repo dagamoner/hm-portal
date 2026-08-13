@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { FireExtinguisher, ShieldAlert, CheckCircle2, ShieldCheck, Plus, Eye, Flame, TriangleAlert, Info, Columns4, AlertOctagon, FlameKindling, AlertCircle } from "lucide-react";
+import { FireExtinguisher, ShieldAlert, CheckCircle2, ShieldCheck, Plus, Eye, Flame, TriangleAlert, Info, Columns4, AlertOctagon, FlameKindling, AlertCircle, FileText } from "lucide-react";
 import ExtintorModal from "./modals/ExtintorModal";
 import ChecklistExtintorModal from "./modals/ChecklistExtintorModal";
 import GeneralidadesPCI from "./GeneralidadesPCI";
@@ -12,13 +12,14 @@ import ResistenciaFuegoPCI from "./ResistenciaFuegoPCI";
 import PotencialExtintorPCI from "./PotencialExtintorPCI";
 import VerificacionExtintoresPCI from "./VerificacionExtintoresPCI";
 import MediosEscapePCI from "./MediosEscapePCI";
+import InformePCI from "./InformePCI";
 
 export default function ExtintoresClient({ company, extintores }: { company: any, extintores: any[] }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
     const [selectedExtintor, setSelectedExtintor] = useState<any>(null);
     const [filter, setFilter] = useState("TODOS");
-    const [activeTab, setActiveTab] = useState<"generalidades" | "sectores" | "riesgos" | "carga" | "resistencia" | "potencial" | "verificacion" | "escape" | "extintores">("generalidades");
+    const [activeTab, setActiveTab] = useState<"generalidades" | "sectores" | "riesgos" | "carga" | "resistencia" | "potencial" | "verificacion" | "escape" | "informe" | "extintores">("generalidades");
 
     const today = new Date();
     const thirtyDays = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
@@ -153,6 +154,17 @@ export default function ExtintoresClient({ company, extintores }: { company: any
                     Medios de Escape
                 </button>
                 <button
+                    onClick={() => setActiveTab('informe')}
+                    className={`flex items-center gap-2 pb-3 px-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
+                        activeTab === 'informe' 
+                            ? 'border-slate-800 text-slate-800' 
+                            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                    }`}
+                >
+                    <FileText className="w-4 h-4" />
+                    Informe Final
+                </button>
+                <button
                     onClick={() => setActiveTab('extintores')}
                     className={`flex items-center gap-2 pb-3 px-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
                         activeTab === 'extintores' 
@@ -195,6 +207,10 @@ export default function ExtintoresClient({ company, extintores }: { company: any
 
             {activeTab === 'escape' && (
                 <MediosEscapePCI company={company} />
+            )}
+
+            {activeTab === 'informe' && (
+                <InformePCI company={company} />
             )}
 
             {activeTab === 'extintores' && (
