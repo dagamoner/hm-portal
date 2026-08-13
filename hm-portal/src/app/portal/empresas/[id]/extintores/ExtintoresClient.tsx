@@ -1,18 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import { FireExtinguisher, ShieldAlert, CheckCircle2, ShieldCheck, Plus, Eye, Flame, TriangleAlert, Info, Columns4 } from "lucide-react";
+import { FireExtinguisher, ShieldAlert, CheckCircle2, ShieldCheck, Plus, Eye, Flame, TriangleAlert, Info, Columns4, AlertOctagon } from "lucide-react";
 import ExtintorModal from "./modals/ExtintorModal";
 import ChecklistExtintorModal from "./modals/ChecklistExtintorModal";
 import GeneralidadesPCI from "./GeneralidadesPCI";
 import SectoresPCI from "./SectoresPCI";
+import TiposRiesgoPCI from "./TiposRiesgoPCI";
 
 export default function ExtintoresClient({ company, extintores }: { company: any, extintores: any[] }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
     const [selectedExtintor, setSelectedExtintor] = useState<any>(null);
     const [filter, setFilter] = useState("TODOS");
-    const [activeTab, setActiveTab] = useState<"generalidades" | "sectores" | "extintores">("generalidades");
+    const [activeTab, setActiveTab] = useState<"generalidades" | "sectores" | "riesgos" | "extintores">("generalidades");
 
     const today = new Date();
     const thirtyDays = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
@@ -81,6 +82,17 @@ export default function ExtintoresClient({ company, extintores }: { company: any
                     Sectores de Incendio
                 </button>
                 <button
+                    onClick={() => setActiveTab('riesgos')}
+                    className={`flex items-center gap-2 pb-3 px-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
+                        activeTab === 'riesgos' 
+                            ? 'border-indigo-600 text-indigo-600' 
+                            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                    }`}
+                >
+                    <AlertOctagon className="w-4 h-4" />
+                    Tipo de Riesgo
+                </button>
+                <button
                     onClick={() => setActiveTab('extintores')}
                     className={`flex items-center gap-2 pb-3 px-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
                         activeTab === 'extintores' 
@@ -100,6 +112,10 @@ export default function ExtintoresClient({ company, extintores }: { company: any
 
             {activeTab === 'sectores' && (
                 <SectoresPCI company={company} />
+            )}
+
+            {activeTab === 'riesgos' && (
+                <TiposRiesgoPCI company={company} />
             )}
 
             {activeTab === 'extintores' && (
