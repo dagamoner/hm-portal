@@ -38,7 +38,7 @@ export const MODULES = [
     { name: "Normas ISO/IRAM/AEA", path: "/iso-iram", icon: Award },
 ].sort((a, b) => a.name.localeCompare(b.name));
 
-export function CompanyTabs({ companyId, companyName }: { companyId: string, companyName?: string }) {
+export function CompanyTabs({ companyId, companyName, disabledModules = [] }: { companyId: string, companyName?: string, disabledModules?: string[] }) {
     const pathname = usePathname();
     const router = useRouter();
     const { isClient, isAdmin, isInspector } = useAuth();
@@ -56,8 +56,8 @@ export function CompanyTabs({ companyId, companyName }: { companyId: string, com
     }, []);
 
     const allowedModules = MODULES.filter(m => {
-        if (isClient && (m.path === "/log-auditoria" || m.path === "/mediciones")) return false;
-        if (isInspector && m.path === "/log-auditoria") return false;
+        // Facturación is completely hidden from Client and Inspector
+        if (m.path === "/facturacion" && !isAdmin) return false;
         return true;
     });
 
@@ -71,7 +71,11 @@ export function CompanyTabs({ companyId, companyName }: { companyId: string, com
         ...allowedModules
     ];
 
-    const activeModule = tabsToRender.find(m => pathname === `/portal/empresas/${companyId}${m.path}`);
+    // Ensure unique modules, just in case
+    const uniqueTabs = Array.from(new Set(tabsToRender.map(t => t.path)))
+      .map(path => tabsToRender.find(t => t.path === path)!);
+
+    const activeModule = uniqueTabs.find(m => pathname === `/portal/empresas/${companyId}${m.path}`);
 
     return (
         <div className="print:hidden w-full bg-white/60 backdrop-blur-md border-b border-white/50 sticky top-0 z-30">
@@ -105,25 +109,32 @@ export function CompanyTabs({ companyId, companyName }: { companyId: string, com
                     {isOpen && (
                         <div className="absolute top-full right-0 sm:left-0 mt-2 w-full sm:w-[350px] bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col max-h-[60vh]">
                             <div className="overflow-y-auto custom-scrollbar p-2 grid grid-cols-1 gap-1">
-                                {tabsToRender.map((module) => {
+                                {uniqueTabs.map((module) => {
                                     const href = `/portal/empresas/${companyId}${module.path}`;
                                     const isActive = pathname === href;
+                                    const isDisabled = disabledModules.includes(module.path) && module.path !== ""; // Don't disable dashboard
+                                    
                                     return (
                                         <button 
                                             key={module.path} 
                                             onClick={() => {
+                                                if (isDisabled) return;
                                                 setIsOpen(false);
                                                 router.push(href);
                                             }}
+                                            disabled={isDisabled}
                                             className={`flex items-center gap-3 px-4 py-3 rounded-xl text-left w-full transition-all ${
-                                                isActive 
-                                                    ? "bg-indigo-50 text-indigo-700 font-bold" 
-                                                    : "text-slate-600 font-medium hover:bg-slate-50"
+                                                isDisabled 
+                                                    ? "opacity-50 cursor-not-allowed bg-slate-50" 
+                                                    : isActive 
+                                                        ? "bg-indigo-50 text-indigo-700 font-bold" 
+                                                        : "text-slate-600 font-medium hover:bg-slate-50"
                                             }`}
                                         >
-                                            <module.icon className={`w-4 h-4 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
-                                            {module.name}
-                                            {isActive && <div className="ml-auto w-2 h-2 rounded-full bg-indigo-600"></div>}
+                                            <module.icon className={`w-4 h-4 ${isActive && !isDisabled ? 'text-indigo-600' : 'text-slate-400'}`} />
+                                            <span className={isDisabled ? 'line-through decoration-slate-300' : ''}>{module.name}</span>
+                                            {isDisabled && <span className="text-[10px] uppercase font-bold text-slate-400 ml-auto">No Disponible</span>}
+                                            {isActive && !isDisabled && <div className="ml-auto w-2 h-2 rounded-full bg-indigo-600"></div>}
                                         </button>
                                     );
                                 })}

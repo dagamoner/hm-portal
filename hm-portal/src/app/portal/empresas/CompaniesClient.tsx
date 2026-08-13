@@ -10,6 +10,7 @@ import { createCompany, updateCompany, deleteCompany } from '@/app/actions/compa
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { getLegajoData } from '@/app/actions/legajo';
+import { MODULES } from '@/components/ui/CompanyTabs';
 
 // @ts-ignore
 export default function CompaniesClient({ initialCompanies, userRole, allUsers = [] }: { initialCompanies: any, userRole?: string, allUsers?: any[] }) {
@@ -28,7 +29,8 @@ export default function CompaniesClient({ initialCompanies, userRole, allUsers =
         remarks: '', artUser: '', artPass: '', industry: '', riskLevel: 'MEDIUM',
         status: 'Activa', safetyCompliance: 80,
         establishments: [{ name: 'Sede Principal', address: '', workersAdmin: 0, workersOps: 0, activities: '' }],
-        assignedUsers: []
+        assignedUsers: [],
+        disabledModules: []
     });
 
     const handleSave = async (e: React.FormEvent) => {
@@ -41,6 +43,10 @@ export default function CompaniesClient({ initialCompanies, userRole, allUsers =
             } else if (key === 'assignedUsers') {
                 formData.assignedUsers.forEach((userId: string) => {
                     data.append('assignedUsers', userId);
+                });
+            } else if (key === 'disabledModules') {
+                formData.disabledModules.forEach((modPath: string) => {
+                    data.append('disabledModules', modPath);
                 });
             } else if (formData[key] !== null && formData[key] !== undefined) {
                 data.append(key, formData[key].toString());
@@ -579,39 +585,80 @@ export default function CompaniesClient({ initialCompanies, userRole, allUsers =
                                 </div>
 
                                 {/* Full width Sections */}
-                                {userRole === 'ADMIN' && !editingCompany && (
+                                {userRole === 'ADMIN' && (
                                     <div className="md:col-span-2 space-y-6 pt-6 border-t border-slate-100">
-                                        <div className="space-y-4">
-                                            <h4 className="text-[11px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-3">Asignación de Usuarios (Solo Administrador)</h4>
-                                            <p className="text-sm text-slate-500">Seleccione qué usuarios tendrán acceso a esta empresa. Usted (Admin) siempre tiene acceso.</p>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-60 overflow-y-auto custom-scrollbar p-2 bg-slate-50 rounded-xl border border-slate-100">
-                                                {allUsers?.filter(u => u.role !== 'ADMIN').map((u: any) => (
-                                                    <label key={u.id} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-indigo-300 hover:shadow-sm transition-all">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
-                                                            checked={formData.assignedUsers?.includes(u.id) || false}
-                                                            onChange={(e) => {
-                                                                const checked = e.target.checked;
-                                                                setFormData((prev: any) => ({
-                                                                    ...prev,
-                                                                    assignedUsers: checked 
-                                                                        ? [...(prev.assignedUsers || []), u.id]
-                                                                        : (prev.assignedUsers || []).filter((id: string) => id !== u.id)
-                                                                }));
-                                                            }}
-                                                        />
-                                                        <div>
-                                                            <div className="text-sm font-bold text-slate-700">{u.name}</div>
-                                                            <div className="text-xs text-slate-500">{u.role} - {u.username}</div>
+                                        {!editingCompany && (
+                                            <div className="space-y-4">
+                                                <h4 className="text-[11px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-3">Asignación de Usuarios (Solo Administrador)</h4>
+                                                <p className="text-sm text-slate-500">Seleccione qué usuarios tendrán acceso a esta empresa. Usted (Admin) siempre tiene acceso.</p>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-60 overflow-y-auto custom-scrollbar p-2 bg-slate-50 rounded-xl border border-slate-100">
+                                                    {allUsers?.filter(u => u.role !== 'ADMIN').map((u: any) => (
+                                                        <label key={u.id} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-indigo-300 hover:shadow-sm transition-all">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                                                                checked={formData.assignedUsers?.includes(u.id) || false}
+                                                                onChange={(e) => {
+                                                                    const checked = e.target.checked;
+                                                                    setFormData((prev: any) => ({
+                                                                        ...prev,
+                                                                        assignedUsers: checked 
+                                                                            ? [...(prev.assignedUsers || []), u.id]
+                                                                            : (prev.assignedUsers || []).filter((id: string) => id !== u.id)
+                                                                    }));
+                                                                }}
+                                                            />
+                                                            <div>
+                                                                <div className="text-sm font-bold text-slate-700">{u.name}</div>
+                                                                <div className="text-xs text-slate-500">{u.role} - {u.username}</div>
+                                                            </div>
+                                                        </label>
+                                                    ))}
+                                                    {(!allUsers || allUsers.length <= 1) && (
+                                                        <div className="col-span-full text-center text-slate-500 text-sm py-4">
+                                                            No hay otros usuarios en el sistema.
                                                         </div>
-                                                    </label>
-                                                ))}
-                                                {(!allUsers || allUsers.length <= 1) && (
-                                                    <div className="col-span-full text-center text-slate-500 text-sm py-4">
-                                                        No hay otros usuarios en el sistema.
-                                                    </div>
-                                                )}
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="space-y-4 pt-4 border-t border-slate-100">
+                                            <h4 className="text-[11px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-3">Módulos Habilitados (Solo Administrador)</h4>
+                                            <p className="text-sm text-slate-500">Desmarque los módulos que NO apliquen para esta empresa. Los usuarios clientes verán los módulos desmarcados en color gris y no podrán ingresar a ellos.</p>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-80 overflow-y-auto custom-scrollbar p-2 bg-slate-50 rounded-xl border border-slate-100">
+                                                {MODULES.filter(m => m.path !== "/facturacion").map((m: any) => {
+                                                    const isEnabled = !(formData.disabledModules || []).includes(m.path);
+                                                    return (
+                                                        <label key={m.path} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${isEnabled ? 'bg-white border-slate-200 hover:border-indigo-300 hover:shadow-sm' : 'bg-slate-100 border-slate-200 opacity-70'}`}>
+                                                            <input 
+                                                                type="checkbox" 
+                                                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                                                                checked={isEnabled}
+                                                                onChange={(e) => {
+                                                                    const checked = e.target.checked;
+                                                                    setFormData((prev: any) => {
+                                                                        let newDisabled = [...(prev.disabledModules || [])];
+                                                                        if (checked) {
+                                                                            // Enable it = remove from disabledModules
+                                                                            newDisabled = newDisabled.filter((path: string) => path !== m.path);
+                                                                        } else {
+                                                                            // Disable it = add to disabledModules
+                                                                            if (!newDisabled.includes(m.path)) {
+                                                                                newDisabled.push(m.path);
+                                                                            }
+                                                                        }
+                                                                        return { ...prev, disabledModules: newDisabled };
+                                                                    });
+                                                                }}
+                                                            />
+                                                            <div className="flex items-center gap-2 truncate">
+                                                                <m.icon className={`w-4 h-4 shrink-0 ${isEnabled ? 'text-indigo-600' : 'text-slate-400'}`} />
+                                                                <span className={`text-xs font-bold truncate ${isEnabled ? 'text-slate-700' : 'text-slate-400 line-through'}`}>{m.name}</span>
+                                                            </div>
+                                                        </label>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     </div>

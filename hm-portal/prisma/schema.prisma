@@ -321,6 +321,7 @@ model Company {
   riskLevel           RiskLevel @default(MEDIUM)
   status              String   @default("Activa")
   safetyCompliance    Float    @default(0)
+  disabledModules     String[] @default([])
   
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt

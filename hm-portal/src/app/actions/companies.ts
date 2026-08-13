@@ -147,6 +147,7 @@ export async function createCompany(formData: FormData) {
         riskLevel: (formData.get("riskLevel") as 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL') || 'MEDIUM',
         status: formData.get("status") as string || 'Activa',
         safetyCompliance: Number(formData.get("safetyCompliance")) || 0,
+        disabledModules: formData.getAll('disabledModules') as string[],
       }
     });
 
@@ -235,6 +236,7 @@ export async function updateCompany(id: string, formData: FormData) {
         riskLevel: (formData.get("riskLevel") as 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL') || 'MEDIUM',
         status: formData.get("status") as string || 'Activa',
         safetyCompliance: Number(formData.get("safetyCompliance")) || 0,
+        disabledModules: formData.getAll('disabledModules') as string[],
       }
     });
 
