@@ -11,6 +11,9 @@ export default function TrainingDetailClient({ company, companyId, training, use
   const [isSaving, setIsSaving] = useState(false);
   const [trainingStatus, setTrainingStatus] = useState(training.status);
   
+  const [searchTerm, setSearchTerm] = useState('');
+  const [savedRecordIds, setSavedRecordIds] = useState<Set<string>>(new Set());
+  
   const [printData, setPrintData] = useState({
     tema: training.title || '',
     profesional: '',
@@ -54,10 +57,41 @@ export default function TrainingDetailClient({ company, companyId, training, use
     }
   };
 
+  const handleSaveRecord = async (recordId: string) => {
+    const recordToSave = records.find((r: any) => r.id === recordId);
+    if (!recordToSave) return;
+    
+    try {
+      // Just save this single record
+      const res = await saveTrainingRecords([recordToSave], companyId);
+      if (res?.error) throw new Error(res.error);
+      
+      setSavedRecordIds(prev => new Set(prev).add(recordId));
+    } catch (error: any) {
+      alert(error.message || "Error al guardar el registro individual");
+    }
+  };
+
   const handleCopyLink = () => {
     navigator.clipboard.writeText(externalLink);
     alert('Link copiado');
   };
+
+  const filteredRecords = records
+    .filter((r: any) => !savedRecordIds.has(r.id))
+    .filter((r: any) => {
+      if (!searchTerm) return true;
+      const search = searchTerm.toLowerCase();
+      const worker = r.worker || {};
+      const fullName = `${worker.lastName || ''} ${worker.firstName || ''}`.toLowerCase();
+      const dni = worker.documentId || '';
+      return fullName.includes(search) || dni.includes(search);
+    })
+    .sort((a: any, b: any) => {
+      const nameA = a.worker?.lastName || '';
+      const nameB = b.worker?.lastName || '';
+      return nameA.localeCompare(nameB);
+    });
 
   return (
     <div className="space-y-6">
@@ -221,13 +255,25 @@ export default function TrainingDetailClient({ company, companyId, training, use
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/80 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                <th className="px-6 py-4" rowSpan={2}>Trabajador / DNI</th>
+                <th className="px-6 py-4" rowSpan={2}>
+                  <div className="flex flex-col gap-2">
+                    <span>Trabajador / DNI</span>
+                    <input 
+                      type="text" 
+                      placeholder="Buscar por nombre o DNI..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full px-2 py-1 text-xs font-normal normal-case border border-slate-200 rounded-md outline-none focus:ring-2 focus:ring-indigo-500/50 bg-white"
+                    />
+                  </div>
+                </th>
                 <th className="px-6 py-2 text-center border-b border-slate-200" colSpan={2}>¿Realizó?</th>
                 <th className="px-6 py-2 text-center border-b border-slate-200" colSpan={2}>Examen</th>
                 <th className="px-6 py-2 text-center border-b border-slate-200" colSpan={2}>¿Aprobó?</th>
                 <th className="px-6 py-4" rowSpan={2}>Nota /100</th>
                 <th className="px-6 py-4" rowSpan={2}>ID Certificado</th>
                 <th className="px-6 py-4" rowSpan={2}>Fecha Completado</th>
+                <th className="px-6 py-4 text-center" rowSpan={2}>Acciones</th>
               </tr>
               <tr className="bg-slate-50/80 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
                 <th className="px-3 py-2 text-center border-r border-slate-200">Sí</th>
@@ -239,7 +285,7 @@ export default function TrainingDetailClient({ company, companyId, training, use
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {records.map((record: any) => (
+              {filteredRecords.map((record: any) => (
                 <tr key={record.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4">
                     <p className="font-bold text-slate-800">{record.worker.firstName} {record.worker.lastName}</p>
@@ -340,12 +386,24 @@ export default function TrainingDetailClient({ company, companyId, training, use
                       className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none disabled:opacity-50 text-slate-700"
                     />
                   </td>
+
+                  <td className="px-6 py-4 text-center">
+                    <button 
+                      onClick={() => handleSaveRecord(record.id)}
+                      disabled={!canEdit}
+                      className="p-2 bg-slate-900 text-white hover:bg-black rounded-lg transition-colors disabled:opacity-50 flex flex-col items-center justify-center w-full"
+                      title="Guardar este registro"
+                    >
+                      <Save className="w-4 h-4 mb-1" />
+                      <span className="text-[10px] uppercase font-bold tracking-wider">Guardar</span>
+                    </button>
+                  </td>
                 </tr>
               ))}
-              {records.length === 0 && (
+              {filteredRecords.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500 font-medium">
-                    No hay trabajadores registrados en esta empresa.
+                  <td colSpan={11} className="px-6 py-12 text-center text-slate-500 font-medium">
+                    No hay trabajadores registrados o pendientes en esta capacitación.
                   </td>
                 </tr>
               )}
