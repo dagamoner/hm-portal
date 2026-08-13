@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition } from "react";
 import { updateCompanyPciSectors } from "@/app/actions/companies";
-import { Save, CheckCircle2, AlertCircle, ShieldAlert, Trash2 } from "lucide-react";
+import { Save, CheckCircle2, AlertCircle, ShieldAlert, Trash2, Building2 } from "lucide-react";
 
 type Subsector = {
     id: string;
@@ -15,6 +15,7 @@ type Subsector = {
 
 type Sector = {
     id: string;
+    establecimientoId?: string;
     name: string;
     uso?: string;
     tipoMateriales?: string;
@@ -42,21 +43,19 @@ const MATERIALES = [
     "Riesgo 7 (Refractarios)"
 ];
 
-// Matriz de Tabla 2.1 del Decreto 351/79
 const calcularRiesgo = (actividad: string, material: string) => {
     if (!actividad || !material) return "-";
     
-    const matIndex = MATERIALES.indexOf(material); // 0 to 6
-    const r = `R${matIndex + 1}`; // R1 to R7
+    const matIndex = MATERIALES.indexOf(material);
+    const r = `R${matIndex + 1}`;
     
     if (actividad === "Residencial" || actividad === "Administrativo" || actividad === "Espectáculos" || actividad === "Cultura") {
-        if (matIndex === 0 || matIndex === 1) return "NP"; // Riesgo 1 y 2 son No Permitidos
+        if (matIndex === 0 || matIndex === 1) return "NP";
         if (matIndex === 2) return "R3";
         if (matIndex === 3) return "R4";
         return "-";
     }
     
-    // Comercial, Industrial, Depósito
     if (actividad === "Comercial" || actividad === "Industrial" || actividad === "Depósito") {
         return r;
     }
@@ -68,12 +67,28 @@ export default function TiposRiesgoPCI({ company }: { company: any }) {
     const [isPending, startTransition] = useTransition();
     const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
     
-    // Initialize sectors from DB
+    const rawGen = company.pciGeneralities ? (typeof company.pciGeneralities === 'string' ? JSON.parse(company.pciGeneralities) : company.pciGeneralities) : null;
+    let establecimientos: any[] = [];
+    if (rawGen) {
+        if (Array.isArray(rawGen)) {
+            establecimientos = rawGen;
+        } else {
+            establecimientos = [{ id: "default", nombre: "Establecimiento Principal" }];
+        }
+    }
+
+    const [selectedEstId, setSelectedEstId] = useState<string>(establecimientos[0]?.id || "");
+
     const initialSectors: Sector[] = company.pciSectors 
         ? (typeof company.pciSectors === 'string' ? JSON.parse(company.pciSectors) : company.pciSectors) 
         : [];
     
     const [sectors, setSectors] = useState<Sector[]>(initialSectors);
+
+    const filteredSectors = sectors.filter(s => {
+        if (s.establecimientoId) return s.establecimientoId === selectedEstId;
+        return establecimientos.length > 0 && selectedEstId === establecimientos[0].id;
+    });
 
     const handleSave = () => {
         setSaveStatus("idle");
@@ -98,8 +113,13 @@ export default function TiposRiesgoPCI({ company }: { company: any }) {
     };
 
     const deleteSector = (sectorId: string) => {
-        if(confirm("¿Estás seguro de que deseas eliminar este sector y todos sus subsectores de forma permanente?")) {
-            setSectors(prev => prev.filter(s => s.id !== sectorId));
+        if(confirm("¿Estás seguro de que deseas eliminar la configuración de riesgo de este sector? (El sector se mantendrá pero sus datos de riesgo se borrarán)")) {
+            setSectors(prev => prev.map(s => {
+                if (s.id === sectorId) {
+                    return { ...s, uso: "", tipoMateriales: "", tipoActividad: "" };
+                }
+                return s;
+            }));
         }
     };
 
@@ -108,8 +128,8 @@ export default function TiposRiesgoPCI({ company }: { company: any }) {
             
             <div className="flex justify-between items-center bg-white p-6 rounded-3xl border border-slate-200 shadow-sm sticky top-4 z-20">
                 <div>
-                    <h2 className="text-xl font-bold text-slate-800">Tipo de Riesgo por Sector</h2>
-                    <p className="text-sm text-slate-500">Definición de riesgo según Tabla 2.1 - Decreto 351/79.</p>
+                    <h2 className="text-xl font-bold text-slate-800">Tipo de Riesgo (Tabla 2.1)</h2>
+                    <p className="text-sm text-slate-500">Dec. 351/79 Cap. 18 - Definición del tipo de riesgo por sector según actividad y materiales.</p>
                 </div>
                 <div className="flex items-center gap-4">
                     {saveStatus === "success" && (
@@ -132,91 +152,96 @@ export default function TiposRiesgoPCI({ company }: { company: any }) {
                 </div>
             </div>
 
-            {sectors.length === 0 ? (
+            <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <Building2 className="w-5 h-5 text-slate-400" />
+                <select 
+                    value={selectedEstId}
+                    onChange={(e) => setSelectedEstId(e.target.value)}
+                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                >
+                    {establecimientos.length === 0 && <option value="" disabled>No hay establecimientos (Ve a Generalidades)</option>}
+                    {establecimientos.map(est => (
+                        <option key={est.id} value={est.id}>{est.nombre}</option>
+                    ))}
+                </select>
+            </div>
+
+            {!selectedEstId ? (
+                <div className="bg-slate-50 p-12 text-center rounded-3xl border border-slate-200 border-dashed">
+                    <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-slate-600 font-bold text-lg mb-2">Selecciona un Establecimiento</h3>
+                    <p className="text-slate-500">Crea o selecciona un establecimiento arriba para gestionar los riesgos de sus sectores.</p>
+                </div>
+            ) : filteredSectors.length === 0 ? (
                 <div className="bg-slate-50 border border-slate-200 border-dashed rounded-3xl p-12 text-center">
                     <ShieldAlert className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-bold text-slate-600 mb-2">No hay sectores creados</h3>
-                    <p className="text-slate-500 max-w-md mx-auto mb-6">Ve a la pestaña "Sectores de Incendio" para crear los sectores antes de definir su tipo de riesgo.</p>
+                    <h3 className="text-lg font-bold text-slate-600 mb-2">No hay sectores configurados en este establecimiento</h3>
+                    <p className="text-slate-500 max-w-md mx-auto">Debes crear los sectores de incendio en la pestaña "Sectores de Incendio" antes de poder asignarles su tipo de riesgo.</p>
                 </div>
             ) : (
                 <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div className="overflow-x-auto w-full custom-scrollbar pb-2">
-                        <table className="w-full text-left min-w-[1000px] border-collapse">
+                    <div className="overflow-x-auto w-full custom-scrollbar">
+                        <table className="w-full text-left min-w-[900px] border-collapse">
                             <thead>
-                                <tr className="bg-[#1b5e3a] text-white">
-                                    <th className="p-4 text-sm font-bold border-r border-[#154a2e] w-48">Sectores de Incendio</th>
-                                    <th className="p-4 text-sm font-bold border-r border-[#154a2e] w-48">Uso</th>
-                                    <th className="p-4 text-sm font-bold border-r border-[#154a2e]">Tipo de materiales predominantes en el sector</th>
-                                    <th className="p-4 text-sm font-bold border-r border-[#154a2e] w-48">Tipo de actividad predominante en el sector</th>
-                                    <th className="p-4 text-sm font-bold text-center w-32">Riesgo del sector</th>
-                                    <th className="w-12 border-l border-[#154a2e]"></th>
+                                <tr className="bg-indigo-900 text-white">
+                                    <th className="p-4 text-sm font-bold border-r border-indigo-800 w-1/4">Sector de Incendio</th>
+                                    <th className="p-4 text-sm font-bold border-r border-indigo-800 w-1/5">Actividad Predominante</th>
+                                    <th className="p-4 text-sm font-bold border-r border-indigo-800 w-1/4">Material Predominante (Inciso 1.5)</th>
+                                    <th className="p-4 text-sm font-bold text-center border-r border-indigo-800">Riesgo (Tabla 2.1)</th>
+                                    <th className="w-12"></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {sectors.map((sector) => {
-                                    const riesgoCalculado = calcularRiesgo(sector.tipoActividad || "", sector.tipoMateriales || "");
-                                    const isNP = riesgoCalculado === "NP";
-
+                                {filteredSectors.map((sector) => {
+                                    const riesgo = calcularRiesgo(sector.tipoActividad || "", sector.tipoMateriales || "");
+                                    const isNP = riesgo === "NP";
+                                    
                                     return (
                                         <tr key={sector.id} className="border-b border-slate-200 hover:bg-slate-50 transition-colors group">
+                                            <td className="p-0 border-r border-slate-200 bg-slate-100/30">
+                                                <input 
+                                                    type="text" 
+                                                    value={sector.name} 
+                                                    readOnly
+                                                    className="w-full p-4 bg-transparent text-sm font-bold text-slate-700 outline-none cursor-not-allowed"
+                                                />
+                                            </td>
                                             <td className="p-0 border-r border-slate-200">
-                                                <input 
-                                                    type="text" 
-                                                    value={sector.name || ""} 
-                                                    onChange={(e) => updateSector(sector.id, 'name', e.target.value)}
-                                                    className="w-full p-4 bg-transparent focus:bg-white focus:ring-2 focus:ring-inset focus:ring-indigo-500 text-sm font-bold text-slate-800 outline-none"
-                                                    placeholder="Nombre del Sector"
-                                                />
-                                            </td>
-                                            <td className="p-0 border-r border-slate-200 bg-slate-50/50">
-                                                <input 
-                                                    type="text" 
-                                                    value={sector.uso || ""} 
-                                                    onChange={(e) => updateSector(sector.id, 'uso', e.target.value)}
-                                                    className="w-full p-4 bg-transparent focus:bg-white focus:ring-2 focus:ring-inset focus:ring-indigo-500 text-sm outline-none"
-                                                    placeholder="Ej: Edificio"
-                                                />
-                                            </td>
-                                            <td className="p-0 border-r border-slate-200 bg-slate-50/50">
-                                                <select 
-                                                    value={sector.tipoMateriales || ""}
-                                                    onChange={(e) => updateSector(sector.id, 'tipoMateriales', e.target.value)}
-                                                    className="w-full p-4 bg-transparent focus:bg-white focus:ring-2 focus:ring-inset focus:ring-indigo-500 text-sm outline-none appearance-none cursor-pointer"
-                                                >
-                                                    <option value="" disabled>Seleccionar Material...</option>
-                                                    {MATERIALES.map(mat => (
-                                                        <option key={mat} value={mat}>{mat}</option>
-                                                    ))}
-                                                </select>
-                                            </td>
-                                            <td className="p-0 border-r border-slate-200 bg-slate-50/50">
-                                                <select 
+                                                <select
                                                     value={sector.tipoActividad || ""}
-                                                    onChange={(e) => updateSector(sector.id, 'tipoActividad', e.target.value)}
-                                                    className="w-full p-4 bg-transparent focus:bg-white focus:ring-2 focus:ring-inset focus:ring-indigo-500 text-sm outline-none appearance-none cursor-pointer"
+                                                    onChange={(e) => updateSector(sector.id, "tipoActividad", e.target.value)}
+                                                    className="w-full p-4 bg-transparent focus:bg-white focus:ring-2 focus:ring-indigo-500 text-sm outline-none appearance-none cursor-pointer"
                                                 >
                                                     <option value="" disabled>Seleccionar Actividad...</option>
-                                                    {ACTIVIDADES.map(act => (
-                                                        <option key={act} value={act}>{act}</option>
-                                                    ))}
+                                                    {ACTIVIDADES.map(a => <option key={a} value={a}>{a}</option>)}
                                                 </select>
                                             </td>
-                                            <td className="p-4 text-center">
-                                                <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-black ${
+                                            <td className="p-0 border-r border-slate-200">
+                                                <select
+                                                    value={sector.tipoMateriales || ""}
+                                                    onChange={(e) => updateSector(sector.id, "tipoMateriales", e.target.value)}
+                                                    className="w-full p-4 bg-transparent focus:bg-white focus:ring-2 focus:ring-indigo-500 text-sm outline-none appearance-none cursor-pointer"
+                                                >
+                                                    <option value="" disabled>Seleccionar Material...</option>
+                                                    {MATERIALES.map(m => <option key={m} value={m}>{m}</option>)}
+                                                </select>
+                                            </td>
+                                            <td className="p-4 text-center border-r border-slate-200">
+                                                <div className={`inline-flex items-center justify-center px-4 py-1.5 rounded-full font-black text-sm ${
                                                     isNP 
-                                                        ? 'bg-red-100 text-red-700' 
-                                                        : riesgoCalculado !== '-' 
-                                                            ? 'bg-indigo-100 text-indigo-700'
-                                                            : 'bg-slate-100 text-slate-400'
+                                                        ? 'bg-red-100 text-red-700 ring-2 ring-red-500' 
+                                                        : riesgo === "-" 
+                                                            ? 'bg-slate-100 text-slate-400' 
+                                                            : 'bg-indigo-100 text-indigo-700 ring-2 ring-indigo-500'
                                                 }`}>
-                                                    {riesgoCalculado}
-                                                </span>
+                                                    {isNP ? 'NO PERMITIDO (NP)' : riesgo}
+                                                </div>
                                             </td>
                                             <td className="p-2 text-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button 
                                                     onClick={() => deleteSector(sector.id)}
                                                     className="text-slate-400 hover:text-red-500 transition-colors p-1"
-                                                    title="Eliminar Sector"
+                                                    title="Limpiar datos de riesgo"
                                                 >
                                                     <Trash2 className="w-5 h-5" />
                                                 </button>

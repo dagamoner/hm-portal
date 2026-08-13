@@ -295,10 +295,29 @@ export async function deleteCompany(id: string) {
 export async function updateCompanyPciGeneralities(id: string, pciGeneralities: any) {
   await requireAuth(id, ['ADMIN', 'MANAGER', 'INSPECTOR']); 
   try {
+    const company = await prisma.company.findUnique({ where: { id }, select: { pciSectors: true } });
+    
+    let sectorsArray: any[] = [];
+    if (company?.pciSectors) {
+        sectorsArray = typeof company.pciSectors === 'string' ? JSON.parse(company.pciSectors) : company.pciSectors;
+    }
+
+    if (Array.isArray(sectorsArray) && Array.isArray(pciGeneralities)) {
+        const activeEstIds = pciGeneralities.map((est: any) => est.id);
+        sectorsArray = sectorsArray.filter((sector: any) => {
+            if (sector.establecimientoId) {
+                return activeEstIds.includes(sector.establecimientoId);
+            }
+            // Mantenemos sectores legacy si hay al menos un establecimiento
+            return activeEstIds.length > 0;
+        });
+    }
+
     await prisma.company.update({
       where: { id },
       data: {
-        pciGeneralities: pciGeneralities
+        pciGeneralities: pciGeneralities,
+        pciSectors: sectorsArray
       }
     });
     revalidatePath(`/portal/empresas/${id}/extintores`);

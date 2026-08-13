@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition } from "react";
 import { updateCompanyPciSectors } from "@/app/actions/companies";
-import { Save, CheckCircle2, AlertCircle, Plus, Trash2, Edit2, Columns4 } from "lucide-react";
+import { Save, CheckCircle2, AlertCircle, Plus, Trash2, Edit2, Columns4, Building2 } from "lucide-react";
 
 type Subsector = {
     id: string;
@@ -15,20 +15,43 @@ type Subsector = {
 
 type Sector = {
     id: string;
+    establecimientoId?: string;
     name: string;
     subsectors: Subsector[];
+    // ... other fields like risk, fire load, etc.
 };
 
 export default function SectoresPCI({ company }: { company: any }) {
     const [isPending, startTransition] = useTransition();
     const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
     
+    // Parse establecimientos from pciGeneralities
+    const rawGen = company.pciGeneralities ? (typeof company.pciGeneralities === 'string' ? JSON.parse(company.pciGeneralities) : company.pciGeneralities) : null;
+    let establecimientos: any[] = [];
+    if (rawGen) {
+        if (Array.isArray(rawGen)) {
+            establecimientos = rawGen;
+        } else {
+            establecimientos = [{ id: "default", nombre: "Establecimiento Principal" }];
+        }
+    }
+
+    const [selectedEstId, setSelectedEstId] = useState<string>(establecimientos[0]?.id || "");
+
     // Initialize sectors from DB
     const initialSectors: Sector[] = company.pciSectors 
         ? (typeof company.pciSectors === 'string' ? JSON.parse(company.pciSectors) : company.pciSectors) 
         : [];
     
     const [sectors, setSectors] = useState<Sector[]>(initialSectors);
+
+    // Filter sectors by the selected establecimiento
+    // If a sector doesn't have an establecimientoId, we assume it belongs to the first one for backward compatibility
+    const filteredSectors = sectors.filter(s => {
+        if (s.establecimientoId) return s.establecimientoId === selectedEstId;
+        // Legacy sector without ID
+        return establecimientos.length > 0 && selectedEstId === establecimientos[0].id;
+    });
 
     const handleSave = () => {
         setSaveStatus("idle");
@@ -44,11 +67,13 @@ export default function SectoresPCI({ company }: { company: any }) {
     };
 
     const addSector = () => {
+        if (!selectedEstId) return alert("Por favor, crea un Establecimiento en la pestaña de Generalidades primero.");
         setSectors(prev => [
             ...prev, 
             { 
                 id: Math.random().toString(36).substr(2, 9), 
-                name: `Sector ${prev.length + 1}`, 
+                establecimientoId: selectedEstId,
+                name: `Sector ${filteredSectors.length + 1}`, 
                 subsectors: [] 
             }
         ]);
@@ -132,12 +157,6 @@ export default function SectoresPCI({ company }: { company: any }) {
                         </span>
                     )}
                     <button
-                        onClick={addSector}
-                        className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
-                    >
-                        <Plus className="w-4 h-4" /> Agregar Sector
-                    </button>
-                    <button
                         onClick={handleSave}
                         disabled={isPending}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all active:scale-95 disabled:opacity-50"
@@ -147,10 +166,38 @@ export default function SectoresPCI({ company }: { company: any }) {
                 </div>
             </div>
 
-            {sectors.length === 0 ? (
+            {/* Selector de establecimientos */}
+            <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <Building2 className="w-5 h-5 text-slate-400" />
+                <select 
+                    value={selectedEstId}
+                    onChange={(e) => setSelectedEstId(e.target.value)}
+                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                >
+                    {establecimientos.length === 0 && <option value="" disabled>No hay establecimientos (Ve a Generalidades)</option>}
+                    {establecimientos.map(est => (
+                        <option key={est.id} value={est.id}>{est.nombre}</option>
+                    ))}
+                </select>
+                <button
+                    onClick={addSector}
+                    disabled={!selectedEstId}
+                    className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                >
+                    <Plus className="w-4 h-4" /> Agregar Sector
+                </button>
+            </div>
+
+            {!selectedEstId ? (
+                <div className="bg-slate-50 p-12 text-center rounded-3xl border border-slate-200 border-dashed">
+                    <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-slate-600 font-bold text-lg mb-2">Selecciona un Establecimiento</h3>
+                    <p className="text-slate-500">Crea o selecciona un establecimiento arriba para gestionar sus sectores de incendio.</p>
+                </div>
+            ) : filteredSectors.length === 0 ? (
                 <div className="bg-slate-50 border border-slate-200 border-dashed rounded-3xl p-12 text-center">
                     <Columns4 className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-bold text-slate-600 mb-2">No hay sectores de incendio configurados</h3>
+                    <h3 className="text-lg font-bold text-slate-600 mb-2">No hay sectores de incendio en este establecimiento</h3>
                     <p className="text-slate-500 max-w-md mx-auto mb-6">Comienza creando el primer sector de incendio para luego ir dividiéndolo en sub-sectores y asignar sus áreas correspondientes.</p>
                     <button
                         onClick={addSector}
@@ -161,7 +208,7 @@ export default function SectoresPCI({ company }: { company: any }) {
                 </div>
             ) : (
                 <div className="space-y-12">
-                    {sectors.map((sector, index) => {
+                    {filteredSectors.map((sector, index) => {
                         // Calculate totals for the sector
                         const totalBruta = sector.subsectors.reduce((sum, sub) => sum + sub.areaBruta, 0);
                         const totalCirculaciones = sector.subsectors.reduce((sum, sub) => sum + sub.circulaciones, 0);
@@ -171,14 +218,17 @@ export default function SectoresPCI({ company }: { company: any }) {
                         return (
                             <div key={sector.id} className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
                                 <div className="bg-[#1b5e3a] p-4 flex justify-between items-center text-white">
-                                    <div className="flex items-center gap-3">
-                                        <h3 className="text-xl font-bold">
+                                    <div className="flex items-center gap-3 group/title">
+                                        <h3 className="text-xl font-bold flex items-center">
                                             <input 
                                                 type="text" 
                                                 value={sector.name} 
                                                 onChange={(e) => renameSector(sector.id, e.target.value)}
                                                 className="bg-transparent border-b border-transparent hover:border-white/50 focus:border-white focus:outline-none transition-colors px-1 w-64"
+                                                placeholder="Nombre del Sector"
+                                                title="Haz clic para renombrar el sector"
                                             />
+                                            <Edit2 className="w-4 h-4 opacity-0 group-hover/title:opacity-100 transition-opacity ml-2 text-white/70" />
                                         </h3>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -239,7 +289,7 @@ export default function SectoresPCI({ company }: { company: any }) {
                                                             <input 
                                                                 type="number" 
                                                                 step="0.01"
-                                                                value={sub.areaBruta || ''} 
+                                                                value={sub.areaBruta === 0 ? '' : sub.areaBruta} 
                                                                 onChange={(e) => updateSubsector(sector.id, sub.id, 'areaBruta', e.target.value)}
                                                                 className="w-full p-3 text-right bg-transparent focus:bg-white focus:ring-1 focus:ring-indigo-500 text-sm font-mono outline-none"
                                                             />
@@ -248,7 +298,7 @@ export default function SectoresPCI({ company }: { company: any }) {
                                                             <input 
                                                                 type="number" 
                                                                 step="0.01"
-                                                                value={sub.circulaciones || ''} 
+                                                                value={sub.circulaciones === 0 ? '' : sub.circulaciones} 
                                                                 onChange={(e) => updateSubsector(sector.id, sub.id, 'circulaciones', e.target.value)}
                                                                 className="w-full p-3 text-right bg-transparent focus:bg-white focus:ring-1 focus:ring-indigo-500 text-sm font-mono outline-none"
                                                             />
@@ -257,7 +307,7 @@ export default function SectoresPCI({ company }: { company: any }) {
                                                             <input 
                                                                 type="number" 
                                                                 step="0.01"
-                                                                value={sub.usoComun || ''} 
+                                                                value={sub.usoComun === 0 ? '' : sub.usoComun} 
                                                                 onChange={(e) => updateSubsector(sector.id, sub.id, 'usoComun', e.target.value)}
                                                                 className="w-full p-3 text-right bg-transparent focus:bg-white focus:ring-1 focus:ring-indigo-500 text-sm font-mono outline-none"
                                                             />

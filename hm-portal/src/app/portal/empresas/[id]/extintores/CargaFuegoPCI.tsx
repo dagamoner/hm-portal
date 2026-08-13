@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition } from "react";
 import { updateCompanyPciSectors } from "@/app/actions/companies";
-import { Save, CheckCircle2, AlertCircle, ShieldAlert, Plus, Trash2 } from "lucide-react";
+import { Save, CheckCircle2, AlertCircle, ShieldAlert, Plus, Trash2, Building2 } from "lucide-react";
 
 type Subsector = {
     id: string;
@@ -22,6 +22,7 @@ type MaterialCarga = {
 
 type Sector = {
     id: string;
+    establecimientoId?: string;
     name: string;
     uso?: string;
     tipoMateriales?: string;
@@ -84,12 +85,32 @@ export default function CargaFuegoPCI({ company }: { company: any }) {
     const [isPending, startTransition] = useTransition();
     const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
     
+    // Parse establecimientos from pciGeneralities
+    const rawGen = company.pciGeneralities ? (typeof company.pciGeneralities === 'string' ? JSON.parse(company.pciGeneralities) : company.pciGeneralities) : null;
+    let establecimientos: any[] = [];
+    if (rawGen) {
+        if (Array.isArray(rawGen)) {
+            establecimientos = rawGen;
+        } else {
+            establecimientos = [{ id: "default", nombre: "Establecimiento Principal" }];
+        }
+    }
+
+    const [selectedEstId, setSelectedEstId] = useState<string>(establecimientos[0]?.id || "");
+
     // Initialize sectors from DB
     const initialSectors: Sector[] = company.pciSectors 
         ? (typeof company.pciSectors === 'string' ? JSON.parse(company.pciSectors) : company.pciSectors) 
         : [];
     
     const [sectors, setSectors] = useState<Sector[]>(initialSectors);
+
+    // Filter sectors by the selected establecimiento
+    const filteredSectors = sectors.filter(s => {
+        if (s.establecimientoId) return s.establecimientoId === selectedEstId;
+        // Legacy sector without ID
+        return establecimientos.length > 0 && selectedEstId === establecimientos[0].id;
+    });
 
     const handleSave = () => {
         setSaveStatus("idle");
@@ -198,15 +219,35 @@ export default function CargaFuegoPCI({ company }: { company: any }) {
                 ))}
             </datalist>
 
-            {sectors.length === 0 ? (
+            <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <Building2 className="w-5 h-5 text-slate-400" />
+                <select 
+                    value={selectedEstId}
+                    onChange={(e) => setSelectedEstId(e.target.value)}
+                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                >
+                    {establecimientos.length === 0 && <option value="" disabled>No hay establecimientos (Ve a Generalidades)</option>}
+                    {establecimientos.map(est => (
+                        <option key={est.id} value={est.id}>{est.nombre}</option>
+                    ))}
+                </select>
+            </div>
+
+            {!selectedEstId ? (
+                <div className="bg-slate-50 p-12 text-center rounded-3xl border border-slate-200 border-dashed">
+                    <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-slate-600 font-bold text-lg mb-2">Selecciona un Establecimiento</h3>
+                    <p className="text-slate-500">Crea o selecciona un establecimiento arriba para gestionar la carga de fuego de sus sectores.</p>
+                </div>
+            ) : filteredSectors.length === 0 ? (
                 <div className="bg-slate-50 border border-slate-200 border-dashed rounded-3xl p-12 text-center">
                     <ShieldAlert className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-bold text-slate-600 mb-2">No hay sectores creados</h3>
-                    <p className="text-slate-500 max-w-md mx-auto mb-6">Ve a la pestaña "Sectores de Incendio" para crear los sectores.</p>
+                    <h3 className="text-lg font-bold text-slate-600 mb-2">No hay sectores configurados en este establecimiento</h3>
+                    <p className="text-slate-500 max-w-md mx-auto mb-6">Debes crear los sectores de incendio en la pestaña "Sectores de Incendio" antes de poder calcular su carga de fuego.</p>
                 </div>
             ) : (
                 <div className="space-y-8">
-                    {sectors.map(sector => {
+                    {filteredSectors.map(sector => {
                         const totalSuperficie = getSectorTotalSuperficie(sector);
                         const materiales = sector.materialesCargaFuego || [];
                         
