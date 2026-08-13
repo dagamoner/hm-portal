@@ -8,13 +8,14 @@ import GeneralidadesPCI from "./GeneralidadesPCI";
 import SectoresPCI from "./SectoresPCI";
 import TiposRiesgoPCI from "./TiposRiesgoPCI";
 import CargaFuegoPCI from "./CargaFuegoPCI";
+import ResistenciaFuegoPCI from "./ResistenciaFuegoPCI";
 
 export default function ExtintoresClient({ company, extintores }: { company: any, extintores: any[] }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
     const [selectedExtintor, setSelectedExtintor] = useState<any>(null);
     const [filter, setFilter] = useState("TODOS");
-    const [activeTab, setActiveTab] = useState<"generalidades" | "sectores" | "riesgos" | "carga" | "extintores">("generalidades");
+    const [activeTab, setActiveTab] = useState<"generalidades" | "sectores" | "riesgos" | "carga" | "resistencia" | "extintores">("generalidades");
 
     const today = new Date();
     const thirtyDays = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
@@ -105,6 +106,17 @@ export default function ExtintoresClient({ company, extintores }: { company: any
                     Carga de Fuego
                 </button>
                 <button
+                    onClick={() => setActiveTab('resistencia')}
+                    className={`flex items-center gap-2 pb-3 px-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
+                        activeTab === 'resistencia' 
+                            ? 'border-amber-600 text-amber-600' 
+                            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                    }`}
+                >
+                    <ShieldCheck className="w-4 h-4" />
+                    Resistencia al Fuego
+                </button>
+                <button
                     onClick={() => setActiveTab('extintores')}
                     className={`flex items-center gap-2 pb-3 px-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
                         activeTab === 'extintores' 
@@ -131,6 +143,10 @@ export default function ExtintoresClient({ company, extintores }: { company: any
 
             {activeTab === 'carga' && (
                 <CargaFuegoPCI company={company} />
+            )}
+
+            {activeTab === 'resistencia' && (
+                <ResistenciaFuegoPCI company={company} />
             )}
 
             {activeTab === 'extintores' && (
