@@ -20,6 +20,8 @@ type Sector = {
     name: string;
     uso?: string;
     subsectors: Subsector[];
+    edificioExistente?: boolean;
+    anchoRealEscape?: string;
 };
 
 const TIPOS_USO_ESCAPE = [
@@ -78,6 +80,10 @@ export default function MediosEscapePCI({ company }: { company: any }) {
         });
     };
 
+    const updateSectorField = (sectorId: string, field: string, value: any) => {
+        setSectors(prev => prev.map(s => s.id === sectorId ? { ...s, [field]: value } : s));
+    };
+
     const updateSubsectorEscape = (sectorId: string, subsectorId: string, tipo: string) => {
         setSectors(prev => prev.map(s => {
             if (s.id === sectorId) {
@@ -98,13 +104,23 @@ export default function MediosEscapePCI({ company }: { company: any }) {
         return Math.round(n / 4) + 1;
     };
 
+    const calcularMetrosUAS = (nUas: number, esExistente: boolean) => {
+        if (nUas <= 0) return 0;
+        if (nUas <= 2) {
+            return esExistente ? 0.96 : 1.10;
+        }
+        const base = esExistente ? 0.96 : 1.10;
+        const extra = (nUas - 2) * 0.45;
+        return base + extra;
+    };
+
     return (
         <div className="space-y-8 animate-fade-in pb-12 max-w-[95vw] lg:max-w-[85vw] mx-auto overflow-x-hidden">
             
             <div className="flex justify-between items-center bg-white p-6 rounded-3xl border border-slate-200 shadow-sm sticky top-4 z-20">
                 <div>
-                    <h2 className="text-xl font-bold text-slate-800">Cálculo de Medios de Escape</h2>
-                    <p className="text-sm text-slate-500">Determinación de u.a.s. y medios de escape según Dec. 351/79.</p>
+                    <h2 className="text-xl font-bold text-slate-800">Medios de Escape</h2>
+                    <p className="text-sm text-slate-500">Determinación de u.a.s. y verificación de escape según Dec. 351/79.</p>
                 </div>
                 <div className="flex items-center gap-4">
                     {saveStatus === "success" && (
@@ -154,86 +170,61 @@ export default function MediosEscapePCI({ company }: { company: any }) {
                     <p className="text-slate-500 max-w-md mx-auto mb-6">Debes crear los sectores de incendio en la pestaña "Sectores de Incendio".</p>
                 </div>
             ) : (
-                <div className="bg-white rounded-xl border border-green-700 shadow-sm overflow-hidden">
-                    <div className="overflow-x-auto w-full custom-scrollbar">
-                        <table className="w-full text-center border-collapse text-sm">
-                            <thead>
-                                <tr className="bg-[#43a047] text-white">
-                                    <th className="p-3 border border-[#2e7d32] font-semibold w-24">Sector de<br/>Incendio</th>
-                                    <th className="p-3 border border-[#2e7d32] font-semibold text-left">Uso</th>
-                                    <th className="p-3 border border-[#2e7d32] font-semibold w-20">Tipo<br/>de Uso</th>
-                                    <th className="p-3 border border-[#2e7d32] font-semibold w-24">X<br/>[m²/pers]</th>
-                                    <th className="p-3 border border-[#2e7d32] font-semibold w-28">Sup. De<br/>piso del<br/>sector (m²)</th>
-                                    <th className="p-3 border border-[#2e7d32] font-semibold w-24">Nº de<br/>personas a<br/>evacuar</th>
-                                    <th className="p-3 border border-[#2e7d32] font-semibold w-20">"n"<br/>u.a.s.</th>
-                                    <th className="p-3 border border-[#2e7d32] font-semibold w-28">Nº medios<br/>de escape<br/>y/o escalera<br/>mínimo</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white">
-                                {filteredSectors.map((sector, index) => {
-                                    // Total for Sector
-                                    let sTotal = 0;
-                                    let nTotalPersonas = 0;
-                                    
-                                    // Pre-calculate subsectors to get sector totals
-                                    const subsectorsData = sector.subsectors.map(sub => {
-                                        const tipoObj = TIPOS_USO_ESCAPE.find(t => t.id === sub.tipoUsoEscape);
-                                        const xVal = tipoObj ? tipoObj.x : 0;
-                                        const sup = Number(sub.areaBruta) || 0;
-                                        const nPersonas = xVal > 0 ? Math.round(sup / xVal) : 0;
-                                        const nUas = nPersonas / 100;
-                                        const medios = calcularMediosDeEscape(nUas);
+                <div className="space-y-8">
+                    {filteredSectors.map((sector, index) => {
+                        let sTotal = 0;
+                        let nTotalPersonas = 0;
+                        
+                        const subsectorsData = sector.subsectors.map(sub => {
+                            const tipoObj = TIPOS_USO_ESCAPE.find(t => t.id === sub.tipoUsoEscape);
+                            const xVal = tipoObj ? tipoObj.x : 0;
+                            const sup = Number(sub.areaBruta) || 0;
+                            const nPersonas = xVal > 0 ? Math.round(sup / xVal) : 0;
+                            const nUas = nPersonas / 100;
+                            const medios = calcularMediosDeEscape(nUas);
 
-                                        sTotal += sup;
-                                        nTotalPersonas += nPersonas;
+                            sTotal += sup;
+                            nTotalPersonas += nPersonas;
 
-                                        return {
-                                            ...sub,
-                                            xVal,
-                                            sup,
-                                            nPersonas,
-                                            nUas,
-                                            medios
-                                        };
-                                    });
+                            return {
+                                ...sub,
+                                xVal,
+                                sup,
+                                nPersonas,
+                                nUas,
+                                medios
+                            };
+                        });
 
-                                    const nUasTotal = nTotalPersonas / 100;
-                                    const mediosTotal = calcularMediosDeEscape(nUasTotal);
+                        const nUasTotal = nTotalPersonas / 100;
+                        const esExistente = sector.edificioExistente || false;
+                        const metrosRequeridos = calcularMetrosUAS(Math.ceil(nUasTotal), esExistente);
+                        const anchoReal = Number(sector.anchoRealEscape) || 0;
+                        const cumpleEscape = anchoReal >= metrosRequeridos && anchoReal > 0;
 
-                                    return (
-                                        <React.Fragment key={sector.id}>
-                                            {/* Sector Total Row */}
-                                            <tr className="bg-[#81c784] font-bold text-slate-900 border-b-2 border-[#43a047]">
-                                                <td className="p-2 border border-[#43a047] text-white bg-[#4caf50]">
-                                                    {sector.name || index + 1}
-                                                </td>
-                                                <td className="p-2 border border-[#43a047] text-left text-white bg-[#4caf50]">
-                                                    {sector.uso || "Edificio"}
-                                                </td>
-                                                <td className="p-2 border border-[#43a047] bg-[#4caf50]"></td>
-                                                <td className="p-2 border border-[#43a047] bg-[#4caf50]"></td>
-                                                <td className="p-2 border border-[#43a047] bg-white">
-                                                    {sTotal.toLocaleString('es-AR', {maximumFractionDigits: 2})}
-                                                </td>
-                                                <td className="p-2 border border-[#43a047] bg-white">
-                                                    {nTotalPersonas}
-                                                </td>
-                                                <td className="p-2 border border-[#43a047] bg-white">
-                                                    {nUasTotal.toLocaleString('es-AR', {minimumFractionDigits: 1, maximumFractionDigits: 1})}
-                                                </td>
-                                                <td className="p-2 border border-[#43a047] bg-white">
-                                                    {mediosTotal}
-                                                </td>
+                        return (
+                            <div key={sector.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                                <div className="bg-slate-100 p-4 border-b border-slate-200">
+                                    <h3 className="text-lg font-bold text-slate-800">Sector {index + 1}: {sector.name}</h3>
+                                </div>
+                                
+                                <div className="overflow-x-auto custom-scrollbar">
+                                    <table className="w-full text-center border-collapse text-sm">
+                                        <thead>
+                                            <tr className="bg-[#43a047] text-white">
+                                                <th className="p-3 border border-[#2e7d32] font-semibold text-left">Subsector</th>
+                                                <th className="p-3 border border-[#2e7d32] font-semibold w-32">Tipo de Uso</th>
+                                                <th className="p-3 border border-[#2e7d32] font-semibold w-24">X [m²/pers]</th>
+                                                <th className="p-3 border border-[#2e7d32] font-semibold w-28">Sup. piso (m²)</th>
+                                                <th className="p-3 border border-[#2e7d32] font-semibold w-24">Nº pers. a evacuar</th>
+                                                <th className="p-3 border border-[#2e7d32] font-semibold w-20">"n" u.a.s.</th>
                                             </tr>
-                                            
-                                            {/* Subsectors Rows */}
+                                        </thead>
+                                        <tbody className="bg-white">
                                             {subsectorsData.map((sub, sIndex) => (
                                                 <tr key={sub.id} className="hover:bg-slate-50 transition-colors">
-                                                    <td className="p-2 border border-slate-300 font-medium text-slate-500">
-                                                        {sector.name || index + 1}.{String(sIndex + 1).padStart(2, '0')}
-                                                    </td>
                                                     <td className="p-2 border border-slate-300 text-left text-slate-700">
-                                                        {sub.nombre || "Subsector"}
+                                                        {index + 1}.{sIndex + 1} - {sub.nombre || "Subsector"}
                                                     </td>
                                                     <td className="p-1 border border-slate-300">
                                                         <select
@@ -259,38 +250,66 @@ export default function MediosEscapePCI({ company }: { company: any }) {
                                                     <td className="p-2 border border-slate-300">
                                                         {sub.xVal > 0 ? sub.nUas.toLocaleString('es-AR', {minimumFractionDigits: 1, maximumFractionDigits: 1}) : "-"}
                                                     </td>
-                                                    <td className="p-2 border border-slate-300">
-                                                        {sub.xVal > 0 ? sub.medios : "-"}
-                                                    </td>
                                                 </tr>
                                             ))}
-                                        </React.Fragment>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div className="p-6 bg-slate-50 border-t border-slate-200">
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
+                                        <div>
+                                            <div className="text-xs font-bold text-slate-500 uppercase mb-1">U.A.S. Calculadas</div>
+                                            <div className="text-3xl font-black text-slate-800">{nUasTotal.toLocaleString('es-AR', {minimumFractionDigits:1, maximumFractionDigits:1})}</div>
+                                        </div>
+                                        
+                                        <div>
+                                            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 bg-white px-4 py-3 rounded-lg border border-slate-200 shadow-sm cursor-pointer w-max">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={sector.edificioExistente || false}
+                                                    onChange={(e) => updateSectorField(sector.id, 'edificioExistente', e.target.checked)}
+                                                    className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                                />
+                                                Edificio Existente
+                                            </label>
+                                        </div>
 
-                    <div className="p-4 bg-slate-50 border-t border-slate-200">
-                        <h4 className="font-bold text-slate-700 text-sm mb-2">Ancho Mínimo Permitido de U.A.S. (Dec. 351/79)</h4>
-                        <div className="grid grid-cols-3 gap-4 max-w-lg text-xs">
-                            <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center">
-                                <div className="font-bold text-slate-500 mb-1">2 unidades</div>
-                                <div className="font-mono">1,10m (Nuevos)</div>
-                                <div className="font-mono text-slate-400">0,96m (Exist.)</div>
+                                        <div>
+                                            <div className="text-xs font-bold text-slate-500 uppercase mb-1">Ancho Requerido (m)</div>
+                                            <div className="text-3xl font-black text-indigo-600">{metrosRequeridos.toFixed(2)}</div>
+                                        </div>
+                                        
+                                        <div>
+                                            <div className="text-xs font-bold text-slate-500 uppercase mb-1">Ancho Real (m)</div>
+                                            <input 
+                                                type="number" 
+                                                value={sector.anchoRealEscape || ''}
+                                                onChange={(e) => updateSectorField(sector.id, 'anchoRealEscape', e.target.value)}
+                                                placeholder="Ej: 7.50"
+                                                className="w-full text-2xl font-black text-slate-800 bg-white border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none shadow-inner"
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="mt-6 bg-white p-5 rounded-xl text-sm text-slate-700 leading-relaxed border border-slate-200 shadow-sm">
+                                        <div className="flex items-center gap-4 mb-3 pb-3 border-b border-slate-100">
+                                            <span className="font-bold text-slate-500">Evaluación del Sector:</span>
+                                            <span className={`px-4 py-1.5 rounded-full font-black text-sm border-2 ${anchoReal > 0 ? (cumpleEscape ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-red-50 border-red-500 text-red-700') : 'bg-slate-100 border-slate-300 text-slate-400'}`}>
+                                                {anchoReal > 0 ? (cumpleEscape ? 'CUMPLE' : 'NO CUMPLE') : 'INGRESAR ANCHO REAL'}
+                                            </span>
+                                        </div>
+                                        <p className="text-base">
+                                            "Para el Sector de Incendio {index + 1}, necesitaremos medios de escape que, en total, sea de <strong>{metrosRequeridos.toFixed(2)} m</strong>, medios de escape de <strong>{Math.ceil(nUasTotal)} u.a.s.</strong> <strong className={cumpleEscape ? 'text-emerald-600' : 'text-red-600'}>{anchoReal > 0 ? (cumpleEscape ? 'CUMPLE' : 'NO CUMPLE') : '---'}</strong>."
+                                        </p>
+                                        <p className="mt-3 text-slate-500">
+                                            "Todas las puertas consideradas como salidas de emergencia (PE o EXIT), deben estar construidas con materiales incombustibles, deben estar dispuestas de forma tal que el sentido de apertura sea hacia el exterior (Dirección de evacuación), y que no interfieran con vías de escape al ser abiertas. Además, las salidas de emergencia deben estar equipadas con un dispositivo de apertura tipo barra antipánico (En caso de contar con cerradura o traba), deben estar visiblemente señalizadas e iluminadas por luces de emergencia (o cartelería de salida con iluminación permanente)."
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center">
-                                <div className="font-bold text-slate-500 mb-1">3 unidades</div>
-                                <div className="font-mono">1,55m (Nuevos)</div>
-                                <div className="font-mono text-slate-400">1,45m (Exist.)</div>
-                            </div>
-                            <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center">
-                                <div className="font-bold text-slate-500 mb-1">4 unidades</div>
-                                <div className="font-mono">2,00m (Nuevos)</div>
-                                <div className="font-mono text-slate-400">1,85m (Exist.)</div>
-                            </div>
-                        </div>
-                    </div>
+                        );
+                    })}
                 </div>
             )}
         </div>
