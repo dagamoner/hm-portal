@@ -1,0 +1,356 @@
+"use client";
+
+import React, { useState, useTransition } from "react";
+import { updateCompanyPciSectors } from "@/app/actions/companies";
+import { Save, CheckCircle2, AlertCircle, ShieldAlert, Building2, Flame } from "lucide-react";
+
+type Subsector = {
+    id: string;
+    nombre: string;
+    uso: string;
+    areaBruta: number;
+    circulaciones: number;
+    usoComun: number;
+};
+
+type MaterialCarga = {
+    id: string;
+    nombre: string;
+    pqUnitario: number | "";
+    cantidadKg: number | "";
+};
+
+type Sector = {
+    id: string;
+    establecimientoId?: string;
+    name: string;
+    uso?: string;
+    tipoMateriales?: string;
+    tipoActividad?: string;
+    liquidosMayoresA1m2?: boolean;
+    subsectors: Subsector[];
+    materialesCargaFuego?: MaterialCarga[];
+};
+
+const MATERIALES = [
+    "Riesgo 1 (Explosivo)",
+    "Riesgo 2 (Inflamable)",
+    "Riesgo 3 (Muy Combustible)",
+    "Riesgo 4 (Combustible)",
+    "Riesgo 5 (Poco Combustible)",
+    "Riesgo 6 (Incombustible)",
+    "Riesgo 7 (Refractarios)"
+];
+
+const calcularRiesgo = (actividad: string, material: string) => {
+    if (!actividad || !material) return "-";
+    
+    const matIndex = MATERIALES.indexOf(material);
+    const r = `R${matIndex + 1}`;
+    
+    if (actividad === "Residencial" || actividad === "Administrativo" || actividad === "Espectáculos" || actividad === "Cultura") {
+        if (matIndex === 0 || matIndex === 1) return "NP";
+        if (matIndex === 2) return "R3";
+        if (matIndex === 3) return "R4";
+        return "-";
+    }
+    
+    if (actividad === "Comercial" || actividad === "Industrial" || actividad === "Depósito") {
+        return r;
+    }
+    
+    return "-";
+};
+
+const determinarPotencialA = (qf: number, riesgo: string) => {
+    if (riesgo === "NP" || riesgo === "-") return "-";
+    const rNum = parseInt(riesgo.replace("R", ""));
+    if (isNaN(rNum) || rNum < 1 || rNum > 5) return "-";
+    
+    let qfRow = -1;
+    if (qf <= 15) qfRow = 0;
+    else if (qf <= 30) qfRow = 1;
+    else if (qf <= 60) qfRow = 2;
+    else if (qf <= 100) qfRow = 3;
+    else qfRow = 4;
+
+    const tabla1 = [
+        ["-", "-", "1 A", "1 A", "1 A"],
+        ["-", "-", "2 A", "1 A", "1 A"],
+        ["-", "-", "3 A", "2 A", "1 A"],
+        ["-", "-", "6 A", "4 A", "3 A"],
+        ["A determinar en cada caso", "A determinar en cada caso", "A determinar en cada caso", "A determinar en cada caso", "A determinar en cada caso"]
+    ];
+
+    if (qfRow === 4) return "A determinar";
+    return tabla1[qfRow][rNum - 1];
+};
+
+const determinarPotencialB = (qf: number, riesgo: string, liquidosMayoresA1m2: boolean) => {
+    if (riesgo === "NP" || riesgo === "-") return "-";
+    if (liquidosMayoresA1m2) return "A determinar";
+
+    const rNum = parseInt(riesgo.replace("R", ""));
+    if (isNaN(rNum) || rNum < 1 || rNum > 5) return "-";
+    
+    let qfRow = -1;
+    if (qf <= 15) qfRow = 0;
+    else if (qf <= 30) qfRow = 1;
+    else if (qf <= 60) qfRow = 2;
+    else if (qf <= 100) qfRow = 3;
+    else qfRow = 4;
+
+    const tabla2 = [
+        ["-", "6 B", "4 B", "-", "-"],
+        ["-", "8 B", "6 B", "-", "-"],
+        ["-", "10 B", "8 B", "-", "-"],
+        ["-", "20 B", "10 B", "-", "-"],
+        ["A determinar en cada caso", "A determinar en cada caso", "A determinar en cada caso", "A determinar en cada caso", "A determinar en cada caso"]
+    ];
+
+    if (qfRow === 4) return "A determinar";
+    return tabla2[qfRow][rNum - 1];
+};
+
+const determinarResistencia = (qf: number, riesgo: string, ventilacion: string) => {
+    if (riesgo === "NP" || riesgo === "-") return "-";
+    
+    const rNum = parseInt(riesgo.replace("R", ""));
+    if (isNaN(rNum) || rNum < 1 || rNum > 5) return "-";
+
+    let qfRow = -1;
+    if (qf <= 15) qfRow = 0;
+    else if (qf <= 30) qfRow = 1;
+    else if (qf <= 60) qfRow = 2;
+    else if (qf <= 100) qfRow = 3;
+    else qfRow = 4;
+
+    const cuadroNatural = [
+        ["-", "F 60", "F 30", "F 30", "-"],
+        ["-", "F 90", "F 60", "F 30", "F 30"],
+        ["-", "F 120", "F 90", "F 60", "F 30"],
+        ["-", "F 180", "F 120", "F 90", "F 60"],
+        ["-", "F 180", "F 180", "F 120", "F 90"]
+    ];
+
+    const cuadroForzada = [
+        ["-", "NP", "F 60", "F 60", "F 30"],
+        ["-", "NP", "F 90", "F 60", "F 60"],
+        ["-", "NP", "F 120", "F 90", "F 60"],
+        ["-", "NP", "F 180", "F 120", "F 90"],
+        ["-", "NP", "NP", "F 180", "F 120"]
+    ];
+
+    const matrix = ventilacion === "Forzada" ? cuadroForzada : cuadroNatural;
+    
+    return matrix[qfRow][rNum - 1];
+};
+
+export default function PotencialExtintorPCI({ company }: { company: any }) {
+    const [isPending, startTransition] = useTransition();
+    const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
+    
+    const rawGen = company.pciGeneralities ? (typeof company.pciGeneralities === 'string' ? JSON.parse(company.pciGeneralities) : company.pciGeneralities) : null;
+    let establecimientos: any[] = [];
+    if (rawGen) {
+        if (Array.isArray(rawGen)) {
+            establecimientos = rawGen;
+        } else {
+            establecimientos = [{ id: "default", nombre: "Establecimiento Principal" }];
+        }
+    }
+
+    const [selectedEstId, setSelectedEstId] = useState<string>(establecimientos[0]?.id || "");
+
+    const initialSectors: Sector[] = company.pciSectors 
+        ? (typeof company.pciSectors === 'string' ? JSON.parse(company.pciSectors) : company.pciSectors) 
+        : [];
+    
+    const [sectors, setSectors] = useState<Sector[]>(initialSectors);
+
+    const filteredSectors = sectors.filter(s => {
+        if (s.establecimientoId) return s.establecimientoId === selectedEstId;
+        return establecimientos.length > 0 && selectedEstId === establecimientos[0].id;
+    });
+
+    const handleSave = () => {
+        setSaveStatus("idle");
+        startTransition(async () => {
+            const result = await updateCompanyPciSectors(company.id, sectors);
+            if (result.success) {
+                setSaveStatus("success");
+                setTimeout(() => setSaveStatus("idle"), 3000);
+            } else {
+                setSaveStatus("error");
+            }
+        });
+    };
+
+    const updateSector = (sectorId: string, field: keyof Sector, value: any) => {
+        setSectors(prev => prev.map(s => {
+            if (s.id === sectorId) {
+                return { ...s, [field]: value };
+            }
+            return s;
+        }));
+    };
+
+    const getSectorTotalSuperficie = (sector: Sector) => {
+        return sector.subsectors.reduce((acc, sub) => {
+            const bruta = Number(sub.areaBruta) || 0;
+            const circ = Number(sub.circulaciones) || 0;
+            const comun = Number(sub.usoComun) || 0;
+            return acc + (bruta - circ - comun);
+        }, 0);
+    };
+
+    return (
+        <div className="space-y-8 animate-fade-in pb-12 max-w-[95vw] lg:max-w-[85vw] mx-auto overflow-x-hidden">
+            
+            <div className="flex justify-between items-center bg-white p-6 rounded-3xl border border-slate-200 shadow-sm sticky top-4 z-20">
+                <div>
+                    <h2 className="text-xl font-bold text-slate-800">Resumen: Resistencia y Potencial Extintor</h2>
+                    <p className="text-sm text-slate-500">Requerimientos de resistencia al fuego y potencial extintor por sector de incendio.</p>
+                </div>
+                <div className="flex items-center gap-4">
+                    {saveStatus === "success" && (
+                        <span className="flex items-center gap-2 text-emerald-600 font-bold text-sm bg-emerald-50 px-3 py-1.5 rounded-lg">
+                            <CheckCircle2 className="w-4 h-4" /> Guardado exitosamente
+                        </span>
+                    )}
+                    {saveStatus === "error" && (
+                        <span className="flex items-center gap-2 text-red-600 font-bold text-sm bg-red-50 px-3 py-1.5 rounded-lg">
+                            <AlertCircle className="w-4 h-4" /> Error al guardar
+                        </span>
+                    )}
+                    <button
+                        onClick={handleSave}
+                        disabled={isPending}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all active:scale-95 disabled:opacity-50"
+                    >
+                        {isPending ? "Guardando..." : <><Save className="w-4 h-4" /> Guardar Cambios</>}
+                    </button>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <Building2 className="w-5 h-5 text-slate-400" />
+                <select 
+                    value={selectedEstId}
+                    onChange={(e) => setSelectedEstId(e.target.value)}
+                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                >
+                    {establecimientos.length === 0 && <option value="" disabled>No hay establecimientos</option>}
+                    {establecimientos.map(est => (
+                        <option key={est.id} value={est.id}>{est.nombre}</option>
+                    ))}
+                </select>
+            </div>
+
+            {!selectedEstId ? (
+                <div className="bg-slate-50 p-12 text-center rounded-3xl border border-slate-200 border-dashed">
+                    <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-slate-600 font-bold text-lg mb-2">Selecciona un Establecimiento</h3>
+                    <p className="text-slate-500">Crea o selecciona un establecimiento arriba para ver el resumen de sus sectores.</p>
+                </div>
+            ) : filteredSectors.length === 0 ? (
+                <div className="bg-slate-50 border border-slate-200 border-dashed rounded-3xl p-12 text-center">
+                    <ShieldAlert className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-bold text-slate-600 mb-2">No hay sectores configurados en este establecimiento</h3>
+                    <p className="text-slate-500 max-w-md mx-auto mb-6">Debes crear los sectores de incendio en la pestaña "Sectores de Incendio".</p>
+                </div>
+            ) : (
+                <div className="bg-white rounded-xl border border-green-600 shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto w-full custom-scrollbar">
+                        <table className="w-full text-center border-collapse">
+                            <thead>
+                                <tr className="bg-[#4caf50] text-white">
+                                    <th className="p-4 border border-[#388e3c] font-semibold">Sector de<br/>incendio</th>
+                                    <th className="p-4 border border-[#388e3c] font-semibold">Uso</th>
+                                    <th className="p-4 border border-[#388e3c] font-semibold">Riesgo</th>
+                                    <th className="p-4 border border-[#388e3c] font-semibold w-64" colSpan={2}>Resistencia al Fuego</th>
+                                    <th className="p-4 border border-[#388e3c] font-semibold">Carga de Fuego<br/>(kg/m²)</th>
+                                    <th className="p-4 border border-[#388e3c] font-semibold">Potencial<br/>Extintor</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white">
+                                {filteredSectors.map((sector) => {
+                                    const superficieTotal = getSectorTotalSuperficie(sector);
+                                    const materiales = sector.materialesCargaFuego || [];
+                                    let pqTotal = 0;
+                                    materiales.forEach(m => {
+                                        const pq = Number(m.pqUnitario) || 0;
+                                        const kg = Number(m.cantidadKg) || 0;
+                                        pqTotal += (pq * kg);
+                                    });
+                                    const pmTotal = pqTotal / 4400;
+                                    const qf = superficieTotal > 0 ? (pmTotal / superficieTotal) : 0;
+
+                                    const riesgo = calcularRiesgo(sector.tipoActividad || "", sector.tipoMateriales || "");
+                                    const liquidos = sector.liquidosMayoresA1m2 || false;
+
+                                    const res221 = determinarResistencia(qf, riesgo, "Natural");
+                                    const res222 = determinarResistencia(qf, riesgo, "Forzada");
+
+                                    const potA = determinarPotencialA(qf, riesgo);
+                                    const potB = determinarPotencialB(qf, riesgo, liquidos);
+
+                                    return (
+                                        <React.Fragment key={sector.id}>
+                                            <tr>
+                                                <td className="border border-slate-300 p-2 font-medium bg-[#4caf50] text-white" rowSpan={2}>
+                                                    {sector.name || "-"}
+                                                </td>
+                                                <td className="border border-slate-300 p-2" rowSpan={2}>
+                                                    {sector.uso || "-"}
+                                                </td>
+                                                <td className="border border-slate-300 p-2 font-medium" rowSpan={2}>
+                                                    {riesgo}
+                                                </td>
+                                                
+                                                <td className="border border-slate-300 p-2 text-right">
+                                                    cuadro 2.2.1.
+                                                </td>
+                                                <td className="border border-slate-300 p-2 font-medium">
+                                                    {res221}
+                                                </td>
+                                                
+                                                <td className="border border-slate-300 p-2 font-medium" rowSpan={2}>
+                                                    {qf.toLocaleString('es-AR', {maximumFractionDigits: 2})}
+                                                </td>
+                                                <td className="border border-slate-300 p-2 font-medium text-slate-800">
+                                                    {potA}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td className="border border-slate-300 p-2 text-right">
+                                                    cuadro 2.2.2.
+                                                </td>
+                                                <td className="border border-slate-300 p-2 font-medium">
+                                                    {res222}
+                                                </td>
+                                                <td className="border border-slate-300 p-2 font-medium text-slate-800">
+                                                    <div className="flex items-center justify-between gap-2 px-1">
+                                                        <span>{potB}</span>
+                                                        <label className="flex items-center cursor-pointer opacity-40 hover:opacity-100 transition-opacity" title="Líquidos inflamables > 1m²">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked={liquidos}
+                                                                onChange={(e) => updateSector(sector.id, "liquidosMayoresA1m2", e.target.checked)}
+                                                                className="w-3 h-3 text-red-500 rounded-sm border-slate-300 focus:ring-0 cursor-pointer"
+                                                            />
+                                                        </label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </React.Fragment>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
