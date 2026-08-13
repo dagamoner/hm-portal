@@ -10,6 +10,7 @@ export default function ExtintoresClient({ company, extintores }: { company: any
     const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
     const [selectedExtintor, setSelectedExtintor] = useState<any>(null);
     const [filter, setFilter] = useState("TODOS");
+    const [activeTab, setActiveTab] = useState<"extintores">("extintores");
 
     const today = new Date();
     const thirtyDays = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
@@ -44,21 +45,41 @@ export default function ExtintoresClient({ company, extintores }: { company: any
 
     return (
         <div className="space-y-6 animate-fade-in pb-12">
-            <div className="flex justify-between items-end mb-8">
+            <div className="flex justify-between items-end mb-4">
                 <div>
                     <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
                         <Flame className="w-8 h-8 text-red-500" />
                         Protección contra Incendios
                     </h1>
-                    <p className="text-slate-500 mt-2 text-lg">Inventario de extintores y control de vencimientos (Dec. 351/79 Cap. 18)</p>
+                    <p className="text-slate-500 mt-2 text-lg">Gestión integral de prevención y combate de incendios (Dec. 351/79 Cap. 18)</p>
                 </div>
-                <button 
-                    onClick={() => { setSelectedExtintor(null); setIsModalOpen(true); }}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all active:scale-95"
-                >
-                    <Plus className="w-5 h-5" /> Nuevo Extintor
-                </button>
             </div>
+
+            <div className="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto custom-scrollbar">
+                <button
+                    onClick={() => setActiveTab('extintores')}
+                    className={`flex items-center gap-2 pb-3 px-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
+                        activeTab === 'extintores' 
+                            ? 'border-red-600 text-red-600' 
+                            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                    }`}
+                >
+                    <FireExtinguisher className="w-4 h-4" />
+                    Inventario de Extintores
+                </button>
+                {/* Future tabs will go here */}
+            </div>
+
+            {activeTab === 'extintores' && (
+                <div className="space-y-6">
+                    <div className="flex justify-end">
+                        <button 
+                            onClick={() => { setSelectedExtintor(null); setIsModalOpen(true); }}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all active:scale-95"
+                        >
+                            <Plus className="w-5 h-5" /> Nuevo Extintor
+                        </button>
+                    </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
@@ -198,6 +219,8 @@ export default function ExtintoresClient({ company, extintores }: { company: any
                     </table>
                 </div>
             </div>
+            </div>
+            )}
 
             {isModalOpen && <ExtintorModal companyId={company.id} extintor={selectedExtintor} onClose={() => setIsModalOpen(false)} />}
             {isChecklistModalOpen && <ChecklistExtintorModal companyId={company.id} extintor={selectedExtintor} onClose={() => setIsChecklistModalOpen(false)} />}
