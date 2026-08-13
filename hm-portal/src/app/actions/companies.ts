@@ -308,3 +308,20 @@ export async function updateCompanyPciGeneralities(id: string, pciGeneralities: 
     return { error: "Failed to update PCI Generalities." };
   }
 }
+
+export async function updateCompanyPciSectors(id: string, pciSectors: any) {
+  await requireAuth(id, ['ADMIN', 'MANAGER', 'INSPECTOR']); 
+  try {
+    await prisma.company.update({
+      where: { id },
+      data: {
+        pciSectors: pciSectors
+      }
+    });
+    revalidatePath(`/portal/empresas/${id}/extintores`);
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating PCI Sectors:", error);
+    return { error: "Failed to update PCI Sectors." };
+  }
+}

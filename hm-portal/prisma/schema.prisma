@@ -394,6 +394,7 @@ model Company {
   
   // PCI Module
   pciGeneralities      Json?
+  pciSectors           Json? @default("[]")
   
   // Communications
   internalMessages     InternalMessage[]
