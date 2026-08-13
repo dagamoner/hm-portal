@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition } from "react";
 import { updateCompanyPciSectors } from "@/app/actions/companies";
-import { Save, CheckCircle2, AlertCircle, ShieldAlert } from "lucide-react";
+import { Save, CheckCircle2, AlertCircle, ShieldAlert, Trash2 } from "lucide-react";
 
 type Subsector = {
     id: string;
@@ -97,6 +97,12 @@ export default function TiposRiesgoPCI({ company }: { company: any }) {
         }));
     };
 
+    const deleteSector = (sectorId: string) => {
+        if(confirm("¿Estás seguro de que deseas eliminar este sector y todos sus subsectores de forma permanente?")) {
+            setSectors(prev => prev.filter(s => s.id !== sectorId));
+        }
+    };
+
     return (
         <div className="space-y-8 animate-fade-in pb-12 max-w-[95vw] lg:max-w-[85vw] mx-auto overflow-x-hidden">
             
@@ -143,6 +149,7 @@ export default function TiposRiesgoPCI({ company }: { company: any }) {
                                     <th className="p-4 text-sm font-bold border-r border-[#154a2e]">Tipo de materiales predominantes en el sector</th>
                                     <th className="p-4 text-sm font-bold border-r border-[#154a2e] w-48">Tipo de actividad predominante en el sector</th>
                                     <th className="p-4 text-sm font-bold text-center w-32">Riesgo del sector</th>
+                                    <th className="w-12 border-l border-[#154a2e]"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -151,11 +158,15 @@ export default function TiposRiesgoPCI({ company }: { company: any }) {
                                     const isNP = riesgoCalculado === "NP";
 
                                     return (
-                                        <tr key={sector.id} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
+                                        <tr key={sector.id} className="border-b border-slate-200 hover:bg-slate-50 transition-colors group">
                                             <td className="p-0 border-r border-slate-200">
-                                                <div className="p-4 text-sm font-bold text-slate-800">
-                                                    {sector.name}
-                                                </div>
+                                                <input 
+                                                    type="text" 
+                                                    value={sector.name || ""} 
+                                                    onChange={(e) => updateSector(sector.id, 'name', e.target.value)}
+                                                    className="w-full p-4 bg-transparent focus:bg-white focus:ring-2 focus:ring-inset focus:ring-indigo-500 text-sm font-bold text-slate-800 outline-none"
+                                                    placeholder="Nombre del Sector"
+                                                />
                                             </td>
                                             <td className="p-0 border-r border-slate-200 bg-slate-50/50">
                                                 <input 
@@ -200,6 +211,15 @@ export default function TiposRiesgoPCI({ company }: { company: any }) {
                                                 }`}>
                                                     {riesgoCalculado}
                                                 </span>
+                                            </td>
+                                            <td className="p-2 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button 
+                                                    onClick={() => deleteSector(sector.id)}
+                                                    className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                                                    title="Eliminar Sector"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
                                             </td>
                                         </tr>
                                     );
