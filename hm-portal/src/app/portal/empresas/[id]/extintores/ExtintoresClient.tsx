@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { FireExtinguisher, ShieldAlert, CheckCircle2, ShieldCheck, Plus, Eye, Flame, TriangleAlert, Info, Columns4, AlertOctagon, FlameKindling } from "lucide-react";
+import { FireExtinguisher, ShieldAlert, CheckCircle2, ShieldCheck, Plus, Eye, Flame, TriangleAlert, Info, Columns4, AlertOctagon, FlameKindling, AlertCircle } from "lucide-react";
 import ExtintorModal from "./modals/ExtintorModal";
 import ChecklistExtintorModal from "./modals/ChecklistExtintorModal";
 import GeneralidadesPCI from "./GeneralidadesPCI";
