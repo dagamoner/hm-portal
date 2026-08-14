@@ -68,32 +68,26 @@ export default function BudgetEditPage() {
     }
   };
 
-  const updateItem = (index: number, field: keyof BudgetItem, value: any) => {
+  const handleItemChange = (index: number, field: keyof BudgetItem, value: any) => {
     if (!budget) return;
     const newItems = [...budget.items];
     newItems[index] = { ...newItems[index], [field]: value };
     
-    // Auto calculate total if quantity or price changes
-    if (field === 'quantity' || field === 'unitPrice') {
-      const q = Number(field === 'quantity' ? value : newItems[index].quantity) || 0;
-      const p = Number(field === 'unitPrice' ? value : newItems[index].unitPrice) || 0;
-      newItems[index].total = q * p;
-    }
-
-    const newTotal = newItems.reduce((acc, curr) => acc + curr.total, 0);
+    // Auto calculate total
+    const newTotal = newItems.reduce((acc, curr) => acc + (Number(curr.price) || 0), 0);
     setBudget({ ...budget, items: newItems, total: newTotal });
   };
 
   const addItem = () => {
     if (!budget) return;
-    const newItems = [...budget.items, { description: "", quantity: 1, unitPrice: 0, total: 0 }];
+    const newItems = [...budget.items, { description: "", price: 0 }];
     setBudget({ ...budget, items: newItems });
   };
 
   const removeItem = (index: number) => {
     if (!budget) return;
     const newItems = budget.items.filter((_, i) => i !== index);
-    const newTotal = newItems.reduce((acc, curr) => acc + curr.total, 0);
+    const newTotal = newItems.reduce((acc, curr) => acc + (Number(curr.price) || 0), 0);
     setBudget({ ...budget, items: newItems, total: newTotal });
   };
 
@@ -188,69 +182,55 @@ export default function BudgetEditPage() {
           </section>
 
           {/* Items */}
-          <section className="bg-gray-50 p-4 rounded border border-gray-200">
-            <div className="flex justify-between items-center mb-4 border-b pb-2">
-              <h2 className="text-lg font-semibold">Ítems</h2>
-              <button onClick={addItem} className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200">
-                + Agregar Ítem
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-gray-700">Servicios</h3>
+              <button
+                onClick={addItem}
+                className="flex items-center gap-1 text-sm bg-blue-50 text-blue-600 px-3 py-1 rounded hover:bg-blue-100"
+              >
+                <Plus className="w-4 h-4" /> Agregar Ítem
               </button>
             </div>
             
             <div className="space-y-4">
-              {budget.items.map((item, index) => (
-                <div key={index} className="flex gap-2 items-start bg-white p-3 border border-gray-200 rounded">
+              {budget.items.map((item: any, index: number) => (
+                <div key={index} className="flex gap-4 items-start p-4 bg-gray-50 rounded border border-gray-200">
                   <div className="flex-grow">
-                    <label className="block text-xs text-gray-500 mb-1">Descripción</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                     <textarea
-                      className="w-full border border-gray-300 rounded p-2 text-sm"
-                      rows={2}
                       value={item.description}
-                      onChange={(e) => updateItem(index, 'description', e.target.value)}
-                    />
-                  </div>
-                  <div className="w-20">
-                    <label className="block text-xs text-gray-500 mb-1">Cant.</label>
-                    <input
-                      type="number"
-                      className="w-full border border-gray-300 rounded p-2 text-sm"
-                      value={item.quantity}
-                      onChange={(e) => updateItem(index, 'quantity', Number(e.target.value))}
-                      min="1"
+                      onChange={(e) => handleItemChange(index, "description", e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded text-sm"
+                      rows={2}
                     />
                   </div>
                   <div className="w-32">
-                    <label className="block text-xs text-gray-500 mb-1">Precio Unit.</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Precio (ARS)</label>
                     <input
                       type="number"
-                      className="w-full border border-gray-300 rounded p-2 text-sm"
-                      value={item.unitPrice}
-                      onChange={(e) => updateItem(index, 'unitPrice', Number(e.target.value))}
-                      min="0"
+                      value={item.price || 0}
+                      onChange={(e) => handleItemChange(index, "price", parseFloat(e.target.value) || 0)}
+                      className="w-full p-2 border border-gray-300 rounded text-sm"
                     />
                   </div>
-                  <div className="w-32">
-                    <label className="block text-xs text-gray-500 mb-1">Total</label>
-                    <div className="p-2 border border-transparent text-sm font-medium">
-                      ${item.total.toLocaleString()}
-                    </div>
+                  <div className="pt-7">
+                    <button
+                      onClick={() => removeItem(index)}
+                      className="text-red-500 hover:text-red-700 p-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => removeItem(index)}
-                    className="mt-6 text-red-500 hover:bg-red-50 p-2 rounded"
-                    title="Eliminar"
-                  >
-                    X
-                  </button>
                 </div>
               ))}
             </div>
-            
-            <div className="mt-4 flex justify-end">
-              <div className="text-lg font-bold text-gray-800 bg-white px-4 py-2 rounded border border-gray-200">
-                Total Presupuesto: ${budget.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-              </div>
+          </div>     
+          <div className="mt-4 flex justify-end">
+            <div className="text-lg font-bold text-gray-800 bg-white px-4 py-2 rounded border border-gray-200">
+              Total Presupuesto: ${budget.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
             </div>
-          </section>
+          </div>
 
           {/* Important Note */}
           <section className="bg-gray-50 p-4 rounded border border-gray-200">

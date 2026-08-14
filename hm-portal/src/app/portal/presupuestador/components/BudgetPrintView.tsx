@@ -1,11 +1,10 @@
 import React from "react";
 import { format } from "date-fns";
+import { HardHat } from "lucide-react";
 
 export interface BudgetItem {
   description: string;
-  quantity: number;
-  unitPrice: number;
-  total: number;
+  price: number;
 }
 
 export interface BudgetData {
@@ -24,11 +23,19 @@ export interface BudgetData {
 
 export default function BudgetPrintView({ budget }: { budget: BudgetData }) {
   const formattedDate = budget.date
-    ? format(new Date(budget.date), "dd/MM/yyyy")
+    ? format(new Date(budget.date), "dd 'de' MMMM 'de' yyyy", {
+        // We'll just do a simple fallback if no locale is available, 
+        // but '14 de agosto de 2026' is what the PDF shows.
+      })
     : "";
+  
+  // Custom date formatter for spanish
+  const dateObj = budget.date ? new Date(budget.date) : new Date();
+  const months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  const displayDate = `${dateObj.getDate()} de ${months[dateObj.getMonth()]} de ${dateObj.getFullYear()}`;
 
   return (
-    <div className="bg-white text-black p-8 max-w-4xl mx-auto min-h-screen relative font-sans">
+    <div className="bg-white text-black max-w-4xl mx-auto min-h-screen relative font-sans">
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           @page { margin: 0; }
@@ -37,89 +44,77 @@ export default function BudgetPrintView({ budget }: { budget: BudgetData }) {
         }
       `}} />
       
-      <div className="print-container h-full flex flex-col">
+      <div className="print-container p-12 h-full flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-start mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">PRESUPUESTO</h1>
-            <p className="text-gray-500 mt-1">Nº {budget.budgetNumber}</p>
+          <div className="w-32 h-32 bg-black flex items-center justify-center shrink-0">
+            <HardHat className="w-20 h-20 text-[#d4af37]" strokeWidth={1.5} />
           </div>
-          <div className="text-right">
-            <h2 className="text-xl font-bold text-blue-900">HM Portal</h2>
-            <p className="text-sm text-gray-600">Servicios de Higiene y Seguridad</p>
-            <p className="text-sm text-gray-600">Fecha: {formattedDate}</p>
+          <div className="text-right pt-2">
+            <h1 className="text-3xl font-bold text-[#d4af37] mb-1 tracking-tight">MH Higiene y Seguridad</h1>
+            <p className="text-gray-600 text-[15px]">Presupuesto de Servicios Técnicos</p>
+            <p className="text-gray-600 text-[15px] mt-2">Fecha: {displayDate}</p>
           </div>
         </div>
 
+        {/* Separator */}
+        <div className="h-px bg-[#d4af37] w-full mb-6"></div>
+
         {/* Client Box */}
-        <div className="bg-gray-100 p-6 rounded-lg mb-8 border border-gray-200">
-          <h3 className="font-bold text-gray-700 mb-4 uppercase text-sm tracking-wider border-b border-gray-300 pb-2">Datos del Cliente</h3>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <p><span className="font-semibold">Nombre:</span> {budget.clientName}</p>
-              {budget.clientCompany && <p><span className="font-semibold">Empresa:</span> {budget.clientCompany}</p>}
-              {budget.clientCuil && <p><span className="font-semibold">CUIL/CUIT:</span> {budget.clientCuil}</p>}
-            </div>
-            <div>
-              {budget.clientAddress && <p><span className="font-semibold">Domicilio:</span> {budget.clientAddress}</p>}
-              {budget.reference && <p><span className="font-semibold">Referencia:</span> {budget.reference}</p>}
-            </div>
-          </div>
+        <div className="bg-[#f8f9fa] p-5 mb-8">
+          <p className="text-[15px] text-gray-800 mb-1">
+            <span className="font-bold">Cliente:</span> {budget.clientName} 
+            {budget.clientCompany ? ` - ${budget.clientCompany}` : ''}
+            {budget.clientCuil ? ` (CUIL/CUIT: ${budget.clientCuil})` : ''}
+            {budget.clientAddress ? ` - Domicilio: ${budget.clientAddress}` : ''}
+          </p>
+          <p className="text-[15px] text-gray-800">
+            <span className="font-bold">Referencia:</span> {budget.reference || "-"}
+          </p>
         </div>
 
         {/* Items Table */}
-        <div className="mb-8 flex-grow">
-          <table className="w-full text-sm border-collapse">
+        <div className="mb-6">
+          <table className="w-full text-[15px] border-collapse">
             <thead>
-              <tr className="bg-blue-900 text-white">
-                <th className="py-3 px-4 text-left rounded-tl-lg">Descripción</th>
-                <th className="py-3 px-4 text-right">Cantidad</th>
-                <th className="py-3 px-4 text-right">Precio Unitario</th>
-                <th className="py-3 px-4 text-right rounded-tr-lg">Total</th>
+              <tr className="bg-[#34495e] text-white">
+                <th className="py-3 px-4 text-left font-bold w-3/4">Descripción del Servicio</th>
+                <th className="py-3 px-4 text-right font-bold w-1/4">Precio<br/>(ARS)</th>
               </tr>
             </thead>
             <tbody>
               {budget.items.map((item, index) => (
-                <tr key={index} className="border-b border-gray-200 even:bg-gray-50">
-                  <td className="py-3 px-4 whitespace-pre-line">{item.description}</td>
-                  <td className="py-3 px-4 text-right">{item.quantity}</td>
-                  <td className="py-3 px-4 text-right">${item.unitPrice.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                  <td className="py-3 px-4 text-right font-medium">${item.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                <tr key={index} className="border-b border-gray-300">
+                  <td className="py-4 px-4 text-gray-800 whitespace-pre-line">{item.description}</td>
+                  <td className="py-4 px-4 text-right text-gray-800">${Number(item.price).toLocaleString('es-AR', { minimumFractionDigits: 0 })}</td>
                 </tr>
               ))}
+              <tr className="bg-[#f8f9fa] border-b border-gray-300">
+                <td className="py-4 px-4 font-bold text-gray-800">TOTAL</td>
+                <td className="py-4 px-4 text-right font-bold text-gray-800">${Number(budget.total).toLocaleString('es-AR', { minimumFractionDigits: 0 })}</td>
+              </tr>
             </tbody>
           </table>
-          
-          <div className="flex justify-end mt-4">
-            <div className="w-1/3">
-              <div className="flex justify-between items-center py-3 px-4 bg-gray-100 rounded-lg border border-gray-200">
-                <span className="font-bold text-lg text-gray-700">TOTAL</span>
-                <span className="font-bold text-lg text-blue-900">${budget.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Important Note */}
         {budget.importantNote && (
-          <div className="mb-8 p-4 bg-blue-50 text-blue-900 rounded-lg border border-blue-100 text-sm">
-            <h4 className="font-bold mb-2">Nota Importante:</h4>
-            <p className="whitespace-pre-line">{budget.importantNote}</p>
+          <div className="mb-12 text-[14px] text-gray-600">
+            <span className="font-bold">Nota importante:</span> {budget.importantNote}
           </div>
         )}
 
-        {/* Footer & Signature */}
-        <div className="mt-auto pt-16">
-          <div className="flex justify-end">
-            <div className="text-center w-64">
-              <div className="border-t border-gray-400 mb-2 pt-2">
-                <p className="font-bold text-gray-800">Firma y Aclaración</p>
-                <p className="text-sm text-gray-500">HM Portal - Área de Presupuestos</p>
-              </div>
+        {/* Signatures & Footer */}
+        <div className="mt-auto pt-24">
+          <div className="flex justify-start mb-12">
+            <div className="text-left">
+              <p className="font-medium text-gray-800 text-[15px]">Firma Lic. mgter. Moner Dante Gabriel y Lic. Moner Fernando Gabriel</p>
             </div>
           </div>
-          <div className="mt-12 text-center text-xs text-gray-400 border-t border-gray-200 pt-4">
-            <p>Este presupuesto tiene una validez de 15 días desde su emisión.</p>
+          
+          <div className="border-t border-gray-300 pt-4 text-[13px] text-gray-500 text-left">
+            <p>MH Higiene y Seguridad en el Trabajo | Mendoza, Argentina</p>
+            <p>mail: mhhigieneyseguridad@gmail.com / www.mhhigieneyseguridad.com</p>
           </div>
         </div>
       </div>
