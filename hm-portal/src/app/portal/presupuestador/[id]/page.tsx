@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import BudgetPrintView, { BudgetData, BudgetItem } from "../components/BudgetPrintView";
+import { Plus, Trash2 } from "lucide-react";
 
 export default function BudgetEditPage() {
   const params = useParams();
