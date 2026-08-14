@@ -503,7 +503,7 @@ const MATERIALES_DB = [
     },
     {
         "nombre": "Cartón",
-        "kcal": 3989
+        "kcal": 4000
     },
     {
         "nombre": "Cartón asfáltico",
@@ -1064,7 +1064,11 @@ const MATERIALES_DB = [
     },
     {
         "nombre": "Papel",
-        "kcal": 3989
+        "kcal": 4000
+    },
+    {
+        "nombre": "Cartón",
+        "kcal": 4000
     },
     {
         "nombre": "Parafina",
@@ -1261,6 +1265,22 @@ const MATERIALES_DB = [
     {
         "nombre": "Xilol",
         "kcal": 10008
+    },
+    {
+        "nombre": "Tela",
+        "kcal": 7950
+    },
+    {
+        "nombre": "Plástico",
+        "kcal": 11000
+    },
+    {
+        "nombre": "Combustible",
+        "kcal": 11000
+    },
+    {
+        "nombre": "Aceite de Motor",
+        "kcal": 12000
     }
 ].sort((a, b) => a.nombre.localeCompare(b.nombre));
 
@@ -1287,6 +1307,23 @@ export default function CargaFuegoPCI({ company }: { company: any }) {
         : [];
     
     const [sectors, setSectors] = useState<Sector[]>(initialSectors);
+
+    // Compute combined materials to include user custom additions
+    const combinedMaterialsMap = new Map<string, { nombre: string, kcal: number }>();
+    MATERIALES_DB.forEach(m => combinedMaterialsMap.set(m.nombre.toLowerCase().trim(), m));
+    sectors.forEach(sector => {
+        if (sector.materialesCargaFuego) {
+            sector.materialesCargaFuego.forEach(m => {
+                const nombre = m.nombre?.trim();
+                const kcal = Number(m.pqUnitario);
+                if (nombre && !isNaN(kcal) && kcal > 0 && !combinedMaterialsMap.has(nombre.toLowerCase())) {
+                    combinedMaterialsMap.set(nombre.toLowerCase(), { nombre, kcal });
+                }
+            });
+        }
+    });
+    const combinedMaterials = Array.from(combinedMaterialsMap.values()).sort((a, b) => a.nombre.localeCompare(b.nombre));
+
 
     // Filter sectors by the selected establecimiento
     const filteredSectors = sectors.filter(s => {
@@ -1342,7 +1379,8 @@ export default function CargaFuegoPCI({ company }: { company: any }) {
                             const updated = { ...m, [field]: value };
                             // Si el usuario cambia el nombre desde el datalist, podemos auto-completar el Kcal
                             if (field === "nombre") {
-                                const found = MATERIALES_DB.find(db => db.nombre === value);
+                                const valStr = String(value).trim();
+                                const found = combinedMaterials.find(db => db.nombre.toLowerCase() === valStr.toLowerCase());
                                 if (found) {
                                     updated.pqUnitario = found.kcal;
                                 }
@@ -1395,7 +1433,7 @@ export default function CargaFuegoPCI({ company }: { company: any }) {
 
             {/* Datalist for autocomplete */}
             <datalist id="materiales-db">
-                {MATERIALES_DB.map((mat, i) => (
+                {combinedMaterials.map((mat, i) => (
                     <option key={i} value={mat.nombre} />
                 ))}
             </datalist>
