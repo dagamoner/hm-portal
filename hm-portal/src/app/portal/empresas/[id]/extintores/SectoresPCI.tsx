@@ -261,8 +261,7 @@ export default function SectoresPCI({ company }: { company: any }) {
                                                 <th className="p-3 text-sm font-bold text-center border-r border-[#154a2e] w-24">Sectores de Incendio</th>
                                                 <th className="p-3 text-sm font-bold border-r border-[#154a2e]">Uso</th>
                                                 <th className="p-3 text-sm font-bold text-center border-r border-[#154a2e] w-32">Superficie Cubierta Total<br/><span className="text-xs font-normal opacity-80">[m²]</span></th>
-                                                <th className="p-3 text-sm font-bold text-center border-r border-[#154a2e] w-32">Área de circulaciones<br/><span className="text-xs font-normal opacity-80">[m²]</span></th>
-                                                <th className="p-3 text-sm font-bold text-center border-r border-[#154a2e] w-32">Áreas de uso común<br/><span className="text-xs font-normal opacity-80">[m²]</span></th>
+                                                <th className="p-3 text-sm font-bold text-center border-r border-[#154a2e] w-32">Pasillos de circulación y Baños<br/><span className="text-xs font-normal opacity-80">[m²]</span></th>
                                                 <th className="p-3 text-sm font-bold text-center w-32">Superficie de piso<br/><span className="text-xs font-normal opacity-80">[m²]</span></th>
                                                 <th className="w-12"></th>
                                             </tr>
@@ -270,7 +269,8 @@ export default function SectoresPCI({ company }: { company: any }) {
                                         <tbody>
                                             {/* Subsectors Rows */}
                                             {sector.subsectors.map((sub, sIdx) => {
-                                                const superficiePiso = sub.areaBruta - sub.circulaciones - sub.usoComun;
+                                                const totalDescuento = (sub.circulaciones || 0) + (sub.usoComun || 0);
+                                                const superficiePiso = (sub.areaBruta || 0) - totalDescuento;
                                                 return (
                                                     <tr key={sub.id} className="border-b border-slate-200 hover:bg-slate-50 group">
                                                         <td className="p-0 border-r border-slate-200">
@@ -304,17 +304,8 @@ export default function SectoresPCI({ company }: { company: any }) {
                                                             <input 
                                                                 type="number" 
                                                                 step="0.01"
-                                                                value={sub.circulaciones === 0 ? '' : sub.circulaciones} 
+                                                                value={totalDescuento === 0 ? '' : totalDescuento} 
                                                                 onChange={(e) => updateSubsector(sector.id, sub.id, 'circulaciones', e.target.value)}
-                                                                className="w-full p-3 text-right bg-transparent focus:bg-white focus:ring-1 focus:ring-indigo-500 text-sm font-mono outline-none"
-                                                            />
-                                                        </td>
-                                                        <td className="p-0 border-r border-slate-200 bg-slate-100/50">
-                                                            <input 
-                                                                type="number" 
-                                                                step="0.01"
-                                                                value={sub.usoComun === 0 ? '' : sub.usoComun} 
-                                                                onChange={(e) => updateSubsector(sector.id, sub.id, 'usoComun', e.target.value)}
                                                                 className="w-full p-3 text-right bg-transparent focus:bg-white focus:ring-1 focus:ring-indigo-500 text-sm font-mono outline-none"
                                                             />
                                                         </td>
@@ -343,10 +334,7 @@ export default function SectoresPCI({ company }: { company: any }) {
                                                     {totalBruta.toFixed(2)}
                                                 </td>
                                                 <td className="p-3 text-right font-mono font-bold text-slate-800 border-l border-slate-300">
-                                                    {totalCirculaciones.toFixed(2)}
-                                                </td>
-                                                <td className="p-3 text-right font-mono font-bold text-slate-800 border-l border-slate-300">
-                                                    {totalUsoComun.toFixed(2)}
+                                                    {(totalCirculaciones + totalUsoComun).toFixed(2)}
                                                 </td>
                                                 <td className="p-3 text-right font-mono font-black text-indigo-700 border-l border-slate-300 bg-indigo-50/50">
                                                     {totalPiso.toFixed(2)}
