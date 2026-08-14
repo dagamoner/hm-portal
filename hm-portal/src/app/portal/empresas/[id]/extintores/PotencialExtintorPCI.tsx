@@ -55,11 +55,8 @@ const calcularRiesgo = (actividad: string, material: string) => {
         return "-";
     }
     
-    if (actividad === "Comercial" || actividad === "Industrial" || actividad === "Depósito") {
-        return r;
-    }
-    
-    return "-";
+    // For anything else (Comercial, Industrial, Depósito, or custom activities), use general rule
+    return r;
 };
 
 const determinarPotencialA = (qf: number, riesgo: string) => {
@@ -302,7 +299,7 @@ export default function PotencialExtintorPCI({ company }: { company: any }) {
                                                     {sector.name || "-"}
                                                 </td>
                                                 <td className="border border-slate-300 p-2" rowSpan={2}>
-                                                    {sector.uso || "-"}
+                                                    {sector.tipoActividad || "-"}
                                                 </td>
                                                 <td className="border border-slate-300 p-2 font-medium" rowSpan={2}>
                                                     {riesgo}
