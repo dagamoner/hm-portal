@@ -183,7 +183,10 @@ export default function MediosEscapePCI({ company }: { company: any }) {
                             const comun = Number(sub.usoComun) || 0;
                             const sup = bruta - circ - comun;
                             const nPersonas = xVal > 0 ? Math.round(sup / xVal) : 0;
-                            const nUas = nPersonas / 100;
+                            let nUas = nPersonas / 100;
+                            if (nUas > 0 && nUas <= 1) {
+                                nUas = 2;
+                            }
                             const medios = calcularMediosDeEscape(nUas);
 
                             sTotal += sup;
@@ -199,7 +202,10 @@ export default function MediosEscapePCI({ company }: { company: any }) {
                             };
                         });
 
-                        const nUasTotal = nTotalPersonas / 100;
+                        let nUasTotal = nTotalPersonas / 100;
+                        if (nUasTotal > 0 && nUasTotal <= 1) {
+                            nUasTotal = 2;
+                        }
                         const esExistente = sector.edificioExistente || false;
                         const metrosRequeridos = calcularMetrosUAS(Math.ceil(nUasTotal), esExistente);
                         const anchoReal = Number(sector.anchoRealEscape) || 0;
