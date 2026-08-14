@@ -27,6 +27,7 @@ type Sector = {
     uso?: string;
     tipoMateriales?: string;
     tipoActividad?: string;
+    ventilacion?: string;
     liquidosMayoresA1m2?: boolean;
     subsectors: Subsector[];
     materialesCargaFuego?: MaterialCarga[];
