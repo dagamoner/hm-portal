@@ -33,52 +33,1238 @@ type Sector = {
 
 // Extraídos de "Poderes Caloríficos para el cálculo de la Carga de Fuego" (Mcal/kg * 1000 = Kcal/kg)
 const MATERIALES_DB = [
-    { nombre: "Acumuladores de auto (batería)", kcal: 10000 },
-    { nombre: "Aceites", kcal: 9500 },
-    { nombre: "Acetaldheído", kcal: 6000 },
-    { nombre: "Acetamida", kcal: 5000 },
-    { nombre: "Acetato de Amilo", kcal: 8000 },
-    { nombre: "Acetona", kcal: 7000 },
-    { nombre: "Acetileno", kcal: 12000 },
-    { nombre: "Acido acético", kcal: 4000 },
-    { nombre: "Algodón", kcal: 4100 }, // En PDF dice 4, pero usamos 4100 del ejemplo si aplica, pondremos 4000
-    { nombre: "Almidón", kcal: 4000 },
-    { nombre: "Alcohol etílico", kcal: 6000 },
-    { nombre: "Anilina", kcal: 9000 },
-    { nombre: "Butano", kcal: 11000 },
-    { nombre: "Carbono", kcal: 8000 },
-    { nombre: "Caucho", kcal: 10000 },
-    { nombre: "Cereales", kcal: 4000 },
-    { nombre: "Cartón", kcal: 4000 },
-    { nombre: "Celuloide", kcal: 4000 },
-    { nombre: "Chocolate", kcal: 6000 },
-    { nombre: "Cresol", kcal: 6000 },
-    { nombre: "Cuero", kcal: 5000 },
-    { nombre: "Fibras naturales", kcal: 4000 },
-    { nombre: "Fósforo", kcal: 6000 },
-    { nombre: "Gasoil", kcal: 10000 },
-    { nombre: "Glicerina", kcal: 4000 },
-    { nombre: "Grasas", kcal: 10000 },
-    { nombre: "Harina", kcal: 4000 },
-    { nombre: "Hexano", kcal: 11000 },
-    { nombre: "Lana", kcal: 5000 },
-    { nombre: "Libros y carpetas", kcal: 4000 },
-    { nombre: "Maderas", kcal: 4400 },
-    { nombre: "Magnesio", kcal: 6000 },
-    { nombre: "Materiales sintéticos", kcal: 4000 },
-    { nombre: "Metano", kcal: 12000 },
-    { nombre: "Papel", kcal: 4000 },
-    { nombre: "Petróleo", kcal: 10000 },
-    { nombre: "Plástico", kcal: 9000 },
-    { nombre: "Poliamida", kcal: 7000 },
-    { nombre: "Polietileno", kcal: 11000 },
-    { nombre: "Poliuretano", kcal: 6000 },
-    { nombre: "P.V.C.", kcal: 5000 },
-    { nombre: "Resinas", kcal: 6000 },
-    { nombre: "Resinas sintéticas", kcal: 10000 },
-    { nombre: "Te", kcal: 4000 },
-    { nombre: "Textil", kcal: 4500 },
-    { nombre: "Vestimentas", kcal: 4500 }
+    {
+        "nombre": "Aceite de algodón",
+        "kcal": 8885
+    },
+    {
+        "nombre": "Aceite de alquitrán",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Aceite de colza",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Aceite de creosota",
+        "kcal": 8885
+    },
+    {
+        "nombre": "Aceite de hígado",
+        "kcal": 8957
+    },
+    {
+        "nombre": "Aceite de lino",
+        "kcal": 8885
+    },
+    {
+        "nombre": "Aceite de nabo sivestre",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Aceite de oliva",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Aceite de parafina",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Aceite de parafina",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Aceite de pino",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Aceite de ricino",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Aceite de semillas de algodón",
+        "kcal": 8957
+    },
+    {
+        "nombre": "Aceite de soja",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Aceite diesel",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Aceite mineral",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Aceite pesado de petróleo",
+        "kcal": 10199
+    },
+    {
+        "nombre": "Acenilacetona",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Acetaldehído",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Acetamida",
+        "kcal": 5016
+    },
+    {
+        "nombre": "Acetanilida",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Acetato de amilo",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Acetato de metilo",
+        "kcal": 6091
+    },
+    {
+        "nombre": "Acetato de polivinilo",
+        "kcal": 5016
+    },
+    {
+        "nombre": "Acetileno",
+        "kcal": 11990
+    },
+    {
+        "nombre": "Acetileno disuelto",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Acetofenona",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Acetona",
+        "kcal": 6998
+    },
+    {
+        "nombre": "Acetonitrilo",
+        "kcal": 6998
+    },
+    {
+        "nombre": "Acido acético",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Acido acrílico",
+        "kcal": 4299
+    },
+    {
+        "nombre": "Acido acroleico",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Acido adípico",
+        "kcal": 5326
+    },
+    {
+        "nombre": "Acido benzoico",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Acido butírico, n-",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Acido caprónico",
+        "kcal": 6998
+    },
+    {
+        "nombre": "Acido cianocético",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Acido cítrico",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Acido de canela",
+        "kcal": 6998
+    },
+    {
+        "nombre": "Acido dietilaético",
+        "kcal": 6998
+    },
+    {
+        "nombre": "Acido etilbutírico",
+        "kcal": 6998
+    },
+    {
+        "nombre": "Acido fórmico",
+        "kcal": 1409
+    },
+    {
+        "nombre": "Acido oleico",
+        "kcal": 8837
+    },
+    {
+        "nombre": "Acido oxálico, n-",
+        "kcal": 6998
+    },
+    {
+        "nombre": "Acido tartárico",
+        "kcal": 1600
+    },
+    {
+        "nombre": "Acroleína",
+        "kcal": 6998
+    },
+    {
+        "nombre": "Aguarrás",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Alanina",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Albúmina vegetal",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Alcanfor",
+        "kcal": 8885
+    },
+    {
+        "nombre": "Alcohol alílico",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Alcohol amílico",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Alcohol butílico",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Alcohol cetílico",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Alcohol de benzilo",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Alcohol etílico",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Alcohol hexadehílico",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Alcohol isopropílico",
+        "kcal": 7213
+    },
+    {
+        "nombre": "Alcohol metílico",
+        "kcal": 5016
+    },
+    {
+        "nombre": "Alcohol n-butílico",
+        "kcal": 8025
+    },
+    {
+        "nombre": "Alcohol propílico",
+        "kcal": 7333
+    },
+    {
+        "nombre": "Aldehido de canela",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Aldehido fórmico",
+        "kcal": 7118
+    },
+    {
+        "nombre": "Aldehido propílico",
+        "kcal": 6927
+    },
+    {
+        "nombre": "Aldol",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Algodón",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Almendra",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Almidón",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Alquitrán de hulla",
+        "kcal": 8885
+    },
+    {
+        "nombre": "Anhídrido acético",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Anhídrido de ácido acético",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Anhídrido de ácido benzoico",
+        "kcal": 6998
+    },
+    {
+        "nombre": "Anhídrido ftálico",
+        "kcal": 5111
+    },
+    {
+        "nombre": "Anhídrido propiónico",
+        "kcal": 5326
+    },
+    {
+        "nombre": "Anilina",
+        "kcal": 8885
+    },
+    {
+        "nombre": "Anisol",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Antraceno",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Antracita",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Antraquinona",
+        "kcal": 6998
+    },
+    {
+        "nombre": "Arabinosa",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Asfalto",
+        "kcal": 9649
+    },
+    {
+        "nombre": "Avellanas",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Azobenzol",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Azoxibenzol",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Azúcar",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Azufre",
+        "kcal": 2006
+    },
+    {
+        "nombre": "Bambú, caña de",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Benceno",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Bencilo",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Bencina",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Benzacetona",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Benzaldehído",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Benzidina",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Benzil",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Benzilamina",
+        "kcal": 8957
+    },
+    {
+        "nombre": "Benzofena",
+        "kcal": 8073
+    },
+    {
+        "nombre": "Benzofenona",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Benzoina",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Benzol",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Bromuro de etilo",
+        "kcal": 2914
+    },
+    {
+        "nombre": "Bromuro de metilo",
+        "kcal": 1815
+    },
+    {
+        "nombre": "Butano",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Butanol",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Butanol (alcohol butílico)",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Cacao en polvo",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Café",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Cafeína",
+        "kcal": 5016
+    },
+    {
+        "nombre": "Calcio",
+        "kcal": 1003
+    },
+    {
+        "nombre": "Carbón",
+        "kcal": 7500
+    },
+    {
+        "nombre": "Carbón coke de hulla",
+        "kcal": 6998
+    },
+    {
+        "nombre": "Carbón hulla",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Carbón lignita",
+        "kcal": 4992
+    },
+    {
+        "nombre": "Carbón mineral",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Carbono",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Carburo de alúmina",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Carburo de aluminio",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Carne seca (charqui)",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Cartón",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Cartón asfáltico",
+        "kcal": 5016
+    },
+    {
+        "nombre": "Cartones bituminosos",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Caucho",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Celuloide",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Celulosa",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Cera de parafina",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Cera mineral",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Ceras",
+        "kcal": 9458
+    },
+    {
+        "nombre": "Cereales",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Cetanol",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Chocolate",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Cicloheptano",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Ciclohexano",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Ciclohexanol",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Ciclopentano",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Ciclopropano",
+        "kcal": 11990
+    },
+    {
+        "nombre": "Cloroformo",
+        "kcal": 740
+    },
+    {
+        "nombre": "Cloropeno",
+        "kcal": 10533
+    },
+    {
+        "nombre": "Cloruro de bencilo",
+        "kcal": 5422
+    },
+    {
+        "nombre": "Cloruro de etilo",
+        "kcal": 4514
+    },
+    {
+        "nombre": "Cloruro de metilo",
+        "kcal": 3201
+    },
+    {
+        "nombre": "Cloruro de n-propilo",
+        "kcal": 5708
+    },
+    {
+        "nombre": "Cloruro de polivinilo",
+        "kcal": 5016
+    },
+    {
+        "nombre": "Coke",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Cola celulósica",
+        "kcal": 8885
+    },
+    {
+        "nombre": "Cola, engrudo",
+        "kcal": 8957
+    },
+    {
+        "nombre": "Colodión",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Coque de hulla",
+        "kcal": 6998
+    },
+    {
+        "nombre": "Corcho",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Corteza de roble",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Cresol",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Crotonaldehido",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Cuero",
+        "kcal": 5016
+    },
+    {
+        "nombre": "Desechos de turba",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Diamitoléter",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Dicianuro",
+        "kcal": 4992
+    },
+    {
+        "nombre": "Diclorobenzol",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Dietilamina",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Dietilcarbonato",
+        "kcal": 4992
+    },
+    {
+        "nombre": "Dietilcetona",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Dietilester de ácido carbónico",
+        "kcal": 4992
+    },
+    {
+        "nombre": "Dietilester de ácido malónico",
+        "kcal": 4992
+    },
+    {
+        "nombre": "Dietileter",
+        "kcal": 8885
+    },
+    {
+        "nombre": "Dietileter de ácido oxálico",
+        "kcal": 4992
+    },
+    {
+        "nombre": "Dietilmalonato",
+        "kcal": 4992
+    },
+    {
+        "nombre": "Difenil",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Difenilamina",
+        "kcal": 9028
+    },
+    {
+        "nombre": "Difeniletano",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Difenilo",
+        "kcal": 9530
+    },
+    {
+        "nombre": "Dimetil glicol",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Dimetilamina",
+        "kcal": 4419
+    },
+    {
+        "nombre": "Dinamita (75 %)",
+        "kcal": 1003
+    },
+    {
+        "nombre": "Dinitro benceno",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Dipentano",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Dipenteno",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Ebonita",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Estearina",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Estireno",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Etano",
+        "kcal": 11990
+    },
+    {
+        "nombre": "Eter amílico",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Eter de petróleo",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Eter etilénico",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Eter etílico",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Eter metílico",
+        "kcal": 7165
+    },
+    {
+        "nombre": "Etil amina",
+        "kcal": 8216
+    },
+    {
+        "nombre": "Etil benceno",
+        "kcal": 9840
+    },
+    {
+        "nombre": "Etilenglicol",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Etileno",
+        "kcal": 11990
+    },
+    {
+        "nombre": "Extracto de malta",
+        "kcal": 3009
+    },
+    {
+        "nombre": "Fenilhidracina",
+        "kcal": 7476
+    },
+    {
+        "nombre": "Fenol",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Fenol, resina de",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Fenolacroleína",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Fibra de coco",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Fibras de rafia, heno",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Fibras naturales (madejas, ovillos, fardos)",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Fósforo",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Furano",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Furfural",
+        "kcal": 5613
+    },
+    {
+        "nombre": "Gasóleo",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Gasolina",
+        "kcal": 11297
+    },
+    {
+        "nombre": "Glicerina",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Goma dura (ebonita)",
+        "kcal": 8025
+    },
+    {
+        "nombre": "Grafito",
+        "kcal": 7524
+    },
+    {
+        "nombre": "Granos o gajos de uva",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Grasas",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Gutapercha",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Harina",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Harina de trigo",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Hemetileno",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Heno comprimido",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Heno libre",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Heptano",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Hexametileno",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Hexano",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Hidrógeno",
+        "kcal": 33916
+    },
+    {
+        "nombre": "Hidroquinona",
+        "kcal": 5923
+    },
+    {
+        "nombre": "Hidróxido de magnesic",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Hidróxido de sodio",
+        "kcal": 2006
+    },
+    {
+        "nombre": "Hidruro de aluminio",
+        "kcal": 4992
+    },
+    {
+        "nombre": "Hidruro de magnesio",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Hidruro de sodio",
+        "kcal": 2006
+    },
+    {
+        "nombre": "Isobutano",
+        "kcal": 10939
+    },
+    {
+        "nombre": "Isopentano",
+        "kcal": 10844
+    },
+    {
+        "nombre": "Lana",
+        "kcal": 5016
+    },
+    {
+        "nombre": "Lana de madera",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Leche en polvo",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Libros y carpetas",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Lignito",
+        "kcal": 5804
+    },
+    {
+        "nombre": "Lino",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Linóleo",
+        "kcal": 4992
+    },
+    {
+        "nombre": "Madera",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Madera de haya (helecho)",
+        "kcal": 4992
+    },
+    {
+        "nombre": "Magnesio",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Maicena",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Malta",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Mantequilla",
+        "kcal": 8885
+    },
+    {
+        "nombre": "Metacrilato de metilo",
+        "kcal": 6091
+    },
+    {
+        "nombre": "Metano",
+        "kcal": 11990
+    },
+    {
+        "nombre": "Metanol",
+        "kcal": 4992
+    },
+    {
+        "nombre": "Metanol (alcohol metílico)",
+        "kcal": 4992
+    },
+    {
+        "nombre": "Metil butil cetona",
+        "kcal": 8336
+    },
+    {
+        "nombre": "Metil etil cetona",
+        "kcal": 7524
+    },
+    {
+        "nombre": "Metil propil cetona",
+        "kcal": 7930
+    },
+    {
+        "nombre": "Metilamina",
+        "kcal": 9625
+    },
+    {
+        "nombre": "Monóxido de carbono",
+        "kcal": 2006
+    },
+    {
+        "nombre": "Naftaleno",
+        "kcal": 9339
+    },
+    {
+        "nombre": "Naftalina en cristales",
+        "kcal": 9602
+    },
+    {
+        "nombre": "Nitrito de acetona",
+        "kcal": 6998
+    },
+    {
+        "nombre": "Nitrobenceno",
+        "kcal": 5828
+    },
+    {
+        "nombre": "Nitrocelulosa",
+        "kcal": 2006
+    },
+    {
+        "nombre": "Nitroetano",
+        "kcal": 3917
+    },
+    {
+        "nombre": "Nitrometano",
+        "kcal": 2508
+    },
+    {
+        "nombre": "Nueces, avellanas",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Nuez de coco (sacos)",
+        "kcal": 4992
+    },
+    {
+        "nombre": "Octano",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Oxido de carbono",
+        "kcal": 2197
+    },
+    {
+        "nombre": "Oxido de etileno",
+        "kcal": 6425
+    },
+    {
+        "nombre": "Paja de madera",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Paja natural",
+        "kcal": 3344
+    },
+    {
+        "nombre": "Papel",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Parafina",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Pentano",
+        "kcal": 11990
+    },
+    {
+        "nombre": "Pescado seco",
+        "kcal": 3009
+    },
+    {
+        "nombre": "Petróleo",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Piperidina",
+        "kcal": 9028
+    },
+    {
+        "nombre": "Placa de aglomerado de madera",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Poliamida",
+        "kcal": 6998
+    },
+    {
+        "nombre": "Policarbonato",
+        "kcal": 6998
+    },
+    {
+        "nombre": "Poliéster",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Poliestireno",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Poliestireno (estirol) en espuma",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Polietileno",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Poliisobutileno",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Poliisopreno (goma natural sin vulcanizar)",
+        "kcal": 10796
+    },
+    {
+        "nombre": "Polipropileno",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Politetrafluoretileno",
+        "kcal": 1003
+    },
+    {
+        "nombre": "Poliuretano",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Polivinilo acetato",
+        "kcal": 4992
+    },
+    {
+        "nombre": "Polyamida",
+        "kcal": 6998
+    },
+    {
+        "nombre": "Propano",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Propileno",
+        "kcal": 10939
+    },
+    {
+        "nombre": "Rayón",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Resina de cresol",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Resina de fenol",
+        "kcal": 5995
+    },
+    {
+        "nombre": "Resina de pino",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Resina de urea",
+        "kcal": 5016
+    },
+    {
+        "nombre": "Resina sintética",
+        "kcal": 10008
+    },
+    {
+        "nombre": "Ron 75%",
+        "kcal": 4992
+    },
+    {
+        "nombre": "Seda",
+        "kcal": 5016
+    },
+    {
+        "nombre": "Seda de acetato",
+        "kcal": 4013
+    },
+    {
+        "nombre": "Sisal",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Sodio",
+        "kcal": 1003
+    },
+    {
+        "nombre": "Sulfito de carbonilo",
+        "kcal": 2006
+    },
+    {
+        "nombre": "Sulfuro de carbono",
+        "kcal": 2986
+    },
+    {
+        "nombre": "Tabaco",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Té",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Tejido de algodón",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Tetrahidrobenzol",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Tetralina",
+        "kcal": 10987
+    },
+    {
+        "nombre": "Tolueno",
+        "kcal": 10103
+    },
+    {
+        "nombre": "Toluol",
+        "kcal": 10032
+    },
+    {
+        "nombre": "Triacetato",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Tributilamina",
+        "kcal": 9625
+    },
+    {
+        "nombre": "Trietilamina",
+        "kcal": 9530
+    },
+    {
+        "nombre": "Trimetil amina",
+        "kcal": 9028
+    },
+    {
+        "nombre": "Turba",
+        "kcal": 8001
+    },
+    {
+        "nombre": "Urea",
+        "kcal": 2006
+    },
+    {
+        "nombre": "Viscosa",
+        "kcal": 3989
+    },
+    {
+        "nombre": "Xilol",
+        "kcal": 10008
+    }
 ].sort((a, b) => a.nombre.localeCompare(b.nombre));
 
 export default function CargaFuegoPCI({ company }: { company: any }) {
