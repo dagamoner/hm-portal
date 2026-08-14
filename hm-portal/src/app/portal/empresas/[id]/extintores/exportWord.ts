@@ -121,7 +121,11 @@ export const generateWordReport = async (company: any, establecimiento: any, sec
                         });
                     }),
                     new Paragraph({ children: [new PageBreak()] }),
-                    new Paragraph({ text: "El informe detallado de cada sector se incluye en el PDF o en versiones más avanzadas del reporte.", italics: true })
+                    new Paragraph({ 
+                        children: [
+                            new TextRun({ text: "El informe detallado de cada sector se incluye en el PDF o en versiones más avanzadas del reporte.", italics: true })
+                        ] 
+                    })
                 ],
             },
         ],
