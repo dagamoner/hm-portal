@@ -5,6 +5,8 @@ import { updateCompanyPciSectors, updateCompany } from "@/app/actions/companies"
 import { Save, CheckCircle2, AlertCircle, Building2, FileText, Check, X, Minus } from "lucide-react";
 import { TEXTOS_CONDICIONES, MATRIZ_CUADRO_PCI } from "./data/condiciones351";
 
+import { generateWordReport } from "./exportWord";
+
 export default function InformePCI({ company }: { company: any }) {
     const [isPending, startTransition] = useTransition();
     const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
@@ -78,29 +80,69 @@ export default function InformePCI({ company }: { company: any }) {
     };
 
     return (
-        <div className="space-y-8 animate-fade-in pb-12 max-w-[95vw] lg:max-w-[85vw] mx-auto overflow-x-hidden">
-            <div className="flex justify-between items-center bg-white p-6 rounded-3xl border border-slate-200 shadow-sm sticky top-4 z-20">
+        <div className="space-y-8 animate-fade-in pb-12 max-w-[95vw] lg:max-w-[85vw] mx-auto overflow-x-hidden print:w-full print:max-w-none print:p-0 print:m-0 print:space-y-0">
+            <style>{`
+                @media print {
+                    @page { margin: 15mm; size: A4 portrait; }
+                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white !important; }
+                    .print\\:hidden { display: none !important; }
+                    .page-break-after { page-break-after: always; }
+                    .page-break-before { page-break-before: always; }
+                    .avoid-break { page-break-inside: avoid; }
+                    /* Force components to render full width for printing */
+                    .shadow-sm, .border-2 { box-shadow: none !important; border-width: 1px !important; border-color: #e2e8f0 !important; }
+                }
+            `}</style>
+
+            {/* PORTADA SOLO PARA IMPRESIÓN */}
+            <div className="hidden print:flex flex-col items-center justify-center min-h-[250mm] page-break-after p-12 text-center bg-white">
+                <img src="/logo-mh.png" alt="Logo MH" className="w-64 h-auto mb-16" />
+                <h1 className="text-4xl font-black text-rose-600 mb-6 uppercase tracking-wider leading-tight">
+                    Proyecto de Instalaciones de<br/>Protección Contra Incendios
+                </h1>
+                <h2 className="text-2xl font-bold text-amber-500 mb-16 uppercase">
+                    {establecimiento?.nombre || "Establecimiento Principal"}
+                </h2>
+                
+                <div className="w-full max-w-2xl border-t-4 border-b-4 border-slate-100 py-8 my-8 text-left grid grid-cols-2 gap-8">
+                    <div>
+                        <div className="text-xs font-bold uppercase text-slate-400 mb-1">Empresa / Razón Social</div>
+                        <div className="text-xl font-black text-slate-800">{company?.nombre || "-"}</div>
+                        <div className="text-sm text-slate-500 mt-1">CUIT: {company?.cuit || "-"}</div>
+                    </div>
+                    <div>
+                        <div className="text-xs font-bold uppercase text-slate-400 mb-1">Ubicación / Domicilio</div>
+                        <div className="text-xl font-black text-slate-800">{establecimiento?.domicilio || "-"}</div>
+                        <div className="text-sm text-slate-500 mt-1">{establecimiento?.actividad || "-"}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex justify-between items-center bg-white p-6 rounded-3xl border border-slate-200 shadow-sm sticky top-4 z-20 print:hidden">
                 <div>
                     <h2 className="text-xl font-bold text-slate-800">Informe del Sistema de Protección Contra Incendios</h2>
                     <p className="text-sm text-slate-500">Reporte final consolidado y evaluación de condiciones (Dec. 351/79).</p>
                 </div>
-                <div className="flex items-center gap-4">
-                    {saveStatus === "success" && (
-                        <span className="flex items-center gap-2 text-emerald-600 font-bold text-sm bg-emerald-50 px-3 py-1.5 rounded-lg">
-                            <CheckCircle2 className="w-4 h-4" /> Guardado exitosamente
-                        </span>
-                    )}
-                    {saveStatus === "error" && (
-                        <span className="flex items-center gap-2 text-red-600 font-bold text-sm bg-red-50 px-3 py-1.5 rounded-lg">
-                            <AlertCircle className="w-4 h-4" /> Error al guardar
-                        </span>
-                    )}
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => generateWordReport(company, establecimiento, filteredSectors)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all"
+                    >
+                        <FileText className="w-4 h-4" /> Word
+                    </button>
+                    <button
+                        onClick={() => window.print()}
+                        className="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all"
+                    >
+                        <FileText className="w-4 h-4" /> PDF
+                    </button>
+                    <div className="w-px h-6 bg-slate-200 mx-2"></div>
                     <button
                         onClick={handleSave}
                         disabled={isPending}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all active:scale-95 disabled:opacity-50"
                     >
-                        {isPending ? "Guardando..." : <><Save className="w-4 h-4" /> Guardar Cambios</>}
+                        {isPending ? "Guardando..." : <><Save className="w-4 h-4" /> Guardar</>}
                     </button>
                 </div>
             </div>
