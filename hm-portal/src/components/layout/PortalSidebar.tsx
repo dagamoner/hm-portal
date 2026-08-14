@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Building2, ShieldAlert, Settings, Home, Users, BookOpen } from "lucide-react"
+import { Building2, ShieldAlert, Settings, Home, Users, BookOpen, Calculator } from "lucide-react"
 import { useAuth } from "@/components/providers/AuthProvider"
 import { useSidebar } from "@/components/providers/SidebarProvider"
 
@@ -69,6 +69,13 @@ export function PortalSidebar() {
               {!isCollapsed && <span>Cuenta</span>}
             </Link>
           </>
+        )}
+
+        {(isAdmin || isManager) && (
+          <Link href="/portal/presupuestador" className={getLinkClass("/portal/presupuestador")} title="Presupuestador">
+            <Calculator size={20} className="shrink-0" />
+            {!isCollapsed && <span>Presupuestador</span>}
+          </Link>
         )}
 
         {(isAdmin || isManager || isInspector) && (
