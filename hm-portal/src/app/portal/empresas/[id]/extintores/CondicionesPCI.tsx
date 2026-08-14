@@ -5,6 +5,32 @@ import { updateCompanyPciSectors } from "@/app/actions/companies";
 import { Save, CheckCircle2, AlertCircle, Building2, Check, X, Minus } from "lucide-react";
 import { TEXTOS_CONDICIONES, MATRIZ_CUADRO_PCI } from "./data/condiciones351";
 
+const MATERIALES = [
+    "Riesgo 1 (Explosivo)",
+    "Riesgo 2 (Inflamable)",
+    "Riesgo 3 (Muy Combustible)",
+    "Riesgo 4 (Combustible)",
+    "Riesgo 5 (Poco Combustible)",
+    "Riesgo 6 (Incombustible)",
+    "Riesgo 7 (Refractarios)"
+];
+
+const calcularRiesgo = (actividad: string, material: string) => {
+    if (!actividad || !material) return "-";
+    
+    const matIndex = MATERIALES.indexOf(material);
+    const r = `R${matIndex + 1}`;
+    
+    if (actividad === "Residencial" || actividad === "Administrativo" || actividad === "Espectáculos" || actividad === "Cultura") {
+        if (matIndex === 0 || matIndex === 1) return "NP";
+        if (matIndex === 2) return "R3";
+        if (matIndex === 3) return "R4";
+        return "-";
+    }
+    
+    return r;
+};
+
 export default function CondicionesPCI({ company }: { company: any }) {
     const [isPending, startTransition] = useTransition();
     const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
@@ -109,7 +135,8 @@ export default function CondicionesPCI({ company }: { company: any }) {
             </div>
 
             {filteredSectors.map((sector, sIdx) => {
-                const riesgoNum = parseInt((sector.riesgoLvl || "").replace('R', '')) || 0;
+                const computedRiesgo = calcularRiesgo(sector.tipoActividad || "", sector.tipoMateriales || "");
+                const riesgoNum = parseInt(computedRiesgo.replace('R', '')) || 0;
                 const matrizItem = MATRIZ_CUADRO_PCI.find(m => m.uso === sector.usoCuadroPCI && m.riesgo === riesgoNum);
                 
                 let condReq: any[] = [];
