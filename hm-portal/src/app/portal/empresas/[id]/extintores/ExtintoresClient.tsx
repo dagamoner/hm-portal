@@ -58,8 +58,8 @@ export default function ExtintoresClient({ company, extintores }: { company: any
     };
 
     return (
-        <div className="space-y-6 animate-fade-in pb-12">
-            <div className="flex justify-between items-end mb-4">
+        <div className="space-y-6 animate-fade-in pb-12 print:space-y-0 print:pb-0 print:block">
+            <div className="flex justify-between items-end mb-4 print:hidden">
                 <div>
                     <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
                         <Flame className="w-8 h-8 text-red-500" />
@@ -70,7 +70,7 @@ export default function ExtintoresClient({ company, extintores }: { company: any
             </div>
 
             {/* TIER 1 TABS */}
-            <div className="flex gap-4 border-b-2 border-slate-200 mb-6">
+            <div className="flex gap-4 border-b-2 border-slate-200 mb-6 print:hidden">
                 <button
                     onClick={() => setMainTab('informe')}
                     className={`pb-4 px-6 text-base font-black transition-colors relative flex items-center gap-2 ${
@@ -103,9 +103,9 @@ export default function ExtintoresClient({ company, extintores }: { company: any
 
             {/* INFORME SECTIONS */}
             {mainTab === 'informe' && (
-                <div className="flex gap-6 h-full">
+                <div className="flex gap-6 h-full print:block print:h-auto">
                     {/* TIER 2 VERTICAL NAV */}
-                    <div className="w-80 shrink-0 bg-white rounded-3xl border border-slate-200 shadow-sm p-4 hidden lg:flex flex-col h-max sticky top-4">
+                    <div className="w-80 shrink-0 bg-white rounded-3xl border border-slate-200 shadow-sm p-4 hidden lg:flex flex-col h-max sticky top-4 print:hidden">
                         <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-4 px-3">Etapas del Informe</h3>
                         
                         <nav className="flex flex-col gap-1">
@@ -200,7 +200,7 @@ export default function ExtintoresClient({ company, extintores }: { company: any
                     </div>
                     
                     {/* MOBILE NAV (Horizontal scrolling) */}
-                    <div className="lg:hidden w-full flex gap-2 overflow-x-auto pb-4 custom-scrollbar mb-4">
+                    <div className="lg:hidden w-full flex gap-2 overflow-x-auto pb-4 custom-scrollbar mb-4 print:hidden">
                         {[
                             {id:'generalidades', n:1, l:'Generalidades'},
                             {id:'sectores', n:2, l:'Sectores'},
