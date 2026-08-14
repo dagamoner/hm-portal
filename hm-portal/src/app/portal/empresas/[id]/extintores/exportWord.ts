@@ -83,7 +83,7 @@ export const generateWordReport = async (company: any, establecimiento: any, sec
                             new TextRun(establecimiento?.actividad || "N/A"),
                         ],
                     }),
-                    new PageBreak(),
+                    new Paragraph({ children: [new PageBreak()] }),
                     new Paragraph({
                         text: "1. Generalidades",
                         heading: HeadingLevel.HEADING_1,
@@ -120,7 +120,7 @@ export const generateWordReport = async (company: any, establecimiento: any, sec
                             ]
                         });
                     }),
-                    new PageBreak(),
+                    new Paragraph({ children: [new PageBreak()] }),
                     new Paragraph({ text: "El informe detallado de cada sector se incluye en el PDF o en versiones más avanzadas del reporte.", italics: true })
                 ],
             },
