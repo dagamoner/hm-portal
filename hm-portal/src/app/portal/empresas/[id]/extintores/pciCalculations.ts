@@ -169,19 +169,19 @@ export const getPotencialRequeridoB = (qf: number, riesgoStr: string) => {
 };
 
 export const TIPOS_USO_ESCAPE = [
-    { id: 'a', x: 1, label: 'Sitios de asamblea, auditorios, etc.' },
-    { id: 'b', x: 2, label: 'Edificios educacionales, templos, etc.' },
-    { id: 'c', x: 3, label: 'Lugares de trabajo, comerciales, etc.' },
-    { id: 'd', x: 5, label: 'Mercados, ferias, etc. Planta baja.' },
-    { id: 'e', x: 8, label: 'Mercados, ferias, etc. Pisos superiores.' },
-    { id: 'f', x: 12, label: 'Hoteles, residencias, oficinas, etc.' },
-    { id: 'g', x: 16, label: 'Industrias, fábricas, talleres, etc.' },
-    { id: 'h', x: 2, label: 'Salas de baile, discotecas, etc.' },
-    { id: 'i', x: 3, label: 'Gimnasios, clubes, etc.' },
-    { id: 'j', x: 8, label: 'Hospitales, clínicas, etc.' },
-    { id: 'k', x: 3, label: 'Restaurantes, bares, etc.' },
-    { id: 'l', x: 20, label: 'Museos, bibliotecas, etc.' },
-    { id: 'm', x: 30, label: 'Depósitos, archivos, etc.' }
+    { id: 'a', label: 'a) Sitios de asambleas, auditorios, salas de conciertos...', x: 1 },
+    { id: 'b', label: 'b) Edificios educacionales, templos', x: 2 },
+    { id: 'c', label: 'c) Lugares de trabajo, locales, patios y terrazas (comercio...)', x: 3 },
+    { id: 'd', label: 'd) Salones de billares, canchas de bolos, gimnasios...', x: 5 },
+    { id: 'e', label: 'e) Edificio de escritorios y oficinas, bancos, bibliotecas...', x: 8 },
+    { id: 'f', label: 'f) Viviendas privadas y colectivas', x: 12 },
+    { id: 'g', label: 'g) Edificios industriales (por defecto)', x: 16 },
+    { id: 'h', label: 'h) Salas de juego', x: 2 },
+    { id: 'i', label: 'i) Grandes tiendas, supermercados (PB y 1er subsuelo)', x: 3 },
+    { id: 'j', label: 'j) Grandes tiendas, supermercados (pisos superiores)', x: 8 },
+    { id: 'k', label: 'k) Hoteles, planta baja y restaurantes', x: 3 },
+    { id: 'l', label: 'l) Hoteles, pisos superiores', x: 20 },
+    { id: 'm', label: 'm) Depósitos', x: 30 }
 ];
 
 export const calcularMetrosUAS = (nUas: number, esExistente: boolean) => {
