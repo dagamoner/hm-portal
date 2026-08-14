@@ -1,6 +1,5 @@
 import React from "react";
 import { format } from "date-fns";
-import { HardHat } from "lucide-react";
 
 export interface BudgetItem {
   description: string;
@@ -47,8 +46,8 @@ export default function BudgetPrintView({ budget }: { budget: BudgetData }) {
       <div className="print-container p-12 h-full flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-start mb-8">
-          <div className="w-32 h-32 bg-black flex items-center justify-center shrink-0">
-            <HardHat className="w-20 h-20 text-[#d4af37]" strokeWidth={1.5} />
+          <div className="w-32 h-32 flex items-center justify-center shrink-0">
+            <img src="/logo-mh-gold.png" alt="MH Higiene y Seguridad Logo" className="w-full h-full object-contain" />
           </div>
           <div className="text-right pt-2">
             <h1 className="text-3xl font-bold text-[#d4af37] mb-1 tracking-tight">MH Higiene y Seguridad</h1>
