@@ -14,6 +14,7 @@ import VerificacionExtintoresPCI from "./VerificacionExtintoresPCI";
 import MediosEscapePCI from "./MediosEscapePCI";
 import IluminacionPCI from "./IluminacionPCI";
 import CondicionesPCI from "./CondicionesPCI";
+import InformePCI from "./InformePCI";
 
 export default function ExtintoresClient({ company, extintores }: { company: any, extintores: any[] }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -187,6 +188,14 @@ export default function ExtintoresClient({ company, extintores }: { company: any
                                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${subTab === 'condiciones' ? 'bg-violet-500 text-white' : 'bg-slate-200 text-slate-500'}`}>10</span>
                                 Condiciones
                             </button>
+
+                            <button
+                                onClick={() => setSubTab('informe')}
+                                className={`flex items-center gap-3 p-3 rounded-2xl text-sm font-bold transition-all text-left ${subTab === 'informe' ? 'bg-slate-800 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
+                            >
+                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${subTab === 'informe' ? 'bg-white text-slate-800' : 'bg-slate-200 text-slate-500'}`}>11</span>
+                                Informe Final
+                            </button>
                         </nav>
                     </div>
                     
@@ -203,6 +212,7 @@ export default function ExtintoresClient({ company, extintores }: { company: any
                             {id:'escape', n:8, l:'Escape'},
                             {id:'iluminacion', n:9, l:'Iluminación'},
                             {id:'condiciones', n:10, l:'Condiciones'},
+                            {id:'informe', n:11, l:'Informe Final'},
                         ].map(t => (
                             <button
                                 key={t.id}
@@ -226,6 +236,7 @@ export default function ExtintoresClient({ company, extintores }: { company: any
                         {subTab === 'escape' && <MediosEscapePCI company={company} />}
                         {subTab === 'iluminacion' && <IluminacionPCI />}
                         {subTab === 'condiciones' && <CondicionesPCI company={company} />}
+                        {subTab === 'informe' && <InformePCI company={company} />}
                     </div>
                 </div>
             )}
