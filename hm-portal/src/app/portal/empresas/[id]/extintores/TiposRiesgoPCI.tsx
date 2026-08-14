@@ -47,20 +47,19 @@ const calcularRiesgo = (actividad: string, material: string) => {
     if (!actividad || !material) return "-";
     
     const matIndex = MATERIALES.indexOf(material);
+    if (matIndex === -1) return "-";
     const r = `R${matIndex + 1}`;
     
-    if (actividad === "Residencial" || actividad === "Administrativo" || actividad === "Espectáculos" || actividad === "Cultura") {
+    const restringidas = ["Residencial", "Administrativo", "Espectáculos", "Cultura"];
+    if (restringidas.includes(actividad)) {
         if (matIndex === 0 || matIndex === 1) return "NP";
         if (matIndex === 2) return "R3";
         if (matIndex === 3) return "R4";
         return "-";
     }
     
-    if (actividad === "Comercial" || actividad === "Industrial" || actividad === "Depósito") {
-        return r;
-    }
-
-    return "-";
+    // Para Comercial, Industrial, Depósito u otras personalizadas, se aplica la regla general
+    return r;
 };
 
 export default function TiposRiesgoPCI({ company }: { company: any }) {
@@ -207,14 +206,15 @@ export default function TiposRiesgoPCI({ company }: { company: any }) {
                                                 />
                                             </td>
                                             <td className="p-0 border-r border-slate-200">
-                                                <select
+                                                <input
+                                                    type="text"
+                                                    list="actividades-list"
                                                     value={sector.tipoActividad || ""}
                                                     onChange={(e) => updateSector(sector.id, "tipoActividad", e.target.value)}
-                                                    className="w-full p-4 bg-transparent focus:bg-white focus:ring-2 focus:ring-indigo-500 text-sm outline-none appearance-none cursor-pointer"
-                                                >
-                                                    <option value="" disabled>Seleccionar Actividad...</option>
-                                                    {ACTIVIDADES.map(a => <option key={a} value={a}>{a}</option>)}
-                                                </select>
+                                                    onBlur={handleSave}
+                                                    placeholder="Seleccionar o escribir actividad..."
+                                                    className="w-full p-4 bg-transparent focus:bg-white focus:ring-2 focus:ring-indigo-500 text-sm outline-none"
+                                                />
                                             </td>
                                             <td className="p-0 border-r border-slate-200">
                                                 <select
@@ -252,6 +252,9 @@ export default function TiposRiesgoPCI({ company }: { company: any }) {
                             </tbody>
                         </table>
                     </div>
+                    <datalist id="actividades-list">
+                        {ACTIVIDADES.map(a => <option key={a} value={a} />)}
+                    </datalist>
                 </div>
             )}
         </div>
