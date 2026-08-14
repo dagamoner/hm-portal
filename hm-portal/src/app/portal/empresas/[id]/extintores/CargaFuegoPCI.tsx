@@ -177,9 +177,7 @@ export default function CargaFuegoPCI({ company }: { company: any }) {
     const getSectorTotalSuperficie = (sector: Sector) => {
         return sector.subsectors.reduce((acc, sub) => {
             const bruta = Number(sub.areaBruta) || 0;
-            const circ = Number(sub.circulaciones) || 0;
-            const comun = Number(sub.usoComun) || 0;
-            return acc + (bruta - circ - comun);
+            return acc + bruta;
         }, 0);
     };
 
