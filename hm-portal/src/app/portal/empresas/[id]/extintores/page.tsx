@@ -16,7 +16,7 @@ export default async function ExtintoresPage({ params }: { params: Promise<{ id:
 
     const company = await prisma.company.findUnique({
         where: { id },
-        select: { id: true, name: true, taxId: true }
+        select: { id: true, name: true, taxId: true, pciGeneralities: true, pciSectors: true }
     });
 
     if (!company) notFound();
