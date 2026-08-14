@@ -256,7 +256,7 @@ export default function ResistenciaFuegoPCI({ company }: { company: any }) {
                                         <tr key={sector.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors group">
                                             <td className="p-4 border-r border-slate-100 bg-slate-50/50">
                                                 <div className="font-bold text-slate-800 text-base">{sector.name || "Sector Sin Nombre"}</div>
-                                                <div className="text-xs text-slate-500 mt-1">{sector.uso || "Sin Uso Definido"}</div>
+                                                <div className="text-xs text-slate-500 mt-1">{sector.subsectors?.map((sub:any) => sub.uso).filter(Boolean).join(" | ") || "Sin Uso Definido"}</div>
                                             </td>
                                             <td className="p-4 text-center border-r border-slate-100">
                                                 <div className={`inline-flex items-center justify-center px-3 py-1 rounded-lg font-bold text-sm ${

@@ -1485,7 +1485,7 @@ export default function CargaFuegoPCI({ company }: { company: any }) {
                                 <div className="bg-slate-800 text-white p-4 flex justify-between items-center">
                                     <div>
                                         <h3 className="font-bold text-lg">{sector.name || "Sector Sin Nombre"}</h3>
-                                        <p className="text-sm text-slate-300">{sector.uso || "Sin Uso Definido"}</p>
+                                        <p className="text-sm text-slate-300">{sector.subsectors?.map((sub:any) => sub.uso).filter(Boolean).join(" | ") || "Sin Uso Definido"}</p>
                                     </div>
                                     <button 
                                         onClick={() => addMaterial(sector.id)}
