@@ -260,7 +260,7 @@ export default function SectoresPCI({ company }: { company: any }) {
                                             <tr className="bg-[#1b5e3a] text-white">
                                                 <th className="p-3 text-sm font-bold text-center border-r border-[#154a2e] w-24">Sectores de Incendio</th>
                                                 <th className="p-3 text-sm font-bold border-r border-[#154a2e]">Uso</th>
-                                                <th className="p-3 text-sm font-bold text-center border-r border-[#154a2e] w-32">Área bruta<br/><span className="text-xs font-normal opacity-80">[m²]</span></th>
+                                                <th className="p-3 text-sm font-bold text-center border-r border-[#154a2e] w-32">Superficie Cubierta Total<br/><span className="text-xs font-normal opacity-80">[m²]</span></th>
                                                 <th className="p-3 text-sm font-bold text-center border-r border-[#154a2e] w-32">Área de circulaciones<br/><span className="text-xs font-normal opacity-80">[m²]</span></th>
                                                 <th className="p-3 text-sm font-bold text-center border-r border-[#154a2e] w-32">Áreas de uso común<br/><span className="text-xs font-normal opacity-80">[m²]</span></th>
                                                 <th className="p-3 text-sm font-bold text-center w-32">Superficie de piso<br/><span className="text-xs font-normal opacity-80">[m²]</span></th>
