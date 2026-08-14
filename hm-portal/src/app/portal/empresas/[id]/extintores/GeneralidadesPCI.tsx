@@ -60,8 +60,13 @@ export default function GeneralidadesPCI({ company }: { company: any }) {
 
     const handleAdd = () => {
         const newEst = getEmptyEstablecimiento();
-        setEstablecimientos(prev => [...prev, newEst]);
+        const nextList = [...establecimientos, newEst];
+        setEstablecimientos(nextList);
         setSelectedId(newEst.id);
+        // Auto-guardado para que no se pierda al cambiar de pestaña
+        startTransition(async () => {
+            await updateCompanyPciGeneralities(company.id, nextList);
+        });
     };
 
     const handleDelete = (id: string) => {
@@ -71,6 +76,9 @@ export default function GeneralidadesPCI({ company }: { company: any }) {
             if (selectedId === id) {
                 setSelectedId(nextList[0]?.id || "");
             }
+            startTransition(async () => {
+                await updateCompanyPciGeneralities(company.id, nextList);
+            });
         }
     };
 
@@ -158,6 +166,7 @@ export default function GeneralidadesPCI({ company }: { company: any }) {
                                     name="nombre"
                                     value={formData.nombre}
                                     onChange={handleChange}
+                                    onBlur={handleSave}
                                     placeholder="Ej: Sede Central"
                                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 />

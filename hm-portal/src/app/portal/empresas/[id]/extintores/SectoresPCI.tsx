@@ -68,20 +68,26 @@ export default function SectoresPCI({ company }: { company: any }) {
 
     const addSector = () => {
         if (!selectedEstId) return alert("Por favor, crea un Establecimiento en la pestaña de Generalidades primero.");
-        setSectors(prev => [
-            ...prev, 
-            { 
-                id: Math.random().toString(36).substr(2, 9), 
-                establecimientoId: selectedEstId,
-                name: `Sector ${filteredSectors.length + 1}`, 
-                subsectors: [] 
-            }
-        ]);
+        const newSector = { 
+            id: Math.random().toString(36).substr(2, 9), 
+            establecimientoId: selectedEstId,
+            name: `Sector ${filteredSectors.length + 1}`, 
+            subsectors: [] 
+        };
+        const nextList = [...sectors, newSector];
+        setSectors(nextList);
+        startTransition(async () => {
+            await updateCompanyPciSectors(company.id, nextList);
+        });
     };
 
     const deleteSector = (sectorId: string) => {
         if(confirm("¿Estás seguro de que deseas eliminar este sector y todos sus subsectores?")) {
-            setSectors(prev => prev.filter(s => s.id !== sectorId));
+            const nextList = sectors.filter(s => s.id !== sectorId);
+            setSectors(nextList);
+            startTransition(async () => {
+                await updateCompanyPciSectors(company.id, nextList);
+            });
         }
     };
 
