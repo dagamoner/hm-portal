@@ -949,10 +949,7 @@ const MATERIALES_DB = [
         "nombre": "Linóleo",
         "kcal": 4992
     },
-    {
-        "nombre": "Madera",
-        "kcal": 3989
-    },
+    { "nombre": "Madera", "kcal": 4400 },
     {
         "nombre": "Madera de haya (helecho)",
         "kcal": 4992
