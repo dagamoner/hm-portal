@@ -195,9 +195,7 @@ export default function PotencialExtintorPCI({ company }: { company: any }) {
     const getSectorTotalSuperficie = (sector: Sector) => {
         return sector.subsectors.reduce((acc, sub) => {
             const bruta = Number(sub.areaBruta) || 0;
-            const circ = Number(sub.circulaciones) || 0;
-            const comun = Number(sub.usoComun) || 0;
-            return acc + (bruta - circ - comun);
+            return acc + bruta;
         }, 0);
     };
 
@@ -285,49 +283,41 @@ export default function PotencialExtintorPCI({ company }: { company: any }) {
 
                                     const riesgo = calcularRiesgo(sector.tipoActividad || "", sector.tipoMateriales || "");
                                     const liquidos = sector.liquidosMayoresA1m2 || false;
+                                    const ventilacion = sector.ventilacion || "Natural";
 
-                                    const res221 = determinarResistencia(qf, riesgo, "Natural");
-                                    const res222 = determinarResistencia(qf, riesgo, "Forzada");
+                                    const resistencia = determinarResistencia(qf, riesgo, ventilacion);
 
                                     const potA = determinarPotencialA(qf, riesgo);
                                     const potB = determinarPotencialB(qf, riesgo, liquidos);
 
                                     return (
-                                        <React.Fragment key={sector.id}>
-                                            <tr>
-                                                <td className="border border-slate-300 p-2 font-medium bg-[#4caf50] text-white" rowSpan={2}>
-                                                    {sector.name || "-"}
-                                                </td>
-                                                <td className="border border-slate-300 p-2" rowSpan={2}>
-                                                    {sector.tipoActividad || "-"}
-                                                </td>
-                                                <td className="border border-slate-300 p-2 font-medium" rowSpan={2}>
-                                                    {riesgo}
-                                                </td>
-                                                
-                                                <td className="border border-slate-300 p-2 text-right">
-                                                    cuadro 2.2.1.
-                                                </td>
-                                                <td className="border border-slate-300 p-2 font-medium">
-                                                    {res221}
-                                                </td>
-                                                
-                                                <td className="border border-slate-300 p-2 font-medium" rowSpan={2}>
-                                                    {qf.toLocaleString('es-AR', {maximumFractionDigits: 2})}
-                                                </td>
-                                                <td className="border border-slate-300 p-2 font-medium text-slate-800">
-                                                    {potA}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td className="border border-slate-300 p-2 text-right">
-                                                    cuadro 2.2.2.
-                                                </td>
-                                                <td className="border border-slate-300 p-2 font-medium">
-                                                    {res222}
-                                                </td>
-                                                <td className="border border-slate-300 p-2 font-medium text-slate-800">
-                                                    <div className="flex items-center justify-between gap-2 px-1">
+                                        <tr key={sector.id}>
+                                            <td className="border border-slate-300 p-2 font-medium bg-[#4caf50] text-white">
+                                                {sector.name || "-"}
+                                            </td>
+                                            <td className="border border-slate-300 p-2">
+                                                {sector.tipoActividad || "-"}
+                                            </td>
+                                            <td className="border border-slate-300 p-2 font-medium">
+                                                {riesgo}
+                                            </td>
+                                            
+                                            <td className="border border-slate-300 p-2 text-right text-slate-500 text-sm">
+                                                {ventilacion === "Forzada" ? "cuadro 2.2.2." : "cuadro 2.2.1."}
+                                            </td>
+                                            <td className="border border-slate-300 p-2 font-black text-amber-700">
+                                                {resistencia}
+                                            </td>
+                                            
+                                            <td className="border border-slate-300 p-2 font-medium">
+                                                {qf.toLocaleString('es-AR', {maximumFractionDigits: 2})}
+                                            </td>
+                                            <td className="border border-slate-300 p-2 font-medium text-slate-800">
+                                                <div className="flex flex-col gap-2">
+                                                    <div className="flex items-center justify-between border-b border-slate-100 pb-1">
+                                                        <span>{potA}</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between">
                                                         <span>{potB}</span>
                                                         <label className="flex items-center cursor-pointer opacity-40 hover:opacity-100 transition-opacity" title="Líquidos inflamables > 1m²">
                                                             <input 
@@ -338,9 +328,9 @@ export default function PotencialExtintorPCI({ company }: { company: any }) {
                                                             />
                                                         </label>
                                                     </div>
-                                                </td>
-                                            </tr>
-                                        </React.Fragment>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     );
                                 })}
                             </tbody>
