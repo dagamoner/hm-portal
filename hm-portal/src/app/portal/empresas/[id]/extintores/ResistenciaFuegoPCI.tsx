@@ -55,11 +55,8 @@ const calcularRiesgo = (actividad: string, material: string) => {
         return "-";
     }
     
-    if (actividad === "Comercial" || actividad === "Industrial" || actividad === "Depósito") {
-        return r;
-    }
-    
-    return "-";
+    // For anything else (Comercial, Industrial, Depósito, or custom activities), use general rule
+    return r;
 };
 
 const determinarResistencia = (qf: number, riesgo: string, ventilacion: string) => {
