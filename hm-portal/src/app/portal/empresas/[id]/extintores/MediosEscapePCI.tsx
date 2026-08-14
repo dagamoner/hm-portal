@@ -178,7 +178,10 @@ export default function MediosEscapePCI({ company }: { company: any }) {
                         const subsectorsData = sector.subsectors.map(sub => {
                             const tipoObj = TIPOS_USO_ESCAPE.find(t => t.id === sub.tipoUsoEscape);
                             const xVal = tipoObj ? tipoObj.x : 0;
-                            const sup = Number(sub.areaBruta) || 0;
+                            const bruta = Number(sub.areaBruta) || 0;
+                            const circ = Number(sub.circulaciones) || 0;
+                            const comun = Number(sub.usoComun) || 0;
+                            const sup = bruta - circ - comun;
                             const nPersonas = xVal > 0 ? Math.round(sup / xVal) : 0;
                             const nUas = nPersonas / 100;
                             const medios = calcularMediosDeEscape(nUas);
