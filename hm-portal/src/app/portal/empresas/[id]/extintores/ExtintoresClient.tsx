@@ -24,7 +24,7 @@ export default function ExtintoresClient({ company, extintores }: { company: any
     
     // TWO-TIER TABS
     const [mainTab, setMainTab] = useState<"informe" | "inventario">("informe");
-    const [subTab, setSubTab] = useState<"generalidades" | "sectores" | "riesgos" | "carga" | "resistencia" | "potencial" | "verificacion" | "escape" | "iluminacion" | "condiciones">("generalidades");
+    const [subTab, setSubTab] = useState<"generalidades" | "sectores" | "riesgos" | "carga" | "resistencia" | "potencial" | "verificacion" | "escape" | "iluminacion" | "condiciones" | "informe">("generalidades");
 
     const today = new Date();
     const thirtyDays = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
