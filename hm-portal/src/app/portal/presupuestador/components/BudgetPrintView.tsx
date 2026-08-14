@@ -45,75 +45,97 @@ export default function BudgetPrintView({ budget }: { budget: BudgetData }) {
       
       <div className="print-container p-12 h-full flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-start mb-8">
-          <div className="w-32 h-32 flex items-center justify-center shrink-0">
+        <div className="flex justify-between items-center mb-10">
+          <div className="w-28 h-28 flex items-center justify-center shrink-0">
             <img src="/logo-mh-gold.png" alt="MH Higiene y Seguridad Logo" className="w-full h-full object-contain" />
           </div>
-          <div className="text-right pt-2">
-            <h1 className="text-3xl font-bold text-[#d4af37] mb-1 tracking-tight">MH Higiene y Seguridad</h1>
-            <p className="text-gray-600 text-[15px]">Presupuesto de Servicios Técnicos</p>
-            <p className="text-gray-600 text-[15px] mt-2">Fecha: {displayDate}</p>
+          <div className="text-right pt-2 flex flex-col justify-center">
+            <h1 className="text-2xl font-black text-[#d4af37] mb-2 uppercase tracking-wide">MH Higiene y Seguridad</h1>
+            <p className="text-gray-500 text-[13px] uppercase tracking-widest font-semibold mb-1">Presupuesto de Servicios Técnicos</p>
+            <p className="text-gray-400 text-[13px] tracking-wide">Mendoza, {displayDate}</p>
           </div>
         </div>
 
         {/* Separator */}
-        <div className="h-px bg-[#d4af37] w-full mb-6"></div>
+        <div className="h-[2px] bg-gradient-to-r from-[#d4af37] to-gray-200 w-full mb-8"></div>
 
         {/* Client Box */}
-        <div className="bg-[#f8f9fa] p-5 mb-8">
-          <p className="text-[15px] text-gray-800 mb-1">
-            <span className="font-bold">Cliente:</span> {budget.clientName} 
-            {budget.clientCompany ? ` - ${budget.clientCompany}` : ''}
-            {budget.clientCuil ? ` (CUIL/CUIT: ${budget.clientCuil})` : ''}
-            {budget.clientAddress ? ` - Domicilio: ${budget.clientAddress}` : ''}
-          </p>
-          <p className="text-[15px] text-gray-800">
-            <span className="font-bold">Referencia:</span> {budget.reference || "-"}
-          </p>
+        <div className="bg-gray-50/80 border border-gray-100 rounded-lg p-6 mb-10 shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[14px]">
+            <div>
+              <p className="text-gray-800 mb-2 leading-relaxed">
+                <span className="font-bold text-gray-900 uppercase text-[12px] tracking-wider block mb-1">Cliente / Empresa</span> 
+                {budget.clientName} {budget.clientCompany ? ` - ${budget.clientCompany}` : ''}
+              </p>
+              <p className="text-gray-800 leading-relaxed">
+                <span className="font-bold text-gray-900 uppercase text-[12px] tracking-wider block mb-1">CUIL / CUIT</span> 
+                {budget.clientCuil || "No especificado"}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-800 mb-2 leading-relaxed">
+                <span className="font-bold text-gray-900 uppercase text-[12px] tracking-wider block mb-1">Domicilio</span> 
+                {budget.clientAddress || "No especificado"}
+              </p>
+              <p className="text-gray-800 leading-relaxed">
+                <span className="font-bold text-gray-900 uppercase text-[12px] tracking-wider block mb-1">Referencia</span> 
+                {budget.reference || "-"}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Items Table */}
-        <div className="mb-6">
-          <table className="w-full text-[15px] border-collapse">
+        <div className="mb-8 flex-grow">
+          <table className="w-full text-[14px] border-collapse">
             <thead>
-              <tr className="bg-[#34495e] text-white">
-                <th className="py-3 px-4 text-left font-bold w-3/4">Descripción del Servicio</th>
-                <th className="py-3 px-4 text-right font-bold w-1/4">Precio<br/>(ARS)</th>
+              <tr className="border-b-2 border-gray-800 text-gray-900">
+                <th className="py-3 px-4 text-left font-bold w-3/4 tracking-wide uppercase text-[12px]">Descripción del Servicio</th>
+                <th className="py-3 px-4 text-right font-bold w-1/4 tracking-wide uppercase text-[12px]">Precio (ARS)</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-100">
               {budget.items.map((item, index) => (
-                <tr key={index} className="border-b border-gray-300">
-                  <td className="py-4 px-4 text-gray-800 whitespace-pre-line">{item.description}</td>
-                  <td className="py-4 px-4 text-right text-gray-800">${Number(item.price).toLocaleString('es-AR', { minimumFractionDigits: 0 })}</td>
+                <tr key={index} className="group">
+                  <td className="py-4 px-4 text-gray-700 whitespace-pre-line leading-relaxed group-hover:bg-gray-50/50">{item.description}</td>
+                  <td className="py-4 px-4 text-right text-gray-700 font-medium group-hover:bg-gray-50/50">${Number(item.price).toLocaleString('es-AR', { minimumFractionDigits: 0 })}</td>
                 </tr>
               ))}
-              <tr className="bg-[#f8f9fa] border-b border-gray-300">
-                <td className="py-4 px-4 font-bold text-gray-800">TOTAL</td>
-                <td className="py-4 px-4 text-right font-bold text-gray-800">${Number(budget.total).toLocaleString('es-AR', { minimumFractionDigits: 0 })}</td>
-              </tr>
             </tbody>
           </table>
+          
+          {/* Totals Section */}
+          <div className="flex justify-end mt-4">
+            <div className="w-1/2 md:w-1/3">
+              <div className="flex justify-between items-center py-4 px-6 bg-gray-900 text-white rounded-lg shadow-sm">
+                <span className="font-bold text-[13px] tracking-widest uppercase">Total</span>
+                <span className="font-bold text-lg tracking-wide">${Number(budget.total).toLocaleString('es-AR', { minimumFractionDigits: 0 })}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Important Note */}
         {budget.importantNote && (
-          <div className="mb-12 text-[14px] text-gray-600">
-            <span className="font-bold">Nota importante:</span> {budget.importantNote}
+          <div className="mb-12 p-6 bg-gray-50/80 border border-gray-100 rounded-lg text-[13px] text-gray-600 leading-relaxed">
+            <span className="font-bold text-gray-900 tracking-wide uppercase text-[11px] block mb-2">Nota importante</span>
+            {budget.importantNote}
           </div>
         )}
 
         {/* Signatures & Footer */}
         <div className="mt-auto pt-24">
-          <div className="flex justify-start mb-12">
-            <div className="text-left">
-              <p className="font-medium text-gray-800 text-[15px]">Firma Lic. mgter. Moner Dante Gabriel y Lic. Moner Fernando Gabriel</p>
+          <div className="flex justify-start mb-16">
+            <div className="text-center">
+              <div className="w-64 border-t border-gray-400 mb-2"></div>
+              <p className="font-semibold text-gray-800 text-[13px] tracking-wide">Lic. mgter. Moner Dante Gabriel</p>
+              <p className="font-semibold text-gray-800 text-[13px] tracking-wide">Lic. Moner Fernando Gabriel</p>
             </div>
           </div>
           
-          <div className="border-t border-gray-300 pt-4 text-[13px] text-gray-500 text-left">
-            <p>MH Higiene y Seguridad en el Trabajo | Mendoza, Argentina</p>
-            <p>mail: mhhigieneyseguridad@gmail.com / www.mhhigieneyseguridad.com</p>
+          <div className="border-t border-gray-200 pt-6 text-[12px] text-gray-400 text-center flex flex-col md:flex-row justify-between items-center tracking-wide">
+            <p className="font-medium text-gray-500 mb-2 md:mb-0">MH Higiene y Seguridad en el Trabajo | Mendoza, Argentina</p>
+            <p className="font-medium">mhhigieneyseguridad@gmail.com | www.mhhigieneyseguridad.com</p>
           </div>
         </div>
       </div>
