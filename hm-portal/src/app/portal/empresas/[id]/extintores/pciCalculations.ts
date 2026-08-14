@@ -3,37 +3,31 @@ export const getSectorTotalSuperficie = (sector: any) => {
 };
 
 export const MATERIALES = [
-    { name: 'Explosivos', label: 'Explosivos', r: 1 },
-    { name: 'Inflamables', label: 'Inflamables', r: 2 },
-    { name: 'Muy combustibles', label: 'Muy combustibles', r: 3 },
-    { name: 'Combustibles', label: 'Combustibles', r: 4 },
-    { name: 'Poco combustibles', label: 'Poco combustibles', r: 5 },
-    { name: 'Incombustibles', label: 'Incombustibles', r: 6 },
-    { name: 'Refractarios', label: 'Refractarios', r: 7 }
+    "Riesgo 1 (Explosivo)",
+    "Riesgo 2 (Inflamable)",
+    "Riesgo 3 (Muy Combustible)",
+    "Riesgo 4 (Combustible)",
+    "Riesgo 5 (Poco Combustible)",
+    "Riesgo 6 (Incombustible)",
+    "Riesgo 7 (Refractarios)"
 ];
 
-export const calcularRiesgo = (uso: string, materialName: string) => {
-    const mat = MATERIALES.find(m => m.name === materialName);
-    if (!uso || !mat) return "";
+export const calcularRiesgo = (actividad: string, material: string) => {
+    if (!actividad || !material) return "";
     
-    let isResidencial = false;
-    let isOtros = false;
+    const matIndex = MATERIALES.indexOf(material);
+    if (matIndex === -1) return "";
+    const r = `R${matIndex + 1}`;
     
-    if (uso.includes("Residencial") || uso.includes("Administrativa") || uso.includes("Comercial") || uso.includes("Educación") || uso.includes("Espectáculos") || uso.includes("Sanidad")) {
-        isResidencial = true;
-    } else {
-        isOtros = true;
+    const restringidas = ["Residencial", "Administrativo", "Espectáculos", "Cultura"];
+    if (restringidas.some(res => actividad.includes(res))) {
+        if (matIndex === 0 || matIndex === 1) return "NP";
+        if (matIndex === 2) return "R3";
+        if (matIndex === 3) return "R4";
+        return "";
     }
-
-    if (mat.r === 1) return isResidencial ? "NP" : "R1";
-    if (mat.r === 2) return isResidencial ? "NP" : "R2";
-    if (mat.r === 3) return isResidencial ? "R3" : "R3";
-    if (mat.r === 4) return isResidencial ? "R4" : "R4";
-    if (mat.r === 5) return isResidencial ? "R4" : "R5";
-    if (mat.r === 6) return isResidencial ? "R4" : "R6";
-    if (mat.r === 7) return isResidencial ? "R4" : "R7";
     
-    return "";
+    return r;
 };
 
 export const calcularCargaFuego = (sector: any) => {

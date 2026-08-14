@@ -183,19 +183,37 @@ export default function InformePCI({ company }: { company: any }) {
                     <table className="w-full table-fixed text-left border-collapse border border-slate-200 mb-8 break-inside-auto">
                         <thead>
                             <tr className="bg-slate-100 print-header">
-                                <th className="p-3 border border-slate-200 w-1/3">Sector</th>
-                                <th className="p-3 border border-slate-200">Subsectores</th>
-                                <th className="p-3 border border-slate-200 w-1/4 text-right">Superficie (m²)</th>
+                                <th className="p-3 border border-slate-200 w-1/3">Sector de Incendio</th>
+                                <th className="p-3 border border-slate-200">Uso</th>
+                                <th className="p-3 border border-slate-200 text-center">Sup. Cubierta Total (m²)</th>
+                                <th className="p-3 border border-slate-200 text-center">Pasillos/Baños (m²)</th>
+                                <th className="p-3 border border-slate-200 text-right">Sup. de Piso (m²)</th>
                             </tr>
                         </thead>
                         <tbody className="break-inside-auto">
-                            {filteredSectors.map((s: any, i: number) => (
-                                <tr key={s.id} className="break-inside-avoid">
-                                    <td className="p-3 border border-slate-200 font-bold">Sector {i+1}: {s.name}</td>
-                                    <td className="p-3 border border-slate-200">{s.subsectors?.map((sub: any) => sub.nombre).join(", ") || "-"}</td>
-                                    <td className="p-3 border border-slate-200 text-right">{getSectorTotalSuperficie(s).toLocaleString('es-AR')} m²</td>
-                                </tr>
-                            ))}
+                            {filteredSectors.map((s: any, i: number) => {
+                                return (
+                                    <React.Fragment key={s.id}>
+                                        <tr className="break-inside-avoid bg-slate-50">
+                                            <td colSpan={5} className="p-3 border border-slate-200 font-bold">Sector {i+1}: {s.name}</td>
+                                        </tr>
+                                        {s.subsectors?.map((sub: any, sIdx: number) => {
+                                            const bruta = Number(sub.areaBruta) || 0;
+                                            const circ = (Number(sub.circulaciones) || 0) + (Number(sub.usoComun) || 0);
+                                            const piso = bruta - circ;
+                                            return (
+                                                <tr key={sub.id} className="break-inside-avoid">
+                                                    <td className="p-3 border border-slate-200">Subsector {i+1}.{sIdx+1}: {sub.nombre || "-"}</td>
+                                                    <td className="p-3 border border-slate-200">{sub.uso || "-"}</td>
+                                                    <td className="p-3 border border-slate-200 text-center">{bruta.toFixed(2)}</td>
+                                                    <td className="p-3 border border-slate-200 text-center">{circ.toFixed(2)}</td>
+                                                    <td className="p-3 border border-slate-200 text-right font-bold">{piso.toFixed(2)}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </React.Fragment>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
@@ -214,12 +232,14 @@ export default function InformePCI({ company }: { company: any }) {
                         </thead>
                         <tbody>
                             {filteredSectors.map((s: any, i: number) => {
-                                const riesgo = calcularRiesgo(s.tipoActividad || "", s.tipoMateriales || "");
+                                const act = s.tipoActividad || s.uso || "";
+                                const mat = s.tipoMateriales || s.materialPredominante || "";
+                                const riesgo = calcularRiesgo(act, mat);
                                 return (
                                     <tr key={s.id} className="break-inside-avoid">
                                         <td className="p-3 border border-slate-200 font-bold">Sector {i+1}: {s.name}</td>
-                                        <td className="p-3 border border-slate-200">{s.tipoActividad || "-"}</td>
-                                        <td className="p-3 border border-slate-200">{s.tipoMateriales || "-"}</td>
+                                        <td className="p-3 border border-slate-200">{act || "-"}</td>
+                                        <td className="p-3 border border-slate-200">{mat || "-"}</td>
                                         <td className="p-3 border border-slate-200 text-center font-bold">{riesgo || "-"}</td>
                                     </tr>
                                 );
@@ -283,27 +303,27 @@ export default function InformePCI({ company }: { company: any }) {
                         <thead>
                             <tr className="bg-slate-100 print-header">
                                 <th className="p-3 border border-slate-200">Sector</th>
-                                <th className="p-3 border border-slate-200">Uso</th>
                                 <th className="p-3 border border-slate-200 text-center">Riesgo</th>
                                 <th className="p-3 border border-slate-200 text-center">Carga de Fuego (Kg/m²)</th>
-                                <th className="p-3 border border-slate-200 text-center">Vent. Natural</th>
-                                <th className="p-3 border border-slate-200 text-center">Vent. Forzada</th>
+                                <th className="p-3 border border-slate-200 text-center">Ventilación</th>
+                                <th className="p-3 border border-slate-200 text-center">Resistencia Fuego</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredSectors.map((s: any, i: number) => {
-                                const riesgo = calcularRiesgo(s.tipoActividad || "", s.tipoMateriales || "");
+                                const act = s.tipoActividad || s.uso || "";
+                                const mat = s.tipoMateriales || s.materialPredominante || "";
+                                const riesgo = calcularRiesgo(act, mat);
                                 const { qf } = calcularCargaFuego(s);
-                                const resNat = getResistenciaRequerida(qf, riesgo, false);
-                                const resForz = getResistenciaRequerida(qf, riesgo, true);
+                                const ventilacion = s.ventilacion || "Natural";
+                                const res = getResistenciaRequerida(qf, riesgo, ventilacion === "Forzada");
                                 return (
                                     <tr key={s.id} className="break-inside-avoid">
                                         <td className="p-3 border border-slate-200 font-bold">Sector {i+1}: {s.name}</td>
-                                        <td className="p-3 border border-slate-200">{s.tipoActividad || "-"}</td>
                                         <td className="p-3 border border-slate-200 text-center font-bold">{riesgo || "-"}</td>
                                         <td className="p-3 border border-slate-200 text-center">{qf.toFixed(2)}</td>
-                                        <td className="p-3 border border-slate-200 text-center font-bold">{resNat}</td>
-                                        <td className="p-3 border border-slate-200 text-center font-bold">{resForz}</td>
+                                        <td className="p-3 border border-slate-200 text-center">{ventilacion}</td>
+                                        <td className="p-3 border border-slate-200 text-center font-bold">{res}</td>
                                     </tr>
                                 );
                             })}
@@ -315,7 +335,9 @@ export default function InformePCI({ company }: { company: any }) {
                 <div className="avoid-break mb-8">
                     <h3 className="text-xl font-bold text-slate-700 mb-4">2.5. Potencial Extintor Mínimo y Verificación</h3>
                     {filteredSectors.map((s: any, i: number) => {
-                        const riesgo = calcularRiesgo(s.tipoActividad || "", s.tipoMateriales || "");
+                        const act = s.tipoActividad || s.uso || "";
+                        const mat = s.tipoMateriales || s.materialPredominante || "";
+                        const riesgo = calcularRiesgo(act, mat);
                         const { qf } = calcularCargaFuego(s);
                         const sup = getSectorTotalSuperficie(s);
                         const potA = getPotencialRequeridoA(qf, riesgo);
@@ -406,47 +428,59 @@ export default function InformePCI({ company }: { company: any }) {
                     <table className="w-full text-left border-collapse border border-slate-200 mb-8">
                         <thead>
                             <tr className="bg-slate-100 print-header">
-                                <th className="p-3 border border-slate-200">Sector</th>
-                                <th className="p-3 border border-slate-200">Uso Escape</th>
-                                <th className="p-3 border border-slate-200 text-right">Factor (x)</th>
-                                <th className="p-3 border border-slate-200 text-right">Personas (N)</th>
-                                <th className="p-3 border border-slate-200 text-right">U.A.S. Calc</th>
-                                <th className="p-3 border border-slate-200 text-right">Requerido (m)</th>
-                                <th className="p-3 border border-slate-200 text-right">Ancho Real (m)</th>
+                                <th className="p-3 border border-slate-200">Subsector</th>
+                                <th className="p-3 border border-slate-200">Tipo de Uso</th>
+                                <th className="p-3 border border-slate-200 text-center">X [m²/pers]</th>
+                                <th className="p-3 border border-slate-200 text-center">Sup. piso (m²)</th>
+                                <th className="p-3 border border-slate-200 text-center">Nº pers. a evacuar</th>
+                                <th className="p-3 border border-slate-200 text-center">"n" u.a.s.</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredSectors.map((s: any, i: number) => {
-                                let nPersonas = 0;
-                                let usoLabel = "-";
-                                let factor = "-";
-                                
-                                s.subsectors?.forEach((sub: any) => {
-                                    const tipoObj = TIPOS_USO_ESCAPE.find(t => t.id === sub.tipoUsoEscape);
-                                    if (tipoObj && tipoObj.x > 0) {
-                                        nPersonas += Math.round((Number(sub.areaBruta) || 0) / tipoObj.x);
-                                        usoLabel = tipoObj.label;
-                                        factor = String(tipoObj.x);
-                                    }
+                                let nPersonasTotal = 0;
+                                const subRows = s.subsectors?.map((sub: any, sIdx: number) => {
+                                    const tipoObj = TIPOS_USO_ESCAPE.find(t => t.id === sub.tipoUsoEscape) || { label: "-", x: 0 };
+                                    const bruta = Number(sub.areaBruta) || 0;
+                                    const circ = (Number(sub.circulaciones) || 0) + (Number(sub.usoComun) || 0);
+                                    const piso = bruta - circ;
+                                    const nPers = tipoObj.x > 0 ? Math.round(bruta / tipoObj.x) : 0;
+                                    nPersonasTotal += nPers;
+                                    const nUasSub = nPers / 100;
+                                    
+                                    return (
+                                        <tr key={sub.id} className="break-inside-avoid">
+                                            <td className="p-3 border border-slate-200">Subsector {i+1}.{sIdx+1}: {sub.nombre || "-"}</td>
+                                            <td className="p-3 border border-slate-200 text-xs">{tipoObj.label}</td>
+                                            <td className="p-3 border border-slate-200 text-center">{tipoObj.x > 0 ? tipoObj.x : "-"}</td>
+                                            <td className="p-3 border border-slate-200 text-center">{piso.toFixed(2)}</td>
+                                            <td className="p-3 border border-slate-200 text-center">{tipoObj.x > 0 ? nPers : "-"}</td>
+                                            <td className="p-3 border border-slate-200 text-center">{tipoObj.x > 0 ? nUasSub.toFixed(1) : "-"}</td>
+                                        </tr>
+                                    );
                                 });
                                 
-                                const uas = nPersonas / 100;
-                                const reqM = calcularMetrosUAS(Math.ceil(uas), s.edificioExistente);
+                                let uasTotal = nPersonasTotal / 100;
+                                if (uasTotal > 0 && uasTotal <= 1) uasTotal = 2;
+                                const reqM = calcularMetrosUAS(Math.ceil(uasTotal), s.edificioExistente);
                                 const anchoReal = Number(s.anchoRealEscape) || 0;
                                 const cumple = anchoReal >= reqM && anchoReal > 0;
                                 
                                 return (
-                                    <tr key={s.id} className="break-inside-avoid">
-                                        <td className="p-3 border border-slate-200 font-bold">Sector {i+1}: {s.name}</td>
-                                        <td className="p-3 border border-slate-200 text-xs">{usoLabel}</td>
-                                        <td className="p-3 border border-slate-200 text-right">{factor}</td>
-                                        <td className="p-3 border border-slate-200 text-right font-bold">{nPersonas}</td>
-                                        <td className="p-3 border border-slate-200 text-right">{uas.toFixed(2)}</td>
-                                        <td className="p-3 border border-slate-200 text-right font-bold">{reqM.toFixed(2)}</td>
-                                        <td className={`p-3 border border-slate-200 text-right font-bold ${cumple ? 'text-emerald-600' : 'text-red-600'}`}>
-                                            {anchoReal.toFixed(2)} {cumple ? "(CUMPLE)" : "(NO CUMPLE)"}
-                                        </td>
-                                    </tr>
+                                    <React.Fragment key={s.id}>
+                                        <tr className="bg-slate-50 break-inside-avoid">
+                                            <td colSpan={6} className="p-3 border border-slate-200 font-bold">Sector {i+1}: {s.name}</td>
+                                        </tr>
+                                        {subRows}
+                                        <tr className="bg-slate-100 break-inside-avoid">
+                                            <td colSpan={3} className="p-3 border border-slate-200 text-right font-bold">Totales Sector {i+1}:</td>
+                                            <td colSpan={3} className="p-3 border border-slate-200 text-sm">
+                                                UAS Calculadas: {uasTotal.toFixed(1)} <br/>
+                                                Requerido: {reqM.toFixed(2)}m <br/>
+                                                Real: {anchoReal.toFixed(2)}m <strong className={cumple ? 'text-emerald-600' : 'text-red-600'}>({cumple ? "CUMPLE" : "NO CUMPLE"})</strong>
+                                            </td>
+                                        </tr>
+                                    </React.Fragment>
                                 );
                             })}
                         </tbody>
@@ -468,7 +502,9 @@ export default function InformePCI({ company }: { company: any }) {
                 <div className="avoid-break">
                     <h3 className="text-xl font-bold text-slate-700 mb-4">2.8. Condiciones Generales y Específicas (Dec. 351/79)</h3>
                     {filteredSectors.map((s: any, i: number) => {
-                        const riesgoRaw = calcularRiesgo(s.tipoActividad || "", s.tipoMateriales || "");
+                        const act = s.tipoActividad || s.uso || "";
+                        const mat = s.tipoMateriales || s.materialPredominante || "";
+                        const riesgoRaw = calcularRiesgo(act, mat);
                         const riesgoNum = parseInt((riesgoRaw || "").replace('R', '')) || 0;
                         const matrizItem = MATRIZ_CUADRO_PCI.find((m:any) => m.uso === s.usoCuadroPCI && m.riesgo === riesgoNum);
                         
