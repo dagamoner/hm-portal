@@ -68,11 +68,45 @@ export default function SectoresPCI({ company }: { company: any }) {
 
     const addSector = () => {
         if (!selectedEstId) return alert("Por favor, crea un Establecimiento en la pestaña de Generalidades primero.");
+        
+        const est = establecimientos.find(e => e.id === selectedEstId);
+        const numSubsuelos = parseInt(est?.subsuelos) || 0;
+        let numTotales = parseInt(est?.nivelesTotales) || 0;
+        
+        // Si no puso niveles totales pero sí superiores o subsuelos, lo calculamos
+        if (numTotales === 0 && (parseInt(est?.pisosSuperiores) > 0 || numSubsuelos > 0)) {
+            numTotales = (parseInt(est?.pisosSuperiores) || 0) + numSubsuelos + 1;
+        }
+        
+        let initialSubsectors: Subsector[] = [];
+        
+        if (numTotales > 0) {
+            let currentLevel = -numSubsuelos;
+            const sectorNumber = filteredSectors.length + 1;
+            
+            for (let i = 0; i < numTotales; i++) {
+                let usoName = "Planta Baja";
+                if (currentLevel < 0) usoName = `Subsuelo ${Math.abs(currentLevel)}`;
+                else if (currentLevel > 0) usoName = `Piso ${currentLevel}`;
+                
+                initialSubsectors.push({
+                    id: Math.random().toString(36).substring(2, 9),
+                    nombre: `${sectorNumber}.${String(i + 1).padStart(2, '0')}`,
+                    uso: usoName,
+                    areaBruta: 0,
+                    circulaciones: 0,
+                    usoComun: 0
+                });
+                
+                currentLevel++;
+            }
+        }
+
         const newSector = { 
-            id: Math.random().toString(36).substr(2, 9), 
+            id: Math.random().toString(36).substring(2, 9), 
             establecimientoId: selectedEstId,
             name: `Sector ${filteredSectors.length + 1}`, 
-            subsectors: [] 
+            subsectors: initialSubsectors 
         };
         const nextList = [...sectors, newSector];
         setSectors(nextList);
