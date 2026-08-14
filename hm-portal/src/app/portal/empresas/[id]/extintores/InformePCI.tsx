@@ -149,7 +149,7 @@ export default function InformePCI({ company }: { company: any }) {
                 {/* 1. GENERALIDADES */}
                 <div className="avoid-break">
                     <h2 className="text-2xl font-black text-slate-800 border-b-2 border-slate-200 pb-2 mb-6 uppercase">1. Generalidades</h2>
-                    <table className="w-full text-left border-collapse border border-slate-200 mb-8">
+                    <table className="w-full table-fixed text-left border-collapse border border-slate-200 mb-8">
                         <tbody>
                             <tr>
                                 <th className="p-3 border border-slate-200 bg-slate-50 print-header w-1/3">Nombre del Establecimiento</th>
@@ -157,19 +157,19 @@ export default function InformePCI({ company }: { company: any }) {
                             </tr>
                             <tr>
                                 <th className="p-3 border border-slate-200 bg-slate-50 print-header">Domicilio</th>
-                                <td className="p-3 border border-slate-200">{establecimiento?.domicilio || "-"}</td>
+                                <td className="p-3 border border-slate-200">{establecimiento?.ubicacionTerreno || "-"}</td>
                             </tr>
                             <tr>
                                 <th className="p-3 border border-slate-200 bg-slate-50 print-header">Actividad</th>
-                                <td className="p-3 border border-slate-200">{establecimiento?.actividad || "-"}</td>
+                                <td className="p-3 border border-slate-200">{establecimiento?.tipoActividad || "-"}</td>
                             </tr>
                             <tr>
                                 <th className="p-3 border border-slate-200 bg-slate-50 print-header">Superficie Total</th>
-                                <td className="p-3 border border-slate-200">{establecimiento?.superficieTotal || 0} m²</td>
+                                <td className="p-3 border border-slate-200">{filteredSectors.reduce((acc: number, s: any) => acc + getSectorTotalSuperficie(s), 0).toLocaleString('es-AR')} m²</td>
                             </tr>
                             <tr>
                                 <th className="p-3 border border-slate-200 bg-slate-50 print-header">Cantidad de Pisos</th>
-                                <td className="p-3 border border-slate-200">{establecimiento?.cantidadPisos || 0}</td>
+                                <td className="p-3 border border-slate-200">{establecimiento?.nivelesTotales || 0}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -180,17 +180,17 @@ export default function InformePCI({ company }: { company: any }) {
                 {/* 2.1 SECTORES DE INCENDIO */}
                 <div className="avoid-break mb-8">
                     <h3 className="text-xl font-bold text-slate-700 mb-4">2.1. Sectores de Incendio</h3>
-                    <table className="w-full text-left border-collapse border border-slate-200 mb-8">
+                    <table className="w-full table-fixed text-left border-collapse border border-slate-200 mb-8 break-inside-auto">
                         <thead>
                             <tr className="bg-slate-100 print-header">
-                                <th className="p-3 border border-slate-200">Sector</th>
+                                <th className="p-3 border border-slate-200 w-1/3">Sector</th>
                                 <th className="p-3 border border-slate-200">Subsectores</th>
-                                <th className="p-3 border border-slate-200 text-right">Superficie (m²)</th>
+                                <th className="p-3 border border-slate-200 w-1/4 text-right">Superficie (m²)</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="break-inside-auto">
                             {filteredSectors.map((s: any, i: number) => (
-                                <tr key={s.id}>
+                                <tr key={s.id} className="break-inside-avoid">
                                     <td className="p-3 border border-slate-200 font-bold">Sector {i+1}: {s.name}</td>
                                     <td className="p-3 border border-slate-200">{s.subsectors?.map((sub: any) => sub.nombre).join(", ") || "-"}</td>
                                     <td className="p-3 border border-slate-200 text-right">{getSectorTotalSuperficie(s).toLocaleString('es-AR')} m²</td>
@@ -214,12 +214,12 @@ export default function InformePCI({ company }: { company: any }) {
                         </thead>
                         <tbody>
                             {filteredSectors.map((s: any, i: number) => {
-                                const riesgo = calcularRiesgo(s.uso || "", s.materialPredominante || "");
+                                const riesgo = calcularRiesgo(s.tipoActividad || "", s.tipoMateriales || "");
                                 return (
-                                    <tr key={s.id}>
+                                    <tr key={s.id} className="break-inside-avoid">
                                         <td className="p-3 border border-slate-200 font-bold">Sector {i+1}: {s.name}</td>
-                                        <td className="p-3 border border-slate-200">{s.uso || "-"}</td>
-                                        <td className="p-3 border border-slate-200">{s.materialPredominante || "-"}</td>
+                                        <td className="p-3 border border-slate-200">{s.tipoActividad || "-"}</td>
+                                        <td className="p-3 border border-slate-200">{s.tipoMateriales || "-"}</td>
                                         <td className="p-3 border border-slate-200 text-center font-bold">{riesgo || "-"}</td>
                                     </tr>
                                 );
@@ -292,14 +292,14 @@ export default function InformePCI({ company }: { company: any }) {
                         </thead>
                         <tbody>
                             {filteredSectors.map((s: any, i: number) => {
-                                const riesgo = calcularRiesgo(s.uso || "", s.materialPredominante || "");
+                                const riesgo = calcularRiesgo(s.tipoActividad || "", s.tipoMateriales || "");
                                 const { qf } = calcularCargaFuego(s);
                                 const resNat = getResistenciaRequerida(qf, riesgo, false);
                                 const resForz = getResistenciaRequerida(qf, riesgo, true);
                                 return (
-                                    <tr key={s.id}>
+                                    <tr key={s.id} className="break-inside-avoid">
                                         <td className="p-3 border border-slate-200 font-bold">Sector {i+1}: {s.name}</td>
-                                        <td className="p-3 border border-slate-200">{s.uso || "-"}</td>
+                                        <td className="p-3 border border-slate-200">{s.tipoActividad || "-"}</td>
                                         <td className="p-3 border border-slate-200 text-center font-bold">{riesgo || "-"}</td>
                                         <td className="p-3 border border-slate-200 text-center">{qf.toFixed(2)}</td>
                                         <td className="p-3 border border-slate-200 text-center font-bold">{resNat}</td>
@@ -314,44 +314,90 @@ export default function InformePCI({ company }: { company: any }) {
                 {/* 2.5 POTENCIAL EXTINTOR */}
                 <div className="avoid-break mb-8">
                     <h3 className="text-xl font-bold text-slate-700 mb-4">2.5. Potencial Extintor Mínimo y Verificación</h3>
-                    <table className="w-full text-left border-collapse border border-slate-200 mb-8">
-                        <thead>
-                            <tr className="bg-slate-100 print-header">
-                                <th className="p-3 border border-slate-200">Sector</th>
-                                <th className="p-3 border border-slate-200 text-center">Potencial Clase A</th>
-                                <th className="p-3 border border-slate-200 text-center">Potencial Clase B</th>
-                                <th className="p-3 border border-slate-200 text-center">Extintores Calculados</th>
-                                <th className="p-3 border border-slate-200 text-center">Proyectados</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredSectors.map((s: any, i: number) => {
-                                const riesgo = calcularRiesgo(s.uso || "", s.materialPredominante || "");
-                                const { qf } = calcularCargaFuego(s);
-                                const sup = getSectorTotalSuperficie(s);
-                                const potA = getPotencialRequeridoA(qf, riesgo);
-                                const potB = getPotencialRequeridoB(qf, riesgo);
-                                const extintoresCalc = Math.round(sup / 200) || 1;
-                                
-                                const projA = Number(s.proyectados?.A) || 0;
-                                const projB = Number(s.proyectados?.B) || 0;
-                                const projC = Number(s.proyectados?.C) || 0;
-                                const totalProj = projA + projB + projC;
-                                
-                                return (
-                                    <tr key={s.id}>
-                                        <td className="p-3 border border-slate-200 font-bold">Sector {i+1}: {s.name}</td>
-                                        <td className="p-3 border border-slate-200 text-center font-bold">{potA}</td>
-                                        <td className="p-3 border border-slate-200 text-center font-bold">{potB}</td>
-                                        <td className="p-3 border border-slate-200 text-center">{extintoresCalc} (1 cada 200m²)</td>
-                                        <td className="p-3 border border-slate-200 text-center font-bold">
-                                            {totalProj > 0 ? `${totalProj} Extintores` : "-"}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                    {filteredSectors.map((s: any, i: number) => {
+                        const riesgo = calcularRiesgo(s.tipoActividad || "", s.tipoMateriales || "");
+                        const { qf } = calcularCargaFuego(s);
+                        const sup = getSectorTotalSuperficie(s);
+                        const potA = getPotencialRequeridoA(qf, riesgo);
+                        const potB = getPotencialRequeridoB(qf, riesgo);
+                        const extintoresCalc = Math.round(sup / 200) || 1;
+                        
+                        const proj = s.extintoresProyectados || {};
+                        const pqs10 = Number(proj.pqs10) || 0;
+                        const pqs5 = Number(proj.pqs5) || 0;
+                        const co2 = Number(proj.co2) || 0;
+                        const k = Number(proj.k) || 0;
+                        const totalProj = pqs10 + pqs5 + co2 + k;
+                        
+                        return (
+                            <div key={s.id} className="mb-8 avoid-break">
+                                <h4 className="font-bold text-lg mb-2">Sector {i+1}: {s.name}</h4>
+                                <div className="grid grid-cols-4 gap-4 mb-4">
+                                    <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-center">
+                                        <div className="text-xs font-bold text-slate-400 uppercase">Superficie</div>
+                                        <div className="text-lg font-black text-slate-800">{sup.toLocaleString('es-AR')} m²</div>
+                                    </div>
+                                    <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-center">
+                                        <div className="text-xs font-bold text-slate-400 uppercase">Potencial A Requerido</div>
+                                        <div className="text-lg font-black text-slate-800">{potA}</div>
+                                    </div>
+                                    <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-center">
+                                        <div className="text-xs font-bold text-slate-400 uppercase">Potencial B Requerido</div>
+                                        <div className="text-lg font-black text-slate-800">{potB}</div>
+                                    </div>
+                                    <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-center">
+                                        <div className="text-xs font-bold text-slate-400 uppercase">Extintores Estimados</div>
+                                        <div className="text-lg font-black text-slate-800">{extintoresCalc}</div>
+                                    </div>
+                                </div>
+                                <table className="w-full text-left border-collapse border border-slate-200 mb-2">
+                                    <thead>
+                                        <tr className="bg-slate-100 print-header">
+                                            <th className="p-3 border border-slate-200 w-1/3">Tipo de Extintor Proyectado</th>
+                                            <th className="p-3 border border-slate-200 text-center">Cantidad</th>
+                                            <th className="p-3 border border-slate-200 text-center">Aporta Potencial A</th>
+                                            <th className="p-3 border border-slate-200 text-center">Aporta Potencial B</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td className="p-3 border border-slate-200 font-bold">PQS (10 kg)</td>
+                                            <td className="p-3 border border-slate-200 text-center">{pqs10 > 0 ? pqs10 : "-"}</td>
+                                            <td className="p-3 border border-slate-200 text-center font-bold text-emerald-600">6A</td>
+                                            <td className="p-3 border border-slate-200 text-center font-bold text-emerald-600">40B</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="p-3 border border-slate-200 font-bold">PQS (5 kg)</td>
+                                            <td className="p-3 border border-slate-200 text-center">{pqs5 > 0 ? pqs5 : "-"}</td>
+                                            <td className="p-3 border border-slate-200 text-center font-bold text-emerald-600">4A</td>
+                                            <td className="p-3 border border-slate-200 text-center font-bold text-emerald-600">20B</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="p-3 border border-slate-200 font-bold">CO2 (5 kg)</td>
+                                            <td className="p-3 border border-slate-200 text-center">{co2 > 0 ? co2 : "-"}</td>
+                                            <td className="p-3 border border-slate-200 text-center font-bold text-slate-400">-</td>
+                                            <td className="p-3 border border-slate-200 text-center font-bold text-emerald-600">5B</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="p-3 border border-slate-200 font-bold">Clase K</td>
+                                            <td className="p-3 border border-slate-200 text-center">{k > 0 ? k : "-"}</td>
+                                            <td className="p-3 border border-slate-200 text-center font-bold text-slate-400">-</td>
+                                            <td className="p-3 border border-slate-200 text-center font-bold text-slate-400">-</td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr className="bg-slate-50 print-header">
+                                            <td colSpan={1} className="p-3 border border-slate-200 text-right font-bold">Total Extintores =</td>
+                                            <td className="p-3 border border-slate-200 text-center font-bold">{totalProj}</td>
+                                            <td colSpan={2} className="p-3 border border-slate-200 text-center">
+                                                {totalProj >= extintoresCalc ? <span className="text-emerald-600 font-bold">CUMPLE</span> : <span className="text-red-600 font-bold">NO CUMPLE</span>}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        );
+                    })}
                 </div>
 
                 {/* 2.6 MEDIOS DE ESCAPE */}
@@ -390,7 +436,7 @@ export default function InformePCI({ company }: { company: any }) {
                                 const cumple = anchoReal >= reqM && anchoReal > 0;
                                 
                                 return (
-                                    <tr key={s.id}>
+                                    <tr key={s.id} className="break-inside-avoid">
                                         <td className="p-3 border border-slate-200 font-bold">Sector {i+1}: {s.name}</td>
                                         <td className="p-3 border border-slate-200 text-xs">{usoLabel}</td>
                                         <td className="p-3 border border-slate-200 text-right">{factor}</td>
@@ -422,7 +468,8 @@ export default function InformePCI({ company }: { company: any }) {
                 <div className="avoid-break">
                     <h3 className="text-xl font-bold text-slate-700 mb-4">2.8. Condiciones Generales y Específicas (Dec. 351/79)</h3>
                     {filteredSectors.map((s: any, i: number) => {
-                        const riesgoNum = parseInt((calcularRiesgo(s.uso || "", s.materialPredominante || "") || "").replace('R', '')) || 0;
+                        const riesgoRaw = calcularRiesgo(s.tipoActividad || "", s.tipoMateriales || "");
+                        const riesgoNum = parseInt((riesgoRaw || "").replace('R', '')) || 0;
                         const matrizItem = MATRIZ_CUADRO_PCI.find((m:any) => m.uso === s.usoCuadroPCI && m.riesgo === riesgoNum);
                         
                         let condReq: any[] = [];
