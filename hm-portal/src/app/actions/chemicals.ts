@@ -37,6 +37,23 @@ export async function createChemicalProduct(companyId: string, data: any) {
       },
     });
 
+    // Check if it exists in SGA library, if not, add it for future use
+    const existingLibraryItem = await prisma.sgaLibraryItem.findFirst({
+      where: { name: { equals: data.name, mode: 'insensitive' } }
+    });
+
+    if (!existingLibraryItem) {
+      await prisma.sgaLibraryItem.create({
+        data: {
+          name: data.name,
+          casNumber: data.casNumber,
+          warningWord: data.warningWord,
+          pictograms: data.pictograms || [],
+          fdsUrl: data.fdsUrl,
+        }
+      });
+    }
+
     revalidatePath(`/portal/empresas/${companyId}/quimicos`);
     return { success: true, data: product };
   } catch (error) {
