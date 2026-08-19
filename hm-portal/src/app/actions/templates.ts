@@ -7,7 +7,12 @@ import { revalidatePath } from "next/cache";
 export async function getChecklistTemplates(companyId: string) {
   await requireAuth(companyId);
   return await prisma.checklistTemplate.findMany({
-    where: { companyId },
+    where: {
+      OR: [
+        { companyId },
+        { companyId: null }
+      ]
+    },
     orderBy: { createdAt: "desc" },
   });
 }
