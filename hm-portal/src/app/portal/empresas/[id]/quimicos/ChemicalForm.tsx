@@ -189,10 +189,25 @@ export function ChemicalForm({ companyId, onSuccess, onCancel, sgaLibrary = [] }
           <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Ficha de Datos de Seguridad (FDS)</label>
           <div className="flex items-center gap-4">
             <div className="flex-1 bg-white border border-slate-200 border-dashed rounded-xl px-4 py-3 flex items-center justify-between">
-              <span className="text-sm text-slate-500 font-medium">{formData.fdsUrl ? "Archivo adjunto" : "Subir PDF de Ficha de Seguridad..."}</span>
-              <button type="button" className="text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1.5">
-                <Upload size={14} /> Subir PDF
-              </button>
+              <span className="text-sm text-slate-500 font-medium truncate max-w-[250px]">{formData.fdsUrl ? "Archivo PDF adjunto" : "Subir PDF de Ficha de Seguridad..."}</span>
+              <label className="text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1.5 cursor-pointer">
+                <Upload size={14} /> {formData.fdsUrl ? "Cambiar" : "Subir PDF"}
+                <input 
+                  type="file" 
+                  accept=".pdf"
+                  className="hidden" 
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setFormData({...formData, fdsUrl: reader.result as string});
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }} 
+                />
+              </label>
             </div>
             <label className="flex items-center gap-2 cursor-pointer border border-slate-200 bg-white px-4 py-3 rounded-xl shrink-0">
               <input type="checkbox" className="w-4 h-4 text-emerald-600 rounded" checked={formData.fdsCompliant} onChange={e => setFormData({...formData, fdsCompliant: e.target.checked})} />
