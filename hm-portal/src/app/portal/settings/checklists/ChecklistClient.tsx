@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { createChecklistTemplate, updateChecklistTemplate, deleteChecklistTemplate } from "@/app/actions/checklists";
 
-type ChecklistItem = { id: string, question: string };
+type ChecklistItem = { id: string, question: string, type?: string };
 type ChecklistCategory = { id: string, name: string, items: ChecklistItem[] };
 type TemplateData = { name: string, type: string, categories: ChecklistCategory[] };
 
