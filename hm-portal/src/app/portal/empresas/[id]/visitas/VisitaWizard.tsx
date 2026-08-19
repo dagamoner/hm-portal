@@ -121,14 +121,18 @@ export default function VisitaWizard({
         }
       }
 
-      // Save checklist data with texts
-      const checklistData = template.map(category => ({
-        category: category.name,
-        items: category.items.map(item => ({
-          text: item.text,
-          answer: answers[item.id] || { status: null, peligro: '' }
+      // Save checklist data with texts and template name
+      const checklistData = {
+        templateName: templates.find(t => t.id === selectedTemplateId)?.name || 'Acta de Visita',
+        categories: template.map(category => ({
+          category: category.name,
+          items: category.items.map(item => ({
+            text: item.text,
+            type: item.type,
+            answer: answers[item.id] || { status: null, peligro: '' }
+          }))
         }))
-      }));
+      };
 
       const payload = {
         establishmentId,

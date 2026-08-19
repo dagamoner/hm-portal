@@ -17,51 +17,124 @@ export default function VisitsList({ visits }: { visits: any[] }) {
     );
   }
 
-  const exportPdf = (visit: any) => {
+  const loadImage = (url: string): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = url;
+      img.onload = () => resolve(img);
+      img.onerror = (e) => reject(e);
+    });
+  };
+
+  const exportPdf = async (visit: any) => {
     try {
       const doc = new jsPDF('p', 'pt', 'a4');
       const pageWidth = doc.internal.pageSize.getWidth();
       
-      // Header
+      const primaryColor: [number, number, number] = [218, 165, 32]; // Yellow/Gold
+      const darkColor: [number, number, number] = [30, 41, 59]; // Slate 800
+
+      // Try to load logo
+      try {
+        const img = await loadImage('/logo-mh-gold.png');
+        doc.addImage(img, 'PNG', 40, 30, 60, 40);
+      } catch (e) {
+        console.warn('Could not load logo for PDF');
+      }
+
+      const templateName = (visit.checklistData && visit.checklistData.templateName) 
+        ? visit.checklistData.templateName.toUpperCase() 
+        : 'ACTA DE VISITA - HIGIENE Y SEGURIDAD';
+
+      const categories = Array.isArray(visit.checklistData) 
+        ? visit.checklistData 
+        : (visit.checklistData?.categories || []);
+
+      // Header Text
       doc.setFontSize(16);
+      doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
       doc.setFont('helvetica', 'bold');
-      doc.text('ACTA DE VISITA - HIGIENE Y SEGURIDAD', pageWidth / 2, 40, { align: 'center' });
       
+      const splitTitle = doc.splitTextToSize(templateName, pageWidth - 140);
+      doc.text(splitTitle, 120, 45);
+      
+      // Horizontal Line
+      doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.setLineWidth(2);
+      doc.line(40, 80, pageWidth - 40, 80);
+
+      // Info Section
       doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(100, 100, 100);
+      
+      doc.text('INFORMACIÓN DE LA VISITA', 40, 100);
+      
       doc.setFont('helvetica', 'normal');
-      doc.text(`Fecha: ${formatDate(visit.date)}`, 40, 70);
-      doc.text(`Inspector: ${visit.inspectorName}`, 40, 85);
+      doc.setTextColor(50, 50, 50);
+      
+      doc.text(`Fecha:`, 40, 115);
+      doc.setFont('helvetica', 'bold'); doc.text(`${formatDate(visit.date)}`, 80, 115); doc.setFont('helvetica', 'normal');
+      
+      doc.text(`Inspector:`, 40, 130);
+      doc.setFont('helvetica', 'bold'); doc.text(`${visit.inspectorName}`, 95, 130); doc.setFont('helvetica', 'normal');
+      
       if (visit.visitNumber) {
-        doc.text(`Visita N°: ${visit.visitNumber}`, pageWidth - 40, 70, { align: 'right' });
+        doc.text(`Visita N°: ${visit.visitNumber}`, pageWidth - 40, 115, { align: 'right' });
       }
       
-      doc.text(`Establecimiento / Obra: ${visit.establishment?.name || 'N/A'}`, 40, 100);
-      doc.text(`Dirección: ${visit.establishment?.address || 'N/A'}`, 40, 115);
+      doc.text(`Establecimiento:`, 250, 115);
+      doc.setFont('helvetica', 'bold'); doc.text(`${visit.establishment?.name || 'N/A'}`, 335, 115); doc.setFont('helvetica', 'normal');
+      
+      doc.text(`Dirección:`, 250, 130);
+      doc.setFont('helvetica', 'bold'); 
+      const addrSplit = doc.splitTextToSize(visit.establishment?.address || 'N/A', 180);
+      doc.text(addrSplit, 305, 130); 
+      doc.setFont('helvetica', 'normal');
 
       // Checklist data
-      let currentY = 140;
+      let currentY = 160 + (addrSplit.length > 1 ? (addrSplit.length - 1) * 12 : 0);
       
-      if (visit.checklistData && Array.isArray(visit.checklistData)) {
-        visit.checklistData.forEach((category: any) => {
-          const bodyData = category.items.map((item: any) => [
-            item.text,
-            item.answer?.status || 'N/A',
-            item.answer?.peligro || ''
-          ]);
+      if (categories && categories.length > 0) {
+        categories.forEach((category: any) => {
+          const bodyData = category.items.map((item: any) => {
+            let statusStr = item.answer?.status || 'N/A';
+            if (item.type === 'checkbox') {
+                statusStr = statusStr === 'SI' ? 'REALIZADO' : (statusStr === 'NO' ? 'PENDIENTE' : statusStr);
+            }
+            return [
+              item.text,
+              statusStr,
+              item.answer?.peligro || ''
+            ];
+          });
 
           (doc as any).autoTable({
             startY: currentY,
             head: [[category.category, 'ESTADO', 'OBSERVACIONES / PELIGROS']],
             body: bodyData,
             theme: 'grid',
-            headStyles: { fillColor: [79, 70, 229], fontSize: 9, fontStyle: 'bold' },
-            bodyStyles: { fontSize: 8 },
+            headStyles: { fillColor: primaryColor, textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
+            bodyStyles: { fontSize: 8, textColor: [60, 60, 60] },
+            alternateRowStyles: { fillColor: [252, 250, 245] }, // light yellow tint
             columnStyles: {
-              0: { cellWidth: 280 },
-              1: { cellWidth: 50, halign: 'center' },
+              0: { cellWidth: 260 },
+              1: { cellWidth: 70, halign: 'center', fontStyle: 'bold' },
               2: { cellWidth: 'auto' }
             },
-            margin: { left: 40, right: 40 }
+            margin: { left: 40, right: 40 },
+            willDrawCell: function(data: any) {
+               if (data.section === 'body' && data.column.index === 1) {
+                  const val = data.cell.raw;
+                  if (val === 'NO' || val === 'PENDIENTE') {
+                     doc.setTextColor(220, 38, 38); // Red
+                  } else if (val === 'SI' || val === 'REALIZADO') {
+                     doc.setTextColor(22, 163, 74); // Green
+                  } else {
+                     doc.setTextColor(100, 100, 100);
+                  }
+               }
+            }
           });
           currentY = (doc as any).lastAutoTable.finalY + 15;
         });
@@ -69,10 +142,16 @@ export default function VisitsList({ visits }: { visits: any[] }) {
 
       // Generales
       if (visit.observations) {
+        if (currentY > doc.internal.pageSize.getHeight() - 100) {
+          doc.addPage();
+          currentY = 40;
+        }
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
+        doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
         doc.text('Observaciones Generales:', 40, currentY);
         doc.setFont('helvetica', 'normal');
+        doc.setTextColor(60, 60, 60);
         const splitText = doc.splitTextToSize(visit.observations, pageWidth - 80);
         doc.text(splitText, 40, currentY + 15);
         currentY += 15 + (splitText.length * 12);
@@ -80,10 +159,16 @@ export default function VisitsList({ visits }: { visits: any[] }) {
 
       if (visit.recommendedTrainings) {
         currentY += 10;
+        if (currentY > doc.internal.pageSize.getHeight() - 100) {
+          doc.addPage();
+          currentY = 40;
+        }
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
+        doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
         doc.text('Próxima Capacitación Sugerida:', 40, currentY);
         doc.setFont('helvetica', 'normal');
+        doc.setTextColor(60, 60, 60);
         const splitText = doc.splitTextToSize(visit.recommendedTrainings, pageWidth - 80);
         doc.text(splitText, 40, currentY + 15);
       }
@@ -95,13 +180,16 @@ export default function VisitsList({ visits }: { visits: any[] }) {
         currentY = 100;
       }
 
-      doc.setDrawColor(150);
+      doc.setDrawColor(200);
+      doc.setLineWidth(1);
       doc.line(70, currentY, 230, currentY);
       doc.line(pageWidth - 230, currentY, pageWidth - 70, currentY);
       
       doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
       doc.text('Firma Responsable Empresa', 150, currentY + 15, { align: 'center' });
       doc.text('Firma Profesional HyS', pageWidth - 150, currentY + 15, { align: 'center' });
+      doc.setFont('helvetica', 'bold');
       doc.text(visit.inspectorName, pageWidth - 150, currentY + 30, { align: 'center' });
 
       doc.save(`Acta_Visita_${visit.establishment?.name || 'Local'}_${visit.date.split('T')[0]}.pdf`);
