@@ -32,7 +32,7 @@ export default function VisitaWizard({
   const [selectedTemplateId, setSelectedTemplateId] = useState(templates.length > 0 ? templates[0].id : '');
 
   // Checklist Data state
-  const [template, setTemplate] = useState<{name: string, items: {id: string, text: string}[]}[]>([]);
+  const [template, setTemplate] = useState<{name: string, items: {id: string, text: string, type?: string}[]}[]>([]);
   const [answers, setAnswers] = useState<Record<string, ChecklistAnswer>>({});
 
   // Initialize template based on selected dynamic template
