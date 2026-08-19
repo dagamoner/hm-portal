@@ -88,18 +88,18 @@ export default function ChecklistClient({ initialTemplates }: { initialTemplates
             ...formData,
             categories: formData.categories.map(c => 
                 c.id === catId 
-                    ? { ...c, items: [...c.items, { id: generateId(), question: "" }] } 
+                    ? { ...c, items: [...c.items, { id: generateId(), question: "", type: "boolean" }] } 
                     : c
             )
         });
     };
 
-    const updateItem = (catId: string, itemId: string, question: string) => {
+    const updateItem = (catId: string, itemId: string, field: string, value: string) => {
         setFormData({
             ...formData,
             categories: formData.categories.map(c => 
                 c.id === catId 
-                    ? { ...c, items: c.items.map(i => i.id === itemId ? { ...i, question } : i) } 
+                    ? { ...c, items: c.items.map(i => i.id === itemId ? { ...i, [field]: value } : i) } 
                     : c
             )
         });
@@ -262,10 +262,19 @@ export default function ChecklistClient({ initialTemplates }: { initialTemplates
                                                                         <textarea 
                                                                             rows={1}
                                                                             value={item.question}
-                                                                            onChange={(e) => updateItem(category.id, item.id, e.target.value)}
+                                                                            onChange={(e) => updateItem(category.id, item.id, "question", e.target.value)}
                                                                             className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 resize-none min-h-[42px]"
                                                                             placeholder="Pregunta o ítem a verificar..."
                                                                         />
+                                                                        <select
+                                                                            value={item.type || "boolean"}
+                                                                            onChange={(e) => updateItem(category.id, item.id, "type", e.target.value)}
+                                                                            className="mt-2 w-48 px-3 py-2 text-sm rounded-lg border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500"
+                                                                        >
+                                                                            <option value="boolean">Sí / No / N.A.</option>
+                                                                            <option value="checkbox">Checkbox (Tildable)</option>
+                                                                            <option value="text">Texto Libre</option>
+                                                                        </select>
                                                                     </div>
                                                                     <button type="button" onClick={() => removeItem(category.id, item.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg mt-1 transition-colors opacity-0 group-hover:opacity-100">
                                                                         <Trash2 className="w-4 h-4" />
