@@ -30,7 +30,10 @@ export function ChemicalList({ companyId, products, setProducts, sgaLibrary = []
           </div>
         ) : products.map((item: any) => {
           const libraryItem = sgaLibrary.find((l: any) => l.name.toLowerCase() === item.name.toLowerCase());
-          const pictograms = libraryItem && libraryItem.pictograms ? JSON.parse(libraryItem.pictograms) : [];
+          const rawPictograms = libraryItem?.pictograms;
+          const pictograms = Array.isArray(rawPictograms) 
+            ? rawPictograms 
+            : (typeof rawPictograms === 'string' ? JSON.parse(rawPictograms) : []);
 
           return (
           <div key={item.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
