@@ -287,11 +287,12 @@ export default function PlantillasClient({ companyId, initialTemplates, onBack }
                           placeholder="Escribe la pregunta o chequeo..."
                         />
                         <select
-                          value={item.type}
+                          value={item.type || "boolean"}
                           onChange={(e) => updateItem(cIdx, iIdx, "type", e.target.value)}
                           className="w-40 px-3 py-2 text-sm rounded-lg border border-slate-200 bg-slate-50 outline-none"
                         >
                           <option value="boolean">Sí / No / N.A.</option>
+                          <option value="checkbox">Checkbox (Tildable)</option>
                           <option value="text">Texto Libre</option>
                         </select>
                         <button

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createVisit } from '@/app/actions/visits';
-import { ClipboardCheck, Building2, Save, AlertCircle, Plus, Trash2, ListChecks } from 'lucide-react';
+import { ClipboardCheck, Building2, Save, AlertCircle, Plus, Trash2, ListChecks, CheckSquare, Square } from 'lucide-react';
 
 interface ChecklistAnswer {
   status: 'SI' | 'NO' | 'N/A' | null;
@@ -52,9 +52,10 @@ export default function VisitaWizard({
 
     const editableTemplate = selectedTpl.categories.map((cat: any) => ({
       name: cat.name,
-      items: cat.items.map((item: any) => ({
-        id: `item_${cat.id}_${item.id}`,
-        text: item.question
+      items: cat.items.map((item: any, idx: number) => ({
+        id: `item_${cat.name}_${idx}`, // simplify id generation since category might not have an id
+        text: item.question,
+        type: item.type || 'boolean'
       }))
     }));
 
@@ -73,9 +74,9 @@ export default function VisitaWizard({
   };
 
   const handleAddItem = (categoryIndex: number) => {
+    const newItemId = `new_item_${Date.now()}`;
     const newTemplate = [...template];
-    const newItemId = `custom_${Date.now()}`;
-    newTemplate[categoryIndex].items.push({ id: newItemId, text: 'Nuevo ítem de inspección...' });
+    newTemplate[categoryIndex].items.push({ id: newItemId, text: 'Nuevo ítem de inspección...', type: 'boolean' });
     setTemplate(newTemplate);
   };
 
@@ -289,25 +290,45 @@ export default function VisitaWizard({
                       />
                     </div>
                     
-                    <div className="flex items-start gap-1 md:w-[140px] flex-shrink-0 pt-2">
-                      <button
-                        onClick={() => handleAnswerChange(item.id, 'status', 'SI')}
-                        className={`flex-1 py-1.5 text-xs font-black rounded border transition-colors ${ans?.status === 'SI' ? 'bg-emerald-100 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200 text-slate-400 hover:border-emerald-200 hover:text-emerald-500'}`}
-                      >
-                        SI
-                      </button>
-                      <button
-                        onClick={() => handleAnswerChange(item.id, 'status', 'NO')}
-                        className={`flex-1 py-1.5 text-xs font-black rounded border transition-colors ${ans?.status === 'NO' ? 'bg-rose-100 border-rose-200 text-rose-700' : 'bg-white border-slate-200 text-slate-400 hover:border-rose-200 hover:text-rose-500'}`}
-                      >
-                        NO
-                      </button>
-                      <button
-                        onClick={() => handleAnswerChange(item.id, 'status', 'N/A')}
-                        className={`flex-1 py-1.5 text-xs font-black rounded border transition-colors ${ans?.status === 'N/A' ? 'bg-slate-200 border-slate-300 text-slate-700' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600'}`}
-                      >
-                        N/A
-                      </button>
+                    <div className="flex items-start gap-1 flex-shrink-0 pt-2 w-full md:w-auto">
+                      {item.type === 'checkbox' ? (
+                        <button
+                          onClick={() => handleAnswerChange(item.id, 'status', ans?.status === 'SI' ? 'NO' : 'SI')}
+                          className={`w-[140px] py-1.5 text-xs font-black rounded border transition-colors flex items-center justify-center gap-2 ${ans?.status === 'SI' ? 'bg-indigo-100 border-indigo-200 text-indigo-700' : 'bg-white border-slate-200 text-slate-400 hover:border-indigo-200 hover:text-indigo-500'}`}
+                        >
+                          {ans?.status === 'SI' ? <CheckSquare className="w-4 h-4"/> : <Square className="w-4 h-4"/>} 
+                          {ans?.status === 'SI' ? 'REALIZADO' : 'PENDIENTE'}
+                        </button>
+                      ) : item.type === 'text' ? (
+                        <input
+                          type="text"
+                          placeholder="Respuesta..."
+                          className="w-[140px] text-xs text-slate-700 font-bold border border-slate-200 rounded-md px-3 py-1.5 outline-none focus:border-indigo-400 bg-white"
+                          value={ans?.status && ans.status !== 'SI' && ans.status !== 'NO' && ans.status !== 'N/A' ? ans.status : ''}
+                          onChange={(e) => handleAnswerChange(item.id, 'status', e.target.value)}
+                        />
+                      ) : (
+                        <div className="flex gap-1 w-full md:w-[140px]">
+                          <button
+                            onClick={() => handleAnswerChange(item.id, 'status', 'SI')}
+                            className={`flex-1 py-1.5 text-xs font-black rounded border transition-colors ${ans?.status === 'SI' ? 'bg-emerald-100 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200 text-slate-400 hover:border-emerald-200 hover:text-emerald-500'}`}
+                          >
+                            SI
+                          </button>
+                          <button
+                            onClick={() => handleAnswerChange(item.id, 'status', 'NO')}
+                            className={`flex-1 py-1.5 text-xs font-black rounded border transition-colors ${ans?.status === 'NO' ? 'bg-rose-100 border-rose-200 text-rose-700' : 'bg-white border-slate-200 text-slate-400 hover:border-rose-200 hover:text-rose-500'}`}
+                          >
+                            NO
+                          </button>
+                          <button
+                            onClick={() => handleAnswerChange(item.id, 'status', 'N/A')}
+                            className={`flex-1 py-1.5 text-xs font-black rounded border transition-colors ${ans?.status === 'N/A' ? 'bg-slate-200 border-slate-300 text-slate-700' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600'}`}
+                          >
+                            N/A
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
