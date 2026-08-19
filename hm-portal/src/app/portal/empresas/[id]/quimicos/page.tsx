@@ -5,15 +5,26 @@ export default async function QuimicosPage({ params }: { params: Promise<{ id: s
   const { id } = await params;
 
   // Fetch Chemical Products
-  const products = await prisma.chemicalProduct.findMany({
+  const productsRaw = await prisma.chemicalProduct.findMany({
     where: { companyId: id },
     orderBy: { createdAt: "desc" }
   });
 
+  // Omit the huge fdsUrl base64 strings from initial payload to prevent Next.js Vercel 4.5MB response limit crash
+  const products = productsRaw.map(p => ({ 
+    ...p, 
+    fdsUrl: p.fdsUrl ? `/api/quimicos/fds/${p.id}?type=product` : null 
+  }));
+
   // Fetch SGA Library
-  const sgaLibrary = await prisma.sgaLibraryItem.findMany({
+  const sgaLibraryRaw = await prisma.sgaLibraryItem.findMany({
     orderBy: { name: 'asc' }
   });
+
+  const sgaLibrary = sgaLibraryRaw.map(l => ({ 
+    ...l, 
+    fdsUrl: l.fdsUrl ? `/api/quimicos/fds/${l.id}?type=library` : null 
+  }));
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">

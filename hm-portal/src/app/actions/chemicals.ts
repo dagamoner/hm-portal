@@ -55,7 +55,11 @@ export async function createChemicalProduct(companyId: string, data: any) {
     }
 
     revalidatePath(`/portal/empresas/${companyId}/quimicos`);
-    return { success: true, data: product };
+    const cleanProduct = {
+      ...product,
+      fdsUrl: product.fdsUrl ? `/api/quimicos/fds/${product.id}?type=product` : null
+    };
+    return { success: true, data: cleanProduct };
   } catch (error) {
     console.error("Error creating chemical product:", error);
     return { success: false, error: "Error creating chemical product" };
@@ -84,7 +88,11 @@ export async function updateChemicalProduct(companyId: string, id: string, data:
     });
 
     revalidatePath(`/portal/empresas/${companyId}/quimicos`);
-    return { success: true, data: product };
+    const cleanProduct = {
+      ...product,
+      fdsUrl: product.fdsUrl ? `/api/quimicos/fds/${product.id}?type=product` : null
+    };
+    return { success: true, data: cleanProduct };
   } catch (error) {
     console.error("Error updating chemical product:", error);
     return { success: false, error: "Error updating chemical product" };
