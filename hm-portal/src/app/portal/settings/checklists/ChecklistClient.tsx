@@ -119,10 +119,29 @@ export default function ChecklistClient({ initialTemplates }: { initialTemplates
     const downloadExcelTemplate = async () => {
         const XLSX = await import('xlsx');
         const ws = XLSX.utils.json_to_sheet([
-            { "Categoría": "Ejemplo Sector A", "Pregunta": "¿El piso está limpio?", "Tipo": "boolean" },
-            { "Categoría": "Ejemplo Sector A", "Pregunta": "Observaciones del sector", "Tipo": "text" },
-            { "Categoría": "Ejemplo Sector B", "Pregunta": "Extintor cargado", "Tipo": "checkbox" }
+            { 
+                "Categoría (Ej: Título del Sector)": "Orden y Limpieza", 
+                "Pregunta a Evaluar": "¿Los pasillos están libres de obstáculos?", 
+                "Formato (SI/NO/NA, TEXTO, CHECKBOX)": "SI/NO/NA" 
+            },
+            { 
+                "Categoría (Ej: Título del Sector)": "Orden y Limpieza", 
+                "Pregunta a Evaluar": "Observaciones generales del lugar", 
+                "Formato (SI/NO/NA, TEXTO, CHECKBOX)": "TEXTO" 
+            },
+            { 
+                "Categoría (Ej: Título del Sector)": "Matafuegos", 
+                "Pregunta a Evaluar": "Matafuego ABC 5Kg con carga vigente", 
+                "Formato (SI/NO/NA, TEXTO, CHECKBOX)": "CHECKBOX" 
+            }
         ]);
+        
+        ws['!cols'] = [
+            { wch: 35 },
+            { wch: 60 },
+            { wch: 45 }
+        ];
+
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Plantilla");
         XLSX.writeFile(wb, "Plantilla_Importacion_Checklist.xlsx");
@@ -144,12 +163,12 @@ export default function ChecklistClient({ initialTemplates }: { initialTemplates
                 
                 const categoryMap = new Map<string, any[]>();
                 data.forEach((row: any) => {
-                    const catName = row['Categoría'] || row['Categoria'] || 'Sin Categoría';
-                    const question = row['Pregunta'] || row['Item'] || '';
-                    const typeRaw = (row['Tipo'] || 'boolean').toString().toLowerCase();
+                    const catName = row['Categoría (Ej: Título del Sector)'] || row['Categoría'] || row['Categoria'] || 'Sin Categoría';
+                    const question = row['Pregunta a Evaluar'] || row['Pregunta'] || row['Item'] || '';
+                    const typeRaw = (row['Formato (SI/NO/NA, TEXTO, CHECKBOX)'] || row['Tipo'] || 'SI/NO/NA').toString().toLowerCase();
                     let type = 'boolean';
                     if (typeRaw.includes('check') || typeRaw === 'tildable') type = 'checkbox';
-                    if (typeRaw.includes('text') || typeRaw === 'texto libre' || typeRaw === 'texto') type = 'text';
+                    if (typeRaw.includes('text') || typeRaw === 'texto') type = 'text';
 
                     if (question) {
                         if (!categoryMap.has(catName)) categoryMap.set(catName, []);
