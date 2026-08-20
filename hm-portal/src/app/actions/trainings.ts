@@ -251,11 +251,19 @@ export async function getTrainingDashboardStats(companyId: string) {
     // Unlocked trainings: monthIndex <= currentMonth
     // We need to auto-unlock trainings if they are in the current or past months and currently 'Bloqueada'
     const trainingsToUnlock = plan.trainings.filter(t => t.monthIndex <= currentMonth && t.status === 'Bloqueada');
-    if (trainingsToUnlock.length > 0) {
+    const trainingsToComplete = plan.trainings.filter(t => t.status !== 'Completada' && t.records && t.records.some((r: any) => r.completed));
+
+    if (trainingsToUnlock.length > 0 || trainingsToComplete.length > 0) {
       for (const t of trainingsToUnlock) {
         await prisma.training.update({
           where: { id: t.id },
           data: { status: 'Pendiente' }
+        });
+      }
+      for (const t of trainingsToComplete) {
+        await prisma.training.update({
+          where: { id: t.id },
+          data: { status: 'Completada' }
         });
       }
       // Re-fetch plan
