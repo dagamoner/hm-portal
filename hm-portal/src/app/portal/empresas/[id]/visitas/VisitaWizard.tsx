@@ -112,7 +112,7 @@ export default function VisitaWizard({
       for (const category of template) {
         for (const item of category.items) {
           const ans = answers[item.id];
-          const itemText = item.text || item.question || '';
+          const itemText = item.text || '';
           if (ans?.status === 'NO') {
             findings.push({
               description: `Incumplimiento en ${category.name}: ${itemText}. ${ans.peligro ? `Observación: ${ans.peligro}` : ''}`,
@@ -128,7 +128,7 @@ export default function VisitaWizard({
         categories: template.map(category => ({
           category: category.name,
           items: category.items.map(item => ({
-            text: item.text || item.question || '',
+            text: item.text || '',
             type: item.type,
             answer: answers[item.id] || { status: null, peligro: '' }
           }))

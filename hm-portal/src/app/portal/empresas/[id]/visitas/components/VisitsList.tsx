@@ -111,7 +111,7 @@ export default function VisitsList({ visits }: { visits: any[] }) {
 
           (doc as any).autoTable({
             startY: currentY,
-            head: [[category.category, 'ESTADO', 'OBSERVACIONES / PELIGROS']],
+            head: [[String(category.category || category.name || 'Categoría'), 'ESTADO', 'OBSERVACIONES / PELIGROS']],
             body: bodyData,
             theme: 'grid',
             headStyles: { fillColor: primaryColor, textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
