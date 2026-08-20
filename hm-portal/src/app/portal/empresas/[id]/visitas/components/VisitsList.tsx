@@ -103,7 +103,7 @@ export default function VisitsList({ visits }: { visits: any[] }) {
                 statusStr = statusStr === 'SI' ? 'REALIZADO' : (statusStr === 'NO' ? 'PENDIENTE' : statusStr);
             }
             return [
-              item.text,
+              String(item.text || item.question || 'Pregunta no especificada'),
               statusStr,
               item.answer?.peligro || ''
             ];
