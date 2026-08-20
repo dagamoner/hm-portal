@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Plus, Trash2, GripVertical, Settings, Save, AlertTriangle, FileText } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Settings, Save, AlertTriangle, FileText, Download, Upload } from 'lucide-react';
 import { createChecklistTemplate, updateChecklistTemplate, deleteChecklistTemplate } from '@/app/actions/templates';
 
 interface PlantillasClientProps {
@@ -137,6 +137,64 @@ export default function PlantillasClient({ companyId, initialTemplates, onBack }
     }
   };
 
+  const downloadExcelTemplate = async () => {
+    const XLSX = await import('xlsx');
+    const ws = XLSX.utils.json_to_sheet([
+        { "Categoría": "Ejemplo Sector A", "Pregunta": "¿El piso está limpio?", "Tipo": "boolean" },
+        { "Categoría": "Ejemplo Sector A", "Pregunta": "Observaciones del sector", "Tipo": "text" },
+        { "Categoría": "Ejemplo Sector B", "Pregunta": "Extintor cargado", "Tipo": "checkbox" }
+    ]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Plantilla");
+    XLSX.writeFile(wb, "Plantilla_Importacion_Checklist.xlsx");
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+        const XLSX = await import('xlsx');
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            const bstr = evt.target?.result;
+            const wb = XLSX.read(bstr, { type: 'binary' });
+            const wsname = wb.SheetNames[0];
+            const ws = wb.Sheets[wsname];
+            const data = XLSX.utils.sheet_to_json(ws);
+            
+            const categoryMap = new Map<string, any[]>();
+            data.forEach((row: any) => {
+                const catName = row['Categoría'] || row['Categoria'] || 'Sin Categoría';
+                const question = row['Pregunta'] || row['Item'] || '';
+                const typeRaw = (row['Tipo'] || 'boolean').toString().toLowerCase();
+                let type = 'boolean';
+                if (typeRaw.includes('check') || typeRaw === 'tildable') type = 'checkbox';
+                if (typeRaw.includes('text') || typeRaw === 'texto libre' || typeRaw === 'texto') type = 'text';
+
+                if (question) {
+                    if (!categoryMap.has(catName)) categoryMap.set(catName, []);
+                    categoryMap.get(catName)!.push({ question, type });
+                }
+            });
+            
+            const newCategories = Array.from(categoryMap.entries()).map(([name, items]) => ({
+                name,
+                items
+            }));
+            
+            setEditingTemplate((prev: any) => ({ 
+                ...prev, 
+                categories: [...prev.categories, ...newCategories] 
+            }));
+        };
+        reader.readAsBinaryString(file);
+    } catch (error) {
+        alert('Error al leer el archivo Excel');
+    }
+    e.target.value = '';
+  };
+
   if (editingTemplate) {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
@@ -242,14 +300,23 @@ export default function PlantillasClient({ companyId, initialTemplates, onBack }
           </div>
 
           <div className="pt-4 border-t border-slate-100">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
               <h3 className="font-bold text-lg text-slate-800">Estructura del Checklist</h3>
-              <button
-                onClick={addCategory}
-                className="text-indigo-600 text-sm font-bold bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 flex items-center gap-1"
-              >
-                <Plus className="w-4 h-4" /> Agregar Categoría
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button type="button" onClick={downloadExcelTemplate} className="text-emerald-700 text-sm font-bold bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 flex items-center gap-1 transition-colors">
+                  <Download className="w-4 h-4" /> Plantilla Excel
+                </button>
+                <label className="cursor-pointer text-emerald-800 text-sm font-bold bg-emerald-100 px-3 py-1.5 rounded-lg hover:bg-emerald-200 flex items-center gap-1 transition-colors">
+                  <Upload className="w-4 h-4" /> Importar Excel
+                  <input type="file" accept=".xlsx, .xls" className="hidden" onChange={handleFileUpload} />
+                </label>
+                <button
+                  onClick={addCategory}
+                  className="text-indigo-600 text-sm font-bold bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 flex items-center gap-1 transition-colors"
+                >
+                  <Plus className="w-4 h-4" /> Categoría
+                </button>
+              </div>
             </div>
 
             <div className="space-y-6">

@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition } from "react";
 import { 
-    ClipboardList, Plus, Trash2, Edit2, Save, X, GripVertical, CheckCircle2, ChevronRight, ChevronDown 
+    ClipboardList, Plus, Trash2, Edit2, Save, X, GripVertical, CheckCircle2, ChevronRight, ChevronDown, Download, Upload
 } from "lucide-react";
 import { createChecklistTemplate, updateChecklistTemplate, deleteChecklistTemplate } from "@/app/actions/checklists";
 
@@ -116,6 +116,69 @@ export default function ChecklistClient({ initialTemplates }: { initialTemplates
         });
     };
 
+    const downloadExcelTemplate = async () => {
+        const XLSX = await import('xlsx');
+        const ws = XLSX.utils.json_to_sheet([
+            { "Categoría": "Ejemplo Sector A", "Pregunta": "¿El piso está limpio?", "Tipo": "boolean" },
+            { "Categoría": "Ejemplo Sector A", "Pregunta": "Observaciones del sector", "Tipo": "text" },
+            { "Categoría": "Ejemplo Sector B", "Pregunta": "Extintor cargado", "Tipo": "checkbox" }
+        ]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Plantilla");
+        XLSX.writeFile(wb, "Plantilla_Importacion_Checklist.xlsx");
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            const XLSX = await import('xlsx');
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const bstr = evt.target?.result;
+                const wb = XLSX.read(bstr, { type: 'binary' });
+                const wsname = wb.SheetNames[0];
+                const ws = wb.Sheets[wsname];
+                const data = XLSX.utils.sheet_to_json(ws);
+                
+                const categoryMap = new Map<string, any[]>();
+                data.forEach((row: any) => {
+                    const catName = row['Categoría'] || row['Categoria'] || 'Sin Categoría';
+                    const question = row['Pregunta'] || row['Item'] || '';
+                    const typeRaw = (row['Tipo'] || 'boolean').toString().toLowerCase();
+                    let type = 'boolean';
+                    if (typeRaw.includes('check') || typeRaw === 'tildable') type = 'checkbox';
+                    if (typeRaw.includes('text') || typeRaw === 'texto libre' || typeRaw === 'texto') type = 'text';
+
+                    if (question) {
+                        if (!categoryMap.has(catName)) categoryMap.set(catName, []);
+                        categoryMap.get(catName)!.push({ id: generateId(), question, type });
+                    }
+                });
+                
+                const newCategories = Array.from(categoryMap.entries()).map(([name, items]) => ({
+                    id: generateId(),
+                    name,
+                    items
+                }));
+                
+                setFormData(prev => ({ 
+                    ...prev, 
+                    categories: [...prev.categories, ...newCategories] 
+                }));
+                // Auto expand new categories
+                const newExpanded = new Set(expandedCategories);
+                newCategories.forEach(c => newExpanded.add(c.id));
+                setExpandedCategories(newExpanded);
+            };
+            reader.readAsBinaryString(file);
+        } catch (error) {
+            alert('Error al leer el archivo Excel');
+        }
+        e.target.value = '';
+    };
+
     return (
         <div className="space-y-6 animate-fade-in pb-12">
             <div className="flex justify-between items-center bg-white/60 p-6 rounded-3xl backdrop-blur-xl border border-white/50 shadow-sm">
@@ -222,13 +285,22 @@ export default function ChecklistClient({ initialTemplates }: { initialTemplates
                                 </div>
 
                                 <div>
-                                    <div className="flex justify-between items-center mb-4">
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                                         <h4 className="font-bold text-slate-800 uppercase tracking-wider text-sm flex items-center gap-2">
                                             Estructura del Formulario
                                         </h4>
-                                        <button type="button" onClick={addCategory} className="px-4 py-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors">
-                                            <Plus className="w-4 h-4" /> Agregar Categoría
-                                        </button>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <button type="button" onClick={downloadExcelTemplate} className="px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors">
+                                                <Download className="w-4 h-4" /> Plantilla Excel
+                                            </button>
+                                            <label className="cursor-pointer px-4 py-2 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors">
+                                                <Upload className="w-4 h-4" /> Importar Excel
+                                                <input type="file" accept=".xlsx, .xls" className="hidden" onChange={handleFileUpload} />
+                                            </label>
+                                            <button type="button" onClick={addCategory} className="px-4 py-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors">
+                                                <Plus className="w-4 h-4" /> Categoría
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div className="space-y-4">
