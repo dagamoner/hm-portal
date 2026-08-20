@@ -78,7 +78,6 @@ export default function TrainingDetailClient({ company, companyId, training, use
   };
 
   const filteredRecords = records
-    .filter((r: any) => !savedRecordIds.has(r.id))
     .filter((r: any) => {
       if (!searchTerm) return true;
       const search = searchTerm.toLowerCase();
@@ -88,6 +87,14 @@ export default function TrainingDetailClient({ company, companyId, training, use
       return fullName.includes(search) || dni.includes(search);
     })
     .sort((a: any, b: any) => {
+      // Completed ones go to the bottom
+      const aCompleted = a.completed || savedRecordIds.has(a.id);
+      const bCompleted = b.completed || savedRecordIds.has(b.id);
+      
+      if (aCompleted && !bCompleted) return 1;
+      if (!aCompleted && bCompleted) return -1;
+      
+      // Then sort alphabetically
       const nameA = a.worker?.lastName || '';
       const nameB = b.worker?.lastName || '';
       return nameA.localeCompare(nameB);
@@ -285,31 +292,32 @@ export default function TrainingDetailClient({ company, companyId, training, use
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredRecords.map((record: any) => (
-                <tr key={record.id} className="hover:bg-slate-50/50 transition-colors">
+              {filteredRecords.map((record: any) => {
+                const isCompleted = record.completed || savedRecordIds.has(record.id);
+                return (
+                <tr key={record.id} className={`transition-colors ${isCompleted ? 'bg-slate-100 opacity-60' : 'hover:bg-slate-50/50'}`}>
                   <td className="px-6 py-4">
                     <p className="font-bold text-slate-800">{record.worker.firstName} {record.worker.lastName}</p>
                     <p className="text-xs font-medium text-slate-500">DNI: {record.worker.documentId}</p>
                   </td>
-                  
-                  <td className="px-3 py-4 text-center border-r border-slate-100">
+                     <td className="px-3 py-4 text-center border-r border-slate-100">
                     <input 
                       type="radio" 
                       name={`completed_${record.id}`}
                       checked={record.completed === true}
                       onChange={() => handleRecordChange(record.id, 'completed', true)}
-                      disabled={!canEdit}
-                      className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 cursor-pointer disabled:opacity-50"
+                      disabled={!canEdit || isCompleted}
+                      className="w-4 h-4 text-indigo-600 border-slate-300 focus:ring-indigo-500 disabled:opacity-50"
                     />
                   </td>
-                  <td className="px-3 py-4 text-center border-r border-slate-100">
+                  <td className="px-3 py-4 text-center border-r border-slate-200">
                     <input 
                       type="radio" 
                       name={`completed_${record.id}`}
                       checked={record.completed === false}
                       onChange={() => handleRecordChange(record.id, 'completed', false)}
-                      disabled={!canEdit}
-                      className="w-4 h-4 text-red-600 focus:ring-red-500 cursor-pointer disabled:opacity-50"
+                      disabled={!canEdit || isCompleted}
+                      className="w-4 h-4 text-slate-400 border-slate-300 focus:ring-slate-500 disabled:opacity-50"
                     />
                   </td>
 
@@ -319,87 +327,97 @@ export default function TrainingDetailClient({ company, companyId, training, use
                       name={`hasExam_${record.id}`}
                       checked={record.hasExam === true}
                       onChange={() => handleRecordChange(record.id, 'hasExam', true)}
-                      disabled={!canEdit}
-                      className="w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer disabled:opacity-50"
+                      disabled={!canEdit || !record.completed || isCompleted}
+                      className="w-4 h-4 text-indigo-600 border-slate-300 focus:ring-indigo-500 disabled:opacity-50"
                     />
                   </td>
-                  <td className="px-3 py-4 text-center border-r border-slate-100">
+                  <td className="px-3 py-4 text-center border-r border-slate-200">
                     <input 
                       type="radio" 
                       name={`hasExam_${record.id}`}
                       checked={record.hasExam === false}
                       onChange={() => handleRecordChange(record.id, 'hasExam', false)}
-                      disabled={!canEdit}
-                      className="w-4 h-4 text-red-600 focus:ring-red-500 cursor-pointer disabled:opacity-50"
+                      disabled={!canEdit || !record.completed || isCompleted}
+                      className="w-4 h-4 text-slate-400 border-slate-300 focus:ring-slate-500 disabled:opacity-50"
                     />
                   </td>
-                  
+
                   <td className="px-3 py-4 text-center border-r border-slate-100">
                     <input 
                       type="radio" 
                       name={`approved_${record.id}`}
                       checked={record.approved === true}
                       onChange={() => handleRecordChange(record.id, 'approved', true)}
-                      disabled={!canEdit || !record.completed}
-                      className="w-4 h-4 text-green-500 focus:ring-green-500 cursor-pointer disabled:opacity-50"
+                      disabled={!canEdit || !record.completed || !record.hasExam || isCompleted}
+                      className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500 disabled:opacity-50"
                     />
                   </td>
-                  <td className="px-3 py-4 text-center border-r border-slate-100">
+                  <td className="px-3 py-4 text-center border-r border-slate-200">
                     <input 
                       type="radio" 
                       name={`approved_${record.id}`}
                       checked={record.approved === false}
                       onChange={() => handleRecordChange(record.id, 'approved', false)}
-                      disabled={!canEdit || !record.completed}
-                      className="w-4 h-4 text-red-500 focus:ring-red-500 cursor-pointer disabled:opacity-50"
+                      disabled={!canEdit || !record.completed || !record.hasExam || isCompleted}
+                      className="w-4 h-4 text-slate-400 border-slate-300 focus:ring-slate-500 disabled:opacity-50"
                     />
                   </td>
-                  
+
                   <td className="px-6 py-4">
                     <input 
                       type="number" 
-                      value={record.score !== null && record.score !== undefined ? record.score : ''}
-                      onChange={(e) => handleRecordChange(record.id, 'score', e.target.value !== '' ? parseFloat(e.target.value) : null)}
-                      disabled={!canEdit || !record.completed}
+                      value={record.score || ''}
+                      onChange={(e) => handleRecordChange(record.id, 'score', e.target.value)}
+                      disabled={!canEdit || !record.completed || !record.hasExam || isCompleted}
                       placeholder="Ej: 80"
-                      className="w-24 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none disabled:opacity-50"
+                      min="0"
+                      max="100"
+                      className="w-20 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none disabled:opacity-50 text-slate-700 placeholder-slate-300"
                     />
                   </td>
-                  
+
                   <td className="px-6 py-4">
                     <input 
                       type="text" 
                       value={record.certificateId || ''}
-                      onChange={(e) => handleRecordChange(record.id, 'certificateId', e.target.value)}
-                      disabled={!canEdit || !record.completed}
+                      onChange={(e) => handleRecordChange(record.id, 'certificateId', e.target.value.toUpperCase())}
+                      disabled={!canEdit || !record.completed || isCompleted}
                       placeholder="Ej: 6B11DO-CE000006"
-                      className="w-48 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none disabled:opacity-50 uppercase"
+                      className="w-40 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none disabled:opacity-50 text-slate-700 placeholder-slate-300 uppercase"
                     />
                   </td>
-                  
+
                   <td className="px-6 py-4">
                     <input 
                       type="date" 
                       value={record.completionDate ? new Date(record.completionDate).toISOString().split('T')[0] : ''}
                       onChange={(e) => handleRecordChange(record.id, 'completionDate', e.target.value ? new Date(e.target.value).toISOString() : null)}
-                      disabled={!canEdit || !record.completed}
+                      disabled={!canEdit || !record.completed || isCompleted}
                       className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none disabled:opacity-50 text-slate-700"
                     />
                   </td>
 
                   <td className="px-6 py-4 text-center">
-                    <button 
-                      onClick={() => handleSaveRecord(record.id)}
-                      disabled={!canEdit}
-                      className="p-2 bg-slate-900 text-white hover:bg-black rounded-lg transition-colors disabled:opacity-50 flex flex-col items-center justify-center w-full"
-                      title="Guardar este registro"
-                    >
-                      <Save className="w-4 h-4 mb-1" />
-                      <span className="text-[10px] uppercase font-bold tracking-wider">Guardar</span>
-                    </button>
+                    {isCompleted ? (
+                      <div className="p-2 bg-slate-100 text-slate-400 rounded-lg flex flex-col items-center justify-center w-full">
+                        <CheckCircle2 className="w-4 h-4 mb-1 text-emerald-500" />
+                        <span className="text-[10px] uppercase font-bold tracking-wider">Guardado</span>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => handleSaveRecord(record.id)}
+                        disabled={!canEdit}
+                        className="p-2 bg-slate-900 text-white hover:bg-black rounded-lg transition-colors disabled:opacity-50 flex flex-col items-center justify-center w-full"
+                        title="Guardar este registro"
+                      >
+                        <Save className="w-4 h-4 mb-1" />
+                        <span className="text-[10px] uppercase font-bold tracking-wider">Guardar</span>
+                      </button>
+                    )}
                   </td>
                 </tr>
-              ))}
+              );
+            })}
               {filteredRecords.length === 0 && (
                 <tr>
                   <td colSpan={11} className="px-6 py-12 text-center text-slate-500 font-medium">
