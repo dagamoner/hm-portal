@@ -97,7 +97,7 @@ export default function VisitsList({ visits }: { visits: any[] }) {
       
       if (categories && categories.length > 0) {
         categories.forEach((category: any) => {
-          const bodyData = category.items.map((item: any) => {
+          const bodyData = (category.items || []).map((item: any) => {
             let statusStr = item.answer?.status || 'N/A';
             if (item.type === 'checkbox') {
                 statusStr = statusStr === 'SI' ? 'REALIZADO' : (statusStr === 'NO' ? 'PENDIENTE' : statusStr);
@@ -190,9 +190,11 @@ export default function VisitsList({ visits }: { visits: any[] }) {
       doc.text('Firma Responsable Empresa', 150, currentY + 15, { align: 'center' });
       doc.text('Firma Profesional HyS', pageWidth - 150, currentY + 15, { align: 'center' });
       doc.setFont('helvetica', 'bold');
-      doc.text(visit.inspectorName, pageWidth - 150, currentY + 30, { align: 'center' });
+      doc.text(visit.inspectorName || 'Inspector', pageWidth - 150, currentY + 30, { align: 'center' });
 
-      doc.save(`Acta_Visita_${visit.establishment?.name || 'Local'}_${visit.date.split('T')[0]}.pdf`);
+      const dateStr = visit.date ? new Date(visit.date).toISOString().split('T')[0] : 'SinFecha';
+      const establishmentName = visit.establishment?.name ? visit.establishment.name.replace(/[^a-z0-9]/gi, '_') : 'Local';
+      doc.save(`Acta_Visita_${establishmentName}_${dateStr}.pdf`);
     } catch (e) {
       console.error(e);
       alert('Hubo un error al generar el PDF');
