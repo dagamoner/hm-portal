@@ -162,8 +162,16 @@ export default function ChecklistClient({ initialTemplates }: { initialTemplates
                 const data = XLSX.utils.sheet_to_json(ws);
                 
                 const categoryMap = new Map<string, any[]>();
+                let lastCategoryName = 'Sin Categoría';
+                
                 data.forEach((row: any) => {
-                    const catName = row['Categoría (Ej: Título del Sector)'] || row['Categoría'] || row['Categoria'] || 'Sin Categoría';
+                    let catName = row['Categoría (Ej: Título del Sector)'] || row['Categoría'] || row['Categoria'];
+                    if (catName && String(catName).trim() !== '') {
+                        lastCategoryName = String(catName).trim();
+                    } else {
+                        catName = lastCategoryName;
+                    }
+                    
                     const question = row['Pregunta a Evaluar'] || row['Pregunta'] || row['Item'] || '';
                     const typeRaw = (row['Formato (SI/NO/NA, TEXTO, CHECKBOX)'] || row['Tipo'] || 'SI/NO/NA').toString().toLowerCase();
                     let type = 'boolean';
