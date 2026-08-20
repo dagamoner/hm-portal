@@ -1,7 +1,7 @@
 import React from 'react';
 import { ClipboardCheck, Download, AlertCircle, Eye, Building2 } from 'lucide-react';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const formatDate = (dateString: string | Date) => {
   return new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(dateString));
@@ -109,7 +109,7 @@ export default function VisitsList({ visits }: { visits: any[] }) {
             ];
           });
 
-          (doc as any).autoTable({
+          autoTable(doc, {
             startY: currentY,
             head: [[String(category.category || category.name || 'Categoría'), 'ESTADO', 'OBSERVACIONES / PELIGROS']],
             body: bodyData,
