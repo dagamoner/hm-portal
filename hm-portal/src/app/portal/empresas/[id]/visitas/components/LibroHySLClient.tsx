@@ -55,8 +55,8 @@ export default function LibroHySLClient({ companyId, companyName, initialEntries
     };
 
     return (
-        <div className="space-y-6 animate-fade-in pb-12">
-            <div className="flex items-center justify-between bg-white/60 p-6 rounded-3xl backdrop-blur-xl border border-white/50 shadow-sm">
+        <div className="space-y-6 animate-fade-in pb-12 print:space-y-0 print:pb-0">
+            <div className="flex items-center justify-between bg-white/60 p-6 rounded-3xl backdrop-blur-xl border border-white/50 shadow-sm print:hidden">
                 <div className="flex items-center gap-4">
                     <div className="p-4 bg-amber-100 text-amber-600 rounded-2xl">
                         <BookMarked className="w-8 h-8" />
@@ -77,7 +77,7 @@ export default function LibroHySLClient({ companyId, companyName, initialEntries
             </div>
 
             {isCreating && (
-                <div className="bg-white border border-amber-200 rounded-3xl overflow-hidden shadow-sm">
+                <div className="bg-white border border-amber-200 rounded-3xl overflow-hidden shadow-sm print:hidden">
                     <div className="bg-amber-50 p-6 border-b border-amber-100">
                         <h3 className="text-lg font-bold text-amber-800 flex items-center gap-2">
                             <FileSignature className="w-5 h-5" />
@@ -154,13 +154,13 @@ export default function LibroHySLClient({ companyId, companyName, initialEntries
                 )}
 
                 {entries.map((entry: any) => (
-                    <div key={entry.id} className="bg-white border-2 border-slate-200 rounded-sm shadow-md overflow-hidden relative">
+                    <div key={entry.id} className={`bg-white border-2 border-slate-200 rounded-sm shadow-md overflow-hidden relative ${printingEntryId ? (printingEntryId === entry.id ? 'print:block print:border-none print:shadow-none' : 'print:hidden') : 'print:border-none print:shadow-none print:mb-8'}`}>
                         {/* Margen del libro */}
-                        <div className="absolute left-0 top-0 bottom-0 w-8 bg-slate-100 border-r border-slate-200 flex flex-col items-center py-4 space-y-4">
+                        <div className="absolute left-0 top-0 bottom-0 w-8 bg-slate-100 border-r border-slate-200 flex flex-col items-center py-4 space-y-4 print:hidden">
                             {[1,2,3,4,5,6].map(i => <div key={i} className="w-2 h-2 rounded-full bg-slate-300"></div>)}
                         </div>
                         
-                        <div className={`pl-14 p-8 ${printingEntryId ? (printingEntryId === entry.id ? 'print:fixed print:inset-0 print:bg-white print:z-[9999] print:block print:p-8 print:m-0' : 'print:hidden') : ''}`}>
+                        <div className="pl-14 p-8 print:pl-0 print:p-0">
                             <div className="flex justify-between items-start border-b-2 border-slate-800 pb-4 mb-6">
                                 <div>
                                     <h4 className="text-2xl font-black font-serif text-slate-800 uppercase tracking-widest">Acta de Visita</h4>

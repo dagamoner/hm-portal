@@ -89,9 +89,9 @@ export default function VisitasClient({
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-8 print:m-0 print:space-y-0">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 print:hidden">
         <div>
           <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
             <ClipboardCheck className="w-8 h-8 text-indigo-600" />
@@ -99,14 +99,18 @@ export default function VisitasClient({
           </h1>
           <p className="text-slate-500 mt-1">Gestión de actas de visitas, check-lists, libro de HyS y desvíos.</p>
         </div>
-        {!isClient && (
+        
+        {!isManagingTemplates && !isClient && (
           <div className="flex items-center gap-3">
-            <button 
-              className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm transition-all"
-              onClick={() => setIsManagingTemplates(true)}
-            >
-              <Settings className="w-4 h-4" /> Plantillas
-            </button>
+            {(userRole === 'ADMIN' || userRole === 'MANAGER' || userRole === 'INSPECTOR') && (
+              <button 
+                onClick={() => setIsManagingTemplates(true)}
+                className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-sm"
+              >
+                <Settings className="w-4 h-4" /> Plantillas
+              </button>
+            )}
+            
             <button 
               onClick={() => setIsCreating(true)}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-200 transition-all"
@@ -118,11 +122,13 @@ export default function VisitasClient({
       </div>
 
       {/* KPI Cards */}
-      <DashboardCards visits={visits} findings={findings} />
+      <div className="print:hidden">
+        <DashboardCards visits={visits} findings={findings} />
+      </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="flex border-b border-slate-100">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden print:border-none print:shadow-none print:overflow-visible">
+        <div className="flex border-b border-slate-100 print:hidden">
           <button
             onClick={() => setActiveTab('visitas')}
             className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${
