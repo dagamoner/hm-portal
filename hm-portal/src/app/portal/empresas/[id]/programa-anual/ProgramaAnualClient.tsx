@@ -193,19 +193,16 @@ export default function ProgramaAnualClient({ companyId, companyName, topics: in
     }
   };
 
-  const handleSaveToDB = async () => {
-    setIsSavingDB(true);
-    setSuccessDB(false);
+  const handleGenerateNew = async () => {
+    setIsRegenerating(true);
     try {
-      const currentYear = new Date().getFullYear();
-      const res = await saveTrainingProgramToDB(companyId, currentYear, topics);
-      if (res.error) throw new Error(res.error);
-      setSuccessDB(true);
+      const newTopics = await generateRandomPlanData();
+      setTopics(newTopics);
     } catch (error) {
       console.error(error);
-      alert("Hubo un error al generar el programa en la base de datos.");
+      alert("Hubo un error al generar el nuevo programa.");
     } finally {
-      setIsSavingDB(false);
+      setIsRegenerating(false);
     }
   };
 
@@ -228,16 +225,14 @@ export default function ProgramaAnualClient({ companyId, companyName, topics: in
         {!isClient && (
           <div className="flex flex-col gap-2">
             <button 
-              onClick={handleSaveToDB}
-              disabled={isSavingDB || successDB}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all shadow-md ${successDB ? 'bg-teal-500 hover:bg-teal-600 shadow-teal-200' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'}`}
+              onClick={handleGenerateNew}
+              disabled={isRegenerating}
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-slate-700 transition-all shadow-md bg-white hover:bg-slate-50 border border-slate-200`}
             >
-              {isSavingDB ? (
-                <><Loader2 className="w-5 h-5 animate-spin" /> Guardando...</>
-              ) : successDB ? (
-                <><CheckCircle className="w-5 h-5" /> ¡Programa Generado!</>
+              {isRegenerating ? (
+                <><Loader2 className="w-5 h-5 animate-spin" /> Generando...</>
               ) : (
-                <><Database className="w-5 h-5" /> Generar Programa</>
+                <><RefreshCw className="w-5 h-5" /> Generar Nuevo Programa</>
               )}
             </button>
             <button 
