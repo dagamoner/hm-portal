@@ -299,12 +299,17 @@ export default function ProgramaAnualClient({ companyId, companyName, topics: in
                   </td>
                   <td className="p-1 align-top">
                     {isAdmin ? (
-                      <input 
-                        type="text"
+                      <select 
                         value={t.target}
                         onChange={(e) => handleTopicChange(idx, 'target', e.target.value)}
-                        className="w-full p-2 bg-transparent border-none focus:ring-2 focus:ring-indigo-100 rounded-lg text-slate-500"
-                      />
+                        className="w-full p-2 bg-transparent border-none focus:ring-2 focus:ring-indigo-100 rounded-lg text-slate-500 cursor-pointer text-xs"
+                      >
+                        <option value="Operativos">Operativos</option>
+                        <option value="Administrativos">Administrativos</option>
+                        <option value="Operativos/Administrativos">Operativos/Administrativos</option>
+                        <option value="Intermedios">Intermedios</option>
+                        <option value="Altos Cargos">Altos Cargos</option>
+                      </select>
                     ) : (
                       <div className="p-2 text-slate-500">{t.target}</div>
                     )}

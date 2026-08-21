@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 
 export type TrainingTopic = {
   month: string;
@@ -71,55 +72,55 @@ export async function getTrainingPlanData(companyId: string): Promise<TrainingTo
 
     // Temas base obligatorios
     const topics: TrainingTopic[] = [
-      { month: "ENERO", theme: "Prevención de estrés térmico", description: "Reconocimiento de síntomas, pausas activas e hidratación adecuada en ambientes calurosos.", target: "Operativo", typeInternal: true, typeExternal: false },
-      { month: "FEBRERO", theme: "Criterios de selección y mantenimiento de EPP específicos", description: "Uso correcto, cuidado, limpieza y criterios de reemplazo de los elementos de protección personal.", target: "Operativo", typeInternal: true, typeExternal: false },
-      { month: "MARZO", theme: "Seguridad en el uso de herramientas neumáticas y manuales portátiles", description: "Inspección previa al uso, normas de seguridad operativas y almacenamiento seguro de las herramientas.", target: "Operativo", typeInternal: true, typeExternal: false },
-      { month: "NOVIEMBRE", theme: "Señalización, delimitación de áreas y circulación segura", description: "Identificación de cartelería, respeto de senderos seguros y mantenimiento del orden y limpieza.", target: "Operativo", typeInternal: true, typeExternal: false },
-      { month: "DICIEMBRE", theme: "Auditoría de cumplimiento y análisis de indicadores de siniestralidad", description: "Revisión anual del sistema, evaluación de estadísticas de accidentes y definición de propuestas de mejora.", target: "Intermedio / Operativo", typeInternal: true, typeExternal: false },
+      { month: "ENERO", theme: "Prevención de estrés térmico", description: "Reconocimiento de síntomas, pausas activas e hidratación adecuada en ambientes calurosos.", target: "Operativos", typeInternal: true, typeExternal: false },
+      { month: "FEBRERO", theme: "Criterios de selección y mantenimiento de EPP específicos", description: "Uso correcto, cuidado, limpieza y criterios de reemplazo de los elementos de protección personal.", target: "Operativos", typeInternal: true, typeExternal: false },
+      { month: "MARZO", theme: "Seguridad en el uso de herramientas neumáticas y manuales portátiles", description: "Inspección previa al uso, normas de seguridad operativas y almacenamiento seguro de las herramientas.", target: "Operativos", typeInternal: true, typeExternal: false },
+      { month: "NOVIEMBRE", theme: "Señalización, delimitación de áreas y circulación segura", description: "Identificación de cartelería, respeto de senderos seguros y mantenimiento del orden y limpieza.", target: "Operativos", typeInternal: true, typeExternal: false },
+      { month: "DICIEMBRE", theme: "Auditoría de cumplimiento y análisis de indicadores de siniestralidad", description: "Revisión anual del sistema, evaluación de estadísticas de accidentes y definición de propuestas de mejora.", target: "Intermedios", typeInternal: true, typeExternal: false },
     ];
 
     // Temas dinámicos basados en peligros
     if (hasString(['altura', 'caída'])) {
-      topics.push({ month: "ABRIL", theme: "Trabajo seguro en altura: Uso de arnés y líneas de vida", description: "Sistemas anti-caídas, revisión de arneses de seguridad y determinación de puntos de anclaje seguros.", target: "Operativo", typeInternal: true, typeExternal: false });
+      topics.push({ month: "ABRIL", theme: "Trabajo seguro en altura: Uso de arnés y líneas de vida", description: "Sistemas anti-caídas, revisión de arneses de seguridad y determinación de puntos de anclaje seguros.", target: "Operativos", typeInternal: true, typeExternal: false });
     }
     
     if (hasString(['eléctric', 'tension'])) {
-      topics.push({ month: "MAYO", theme: "Riesgo eléctrico", description: "Identificación de peligros eléctricos, uso de procedimientos de bloqueo/etiquetado (LOTO) y distancias de seguridad.", target: "Intermedio / Operativo", typeInternal: true, typeExternal: false });
+      topics.push({ month: "MAYO", theme: "Riesgo eléctrico", description: "Identificación de peligros eléctricos, uso de procedimientos de bloqueo/etiquetado (LOTO) y distancias de seguridad.", target: "Operativos/Administrativos", typeInternal: true, typeExternal: false });
     }
 
     if (hasString(['carga', 'esfuerzo', 'ergonómic', 'postura'])) {
-      topics.push({ month: "JUNIO", theme: "Manipulación manual de cargas y prevención de TME", description: "Adopción de posturas correctas, conocimiento de límites de peso y prevención de trastornos músculo-esqueléticos.", target: "Intermedio / Operativo", typeInternal: true, typeExternal: false });
+      topics.push({ month: "JUNIO", theme: "Manipulación manual de cargas y prevención de TME", description: "Adopción de posturas correctas, conocimiento de límites de peso y prevención de trastornos músculo-esqueléticos.", target: "Operativos/Administrativos", typeInternal: true, typeExternal: false });
     }
 
     if (hasString(['izaje', 'grúa', 'autoelevador'])) {
-      topics.push({ month: "JULIO", theme: "Izaje crítico de cargas", description: "Cálculo y distribución de cargas, inspección y uso de eslingas o estrobos, y protocolos de comunicación con el operador.", target: "Operativo", typeInternal: true, typeExternal: false });
+      topics.push({ month: "JULIO", theme: "Izaje crítico de cargas", description: "Cálculo y distribución de cargas, inspección y uso de eslingas o estrobos, y protocolos de comunicación con el operador.", target: "Operativos", typeInternal: true, typeExternal: false });
     }
 
     if (hasString(['polvo', 'químic', 'sílice', 'respiratori'])) {
-      topics.push({ month: "AGOSTO", theme: "Protección respiratoria contra sustancias químicas", description: "Selección de tipos de filtros según el contaminante, prueba de ajuste hermético y mantenimiento del respirador.", target: "Intermedio / Operativo", typeInternal: true, typeExternal: false });
+      topics.push({ month: "AGOSTO", theme: "Protección respiratoria contra sustancias químicas", description: "Selección de tipos de filtros según el contaminante, prueba de ajuste hermético y mantenimiento del respirador.", target: "Operativos", typeInternal: true, typeExternal: false });
     }
 
     if (hasString(['demolición', 'obra', 'residuos'])) {
-      topics.push({ month: "SEPTIEMBRE", theme: "Seguridad en demoliciones y gestión de residuos de obra", description: "Procedimientos de demolición segura, métodos para el control de polvo ambiental y correcta clasificación de residuos.", target: "Operativo", typeInternal: true, typeExternal: false });
+      topics.push({ month: "SEPTIEMBRE", theme: "Seguridad en demoliciones y gestión de residuos de obra", description: "Procedimientos de demolición segura, métodos para el control de polvo ambiental y correcta clasificación de residuos.", target: "Operativos", typeInternal: true, typeExternal: false });
     }
 
     if (hasString(['incendio', 'fuego', 'inflamable', 'explosión'])) {
-      topics.push({ month: "OCTUBRE", theme: "Prevención de incendios: Uso de extintores y sistemas fijos", description: "Reconocimiento de clases de fuego, manejo práctico de extintores portátiles y repaso del plan de evacuación.", target: "Intermedio / Operativo", typeInternal: true, typeExternal: true });
+      topics.push({ month: "OCTUBRE", theme: "Prevención de incendios: Uso de extintores y sistemas fijos", description: "Reconocimiento de clases de fuego, manejo práctico de extintores portátiles y repaso del plan de evacuación.", target: "Operativos/Administrativos", typeInternal: true, typeExternal: true });
     }
     
     if (hasString(['ruido', 'sonoro', 'auditivo'])) {
-      topics.push({ month: "SEPTIEMBRE", theme: "Conservación auditiva y uso correcto de protectores auditivos", description: "Comprensión de los niveles de ruido nocivos, correcta colocación de tapones endoaurales y uso de protectores de copa.", target: "Operativo", typeInternal: true, typeExternal: false });
+      topics.push({ month: "SEPTIEMBRE", theme: "Conservación auditiva y uso correcto de protectores auditivos", description: "Comprensión de los niveles de ruido nocivos, correcta colocación de tapones endoaurales y uso de protectores de copa.", target: "Operativos", typeInternal: true, typeExternal: false });
     }
 
     // Si la empresa no tiene riesgos cargados o tiene pocos, rellenamos con temas generales del PDF
     const allExpectedTopics = [
-      { month: "ABRIL", theme: "Trabajo seguro en altura: Uso de arnés y líneas de vida", description: "Sistemas anti-caídas, revisión de arneses de seguridad y determinación de puntos de anclaje seguros.", target: "Operativo", typeInternal: true, typeExternal: false },
-      { month: "MAYO", theme: "Riesgo eléctrico", description: "Identificación de peligros eléctricos, uso de procedimientos de bloqueo/etiquetado (LOTO) y distancias de seguridad.", target: "Intermedio / Operativo", typeInternal: true, typeExternal: false },
-      { month: "JUNIO", theme: "Manipulación manual de cargas y prevención de TME", description: "Adopción de posturas correctas, conocimiento de límites de peso y prevención de trastornos músculo-esqueléticos.", target: "Intermedio / Operativo", typeInternal: true, typeExternal: false },
-      { month: "JULIO", theme: "Izaje crítico de cargas", description: "Cálculo y distribución de cargas, inspección y uso de eslingas o estrobos, y protocolos de comunicación con el operador.", target: "Operativo", typeInternal: true, typeExternal: false },
-      { month: "AGOSTO", theme: "Protección respiratoria contra sustancias químicas", description: "Selección de tipos de filtros según el contaminante, prueba de ajuste hermético y mantenimiento del respirador.", target: "Intermedio / Operativo", typeInternal: true, typeExternal: false },
-      { month: "SEPTIEMBRE", theme: "Seguridad en gestión de residuos", description: "Manejo adecuado de residuos peligrosos y patogénicos, etiquetado y almacenamiento temporal seguro.", target: "Operativo", typeInternal: true, typeExternal: false },
-      { month: "OCTUBRE", theme: "Prevención de incendios: Uso de extintores", description: "Reconocimiento de clases de fuego, manejo práctico de extintores portátiles y repaso del plan de evacuación.", target: "Intermedio / Operativo", typeInternal: true, typeExternal: true },
+      { month: "ABRIL", theme: "Trabajo seguro en altura: Uso de arnés y líneas de vida", description: "Sistemas anti-caídas, revisión de arneses de seguridad y determinación de puntos de anclaje seguros.", target: "Operativos", typeInternal: true, typeExternal: false },
+      { month: "MAYO", theme: "Riesgo eléctrico", description: "Identificación de peligros eléctricos, uso de procedimientos de bloqueo/etiquetado (LOTO) y distancias de seguridad.", target: "Operativos/Administrativos", typeInternal: true, typeExternal: false },
+      { month: "JUNIO", theme: "Manipulación manual de cargas y prevención de TME", description: "Adopción de posturas correctas, conocimiento de límites de peso y prevención de trastornos músculo-esqueléticos.", target: "Operativos/Administrativos", typeInternal: true, typeExternal: false },
+      { month: "JULIO", theme: "Izaje crítico de cargas", description: "Cálculo y distribución de cargas, inspección y uso de eslingas o estrobos, y protocolos de comunicación con el operador.", target: "Operativos", typeInternal: true, typeExternal: false },
+      { month: "AGOSTO", theme: "Protección respiratoria contra sustancias químicas", description: "Selección de tipos de filtros según el contaminante, prueba de ajuste hermético y mantenimiento del respirador.", target: "Operativos", typeInternal: true, typeExternal: false },
+      { month: "SEPTIEMBRE", theme: "Seguridad en gestión de residuos", description: "Manejo adecuado de residuos peligrosos y patogénicos, etiquetado y almacenamiento temporal seguro.", target: "Operativos", typeInternal: true, typeExternal: false },
+      { month: "OCTUBRE", theme: "Prevención de incendios: Uso de extintores", description: "Reconocimiento de clases de fuego, manejo práctico de extintores portátiles y repaso del plan de evacuación.", target: "Operativos/Administrativos", typeInternal: true, typeExternal: true },
     ];
 
     allExpectedTopics.forEach(t => {
@@ -178,7 +179,8 @@ export async function saveTrainingProgramToDB(companyId: string, year: number, t
         });
       }
     }
-
+    
+    revalidatePath(`/portal/empresas/${companyId}/capacitaciones`);
     return { success: true };
   } catch (error: any) {
     console.error("Error saving training program:", error);
