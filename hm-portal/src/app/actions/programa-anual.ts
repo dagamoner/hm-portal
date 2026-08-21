@@ -135,3 +135,51 @@ export async function getTrainingPlanData(companyId: string): Promise<TrainingTo
     return [];
   }
 }
+
+export async function saveTrainingProgramToDB(companyId: string, year: number, topics: TrainingTopic[]) {
+  try {
+    // Check if plan exists
+    let plan = await prisma.trainingPlan.findUnique({
+      where: { companyId_year: { companyId, year } }
+    });
+
+    if (!plan) {
+      plan = await prisma.trainingPlan.create({
+        data: { companyId, year }
+      });
+    }
+
+    const monthMap: Record<string, number> = {
+      "ENERO": 1, "FEBRERO": 2, "MARZO": 3, "ABRIL": 4, "MAYO": 5, "JUNIO": 6,
+      "JULIO": 7, "AGOSTO": 8, "SEPTIEMBRE": 9, "OCTUBRE": 10, "NOVIEMBRE": 11, "DICIEMBRE": 12
+    };
+
+    // Create trainings (skip if already created for that month to avoid dupes)
+    for (const topic of topics) {
+      const monthIdx = monthMap[topic.month] || 1;
+      
+      const existing = await prisma.training.findFirst({
+        where: { planId: plan.id, monthIndex: monthIdx, title: topic.theme }
+      });
+
+      if (!existing) {
+        await prisma.training.create({
+          data: {
+            companyId,
+            planId: plan.id,
+            title: topic.theme,
+            monthIndex: monthIdx,
+            type: "Operativo",
+            priority: "Recomendada",
+            status: "Pendiente" // Tentativo
+          }
+        });
+      }
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error saving training program:", error);
+    return { error: error.message };
+  }
+}

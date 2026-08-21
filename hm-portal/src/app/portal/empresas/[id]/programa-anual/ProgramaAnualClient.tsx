@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Download, CheckCircle, FileText, Loader2 } from "lucide-react";
+import { Download, CheckCircle, FileText, Loader2, Database } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { TrainingTopic } from "@/app/actions/programa-anual";
+import { TrainingTopic, saveTrainingProgramToDB } from "@/app/actions/programa-anual";
 import { createDocument } from "@/app/actions/documents";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -15,10 +15,13 @@ interface Props {
   topics: TrainingTopic[];
 }
 
-export default function ProgramaAnualClient({ companyId, companyName, topics }: Props) {
+export default function ProgramaAnualClient({ companyId, companyName, topics: initialTopics }: Props) {
   const { isClient } = useAuth();
+  const [topics, setTopics] = useState(initialTopics);
   const [isGenerating, setIsGenerating] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [isSavingDB, setIsSavingDB] = useState(false);
+  const [successDB, setSuccessDB] = useState(false);
   const router = useRouter();
 
   const generateAndUploadPDF = async () => {
@@ -187,9 +190,31 @@ export default function ProgramaAnualClient({ companyId, companyName, topics }: 
     }
   };
 
+  const handleSaveToDB = async () => {
+    setIsSavingDB(true);
+    setSuccessDB(false);
+    try {
+      const currentYear = new Date().getFullYear();
+      const res = await saveTrainingProgramToDB(companyId, currentYear, topics);
+      if (res.error) throw new Error(res.error);
+      setSuccessDB(true);
+    } catch (error) {
+      console.error(error);
+      alert("Hubo un error al generar el programa en la base de datos.");
+    } finally {
+      setIsSavingDB(false);
+    }
+  };
+
+  const handleTopicChange = (index: number, field: keyof TrainingTopic, value: string) => {
+    const newTopics = [...topics];
+    newTopics[index] = { ...newTopics[index], [field]: value };
+    setTopics(newTopics);
+  };
+
   return (
     <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 mt-6">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
         <div>
           <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
             <FileText className="w-6 h-6 text-indigo-600" />
@@ -198,19 +223,34 @@ export default function ProgramaAnualClient({ companyId, companyName, topics }: 
           <p className="text-slate-500 mt-1">Generación automática del plan basado en los riesgos inherentes de la empresa.</p>
         </div>
         {!isClient && (
-          <button 
-            onClick={generateAndUploadPDF}
-            disabled={isGenerating || success}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all shadow-md ${success ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200'}`}
-          >
-            {isGenerating ? (
-              <><Loader2 className="w-5 h-5 animate-spin" /> Generando...</>
-            ) : success ? (
-              <><CheckCircle className="w-5 h-5" /> ¡Guardado en Documentación!</>
-            ) : (
-              <><Download className="w-5 h-5" /> Generar y Descargar PDF</>
-            )}
-          </button>
+          <div className="flex flex-col gap-2">
+            <button 
+              onClick={handleSaveToDB}
+              disabled={isSavingDB || successDB}
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all shadow-md ${successDB ? 'bg-teal-500 hover:bg-teal-600 shadow-teal-200' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'}`}
+            >
+              {isSavingDB ? (
+                <><Loader2 className="w-5 h-5 animate-spin" /> Guardando...</>
+              ) : successDB ? (
+                <><CheckCircle className="w-5 h-5" /> ¡Programa Generado!</>
+              ) : (
+                <><Database className="w-5 h-5" /> Generar Programa</>
+              )}
+            </button>
+            <button 
+              onClick={generateAndUploadPDF}
+              disabled={isGenerating || success}
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all shadow-md ${success ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200'}`}
+            >
+              {isGenerating ? (
+                <><Loader2 className="w-5 h-5 animate-spin" /> Generando...</>
+              ) : success ? (
+                <><CheckCircle className="w-5 h-5" /> ¡Guardado en Documentación!</>
+              ) : (
+                <><Download className="w-5 h-5" /> Generar y Descargar PDF</>
+              )}
+            </button>
+          </div>
         )}
       </div>
 
@@ -220,17 +260,31 @@ export default function ProgramaAnualClient({ companyId, companyName, topics }: 
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-200/50 text-slate-500">
               <tr>
-                <th className="p-3 rounded-tl-lg font-semibold">Mes</th>
+                <th className="p-3 rounded-tl-lg font-semibold w-32">Mes</th>
                 <th className="p-3 font-semibold">Tema</th>
-                <th className="p-3 rounded-tr-lg font-semibold">Dirigido A</th>
+                <th className="p-3 rounded-tr-lg font-semibold w-48">Dirigido A</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {topics.map((t, idx) => (
                 <tr key={idx} className="hover:bg-white transition-colors">
-                  <td className="p-3 font-medium text-slate-700">{t.month}</td>
-                  <td className="p-3 text-slate-600">{t.theme}</td>
-                  <td className="p-3 text-slate-500">{t.target}</td>
+                  <td className="p-3 font-medium text-slate-700 align-top">{t.month}</td>
+                  <td className="p-1 align-top">
+                    <textarea 
+                      value={t.theme}
+                      onChange={(e) => handleTopicChange(idx, 'theme', e.target.value)}
+                      className="w-full p-2 bg-transparent border-none focus:ring-2 focus:ring-indigo-100 rounded-lg resize-none text-slate-600"
+                      rows={2}
+                    />
+                  </td>
+                  <td className="p-1 align-top">
+                    <input 
+                      type="text"
+                      value={t.target}
+                      onChange={(e) => handleTopicChange(idx, 'target', e.target.value)}
+                      className="w-full p-2 bg-transparent border-none focus:ring-2 focus:ring-indigo-100 rounded-lg text-slate-500"
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
