@@ -25,7 +25,7 @@ export default function VisitasClient({
   initialTemplates?: any[];
   initialBookEntries?: any[];
 }) {
-  const { canEdit, isClient } = useAuth();
+  const { user, isClient, isAdmin, isManager, isInspector } = useAuth();
   const [activeTab, setActiveTab] = useState<'visitas' | 'desvios' | 'libro'>('visitas');
   const [isCreating, setIsCreating] = useState(false);
   const [isManagingTemplates, setIsManagingTemplates] = useState(false);
