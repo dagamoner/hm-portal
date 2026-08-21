@@ -100,7 +100,7 @@ export default function VisitsList({ visits }: { visits: any[] }) {
           const bodyData = (category.items || []).map((item: any) => {
             let statusStr = item.answer?.status || 'N/A';
             if (item.type === 'checkbox') {
-                statusStr = statusStr === 'SI' ? 'REALIZADO' : (statusStr === 'NO' ? 'PENDIENTE' : statusStr);
+                statusStr = statusStr === 'SI' ? 'OK' : (statusStr === 'NO' ? 'NO' : statusStr);
             }
             return [
               String(item.text || item.question || 'Pregunta no especificada'),
@@ -126,9 +126,9 @@ export default function VisitsList({ visits }: { visits: any[] }) {
             willDrawCell: function(data: any) {
                if (data.section === 'body' && data.column.index === 1) {
                   const val = data.cell.raw;
-                  if (val === 'NO' || val === 'PENDIENTE') {
+                  if (val === 'NO' || val === 'PENDIENTE' || val === 'NC') {
                      doc.setTextColor(220, 38, 38); // Red
-                  } else if (val === 'SI' || val === 'REALIZADO') {
+                  } else if (val === 'SI' || val === 'REALIZADO' || val === 'OK' || val === 'C') {
                      doc.setTextColor(22, 163, 74); // Green
                   } else {
                      doc.setTextColor(100, 100, 100);

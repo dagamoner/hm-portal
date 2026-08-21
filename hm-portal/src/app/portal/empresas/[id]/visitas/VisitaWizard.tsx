@@ -113,7 +113,7 @@ export default function VisitaWizard({
         for (const item of category.items) {
           const ans = answers[item.id];
           const itemText = item.text || '';
-          if (ans?.status === 'NO') {
+          if (ans?.status === 'NO' || ans?.status === 'NC') {
             findings.push({
               description: `Incumplimiento en ${category.name}: ${itemText}. ${ans.peligro ? `Observación: ${ans.peligro}` : ''}`,
               hazardLevel: 'Medio', // Default
@@ -299,19 +299,40 @@ export default function VisitaWizard({
                       {item.type === 'checkbox' ? (
                         <button
                           onClick={() => handleAnswerChange(item.id, 'status', ans?.status === 'SI' ? 'NO' : 'SI')}
-                          className={`w-[140px] py-1.5 text-xs font-black rounded border transition-colors flex items-center justify-center gap-2 ${ans?.status === 'SI' ? 'bg-indigo-100 border-indigo-200 text-indigo-700' : 'bg-white border-slate-200 text-slate-400 hover:border-indigo-200 hover:text-indigo-500'}`}
+                          className={`w-[140px] py-1.5 text-xs font-black rounded border transition-colors flex items-center justify-center gap-2 ${ans?.status === 'SI' ? 'bg-emerald-100 border-emerald-200 text-emerald-700' : 'bg-slate-100 border-slate-300 text-slate-500 hover:border-slate-400 hover:text-slate-700'}`}
                         >
                           {ans?.status === 'SI' ? <CheckSquare className="w-4 h-4"/> : <Square className="w-4 h-4"/>} 
-                          {ans?.status === 'SI' ? 'REALIZADO' : 'PENDIENTE'}
+                          {ans?.status === 'SI' ? 'OK' : 'NO'}
                         </button>
                       ) : item.type === 'text' ? (
                         <input
                           type="text"
                           placeholder="Respuesta..."
                           className="w-[140px] text-xs text-slate-700 font-bold border border-slate-200 rounded-md px-3 py-1.5 outline-none focus:border-indigo-400 bg-white"
-                          value={ans?.status && ans.status !== 'SI' && ans.status !== 'NO' && ans.status !== 'N/A' ? ans.status : ''}
+                          value={ans?.status && !['SI','NO','N/A','C','NC'].includes(ans.status) ? ans.status : ''}
                           onChange={(e) => handleAnswerChange(item.id, 'status', e.target.value)}
                         />
+                      ) : item.type === 'c_nc_na' ? (
+                        <div className="flex gap-1 w-full md:w-[140px]">
+                          <button
+                            onClick={() => handleAnswerChange(item.id, 'status', 'C')}
+                            className={`flex-1 py-1.5 text-xs font-black rounded border transition-colors ${ans?.status === 'C' ? 'bg-emerald-100 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200 text-slate-400 hover:border-emerald-200 hover:text-emerald-500'}`}
+                          >
+                            C
+                          </button>
+                          <button
+                            onClick={() => handleAnswerChange(item.id, 'status', 'NC')}
+                            className={`flex-1 py-1.5 text-xs font-black rounded border transition-colors ${ans?.status === 'NC' ? 'bg-rose-100 border-rose-200 text-rose-700' : 'bg-white border-slate-200 text-slate-400 hover:border-rose-200 hover:text-rose-500'}`}
+                          >
+                            NC
+                          </button>
+                          <button
+                            onClick={() => handleAnswerChange(item.id, 'status', 'N/A')}
+                            className={`flex-1 py-1.5 text-xs font-black rounded border transition-colors ${ans?.status === 'N/A' ? 'bg-slate-200 border-slate-300 text-slate-700' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600'}`}
+                          >
+                            N/A
+                          </button>
+                        </div>
                       ) : (
                         <div className="flex gap-1 w-full md:w-[140px]">
                           <button

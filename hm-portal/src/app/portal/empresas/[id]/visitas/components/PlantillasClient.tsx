@@ -196,8 +196,9 @@ export default function PlantillasClient({ companyId, initialTemplates, onBack }
                 const question = row['Pregunta a Evaluar'] || row['Pregunta'] || row['Item'] || '';
                 const typeRaw = (row['Formato (SI/NO/NA, TEXTO, CHECKBOX)'] || row['Tipo'] || 'SI/NO/NA').toString().toLowerCase();
                 let type = 'boolean';
-                if (typeRaw.includes('check') || typeRaw === 'tildable') type = 'checkbox';
-                if (typeRaw.includes('text') || typeRaw === 'texto') type = 'text';
+                if (typeRaw.includes('check') || typeRaw.includes('tildable')) type = 'checkbox';
+                if (typeRaw.includes('text') || typeRaw.includes('texto')) type = 'text';
+                if (typeRaw.includes('c/nc') || typeRaw.includes('c_nc_na') || typeRaw === 'c/nc/n.a.') type = 'c_nc_na';
 
                 if (question) {
                     if (!categoryMap.has(catName)) categoryMap.set(catName, []);
@@ -385,9 +386,10 @@ export default function PlantillasClient({ companyId, initialTemplates, onBack }
                           onChange={(e) => updateItem(cIdx, iIdx, "type", e.target.value)}
                           className="w-40 px-3 py-2 text-sm rounded-lg border border-slate-200 bg-slate-50 outline-none"
                         >
-                          <option value="boolean">Sí / No / N.A.</option>
-                          <option value="checkbox">Checkbox (Tildable)</option>
-                          <option value="text">Texto Libre</option>
+                          <option value="boolean">Si/No/N.A.</option>
+                          <option value="checkbox">Checkbox (Tildable): OK (verde), NO (gris)</option>
+                          <option value="c_nc_na">C/NC/N.A.</option>
+                          <option value="text">TEXTO</option>
                         </select>
                         <button
                           onClick={() => removeItem(cIdx, iIdx)}
