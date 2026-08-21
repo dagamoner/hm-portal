@@ -75,6 +75,10 @@ export async function createVisit(companyId: string, data: any) {
             deadline: finding.deadline ? new Date(finding.deadline) : null
           }))
         } : undefined
+      },
+      include: {
+        establishment: true,
+        findings: true
       }
     });
     

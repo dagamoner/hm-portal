@@ -12,6 +12,7 @@ export default function LibroHySLClient({ companyId, companyName, initialEntries
     const [isPending, startTransition] = useTransition();
     const [isCreating, setIsCreating] = useState(false);
     const [entries, setEntries] = useState(initialEntries);
+    const [printingEntryId, setPrintingEntryId] = useState<string | null>(null);
     
     const [formData, setFormData] = useState({
         date: new Date().toISOString().substring(0, 10),
@@ -159,7 +160,7 @@ export default function LibroHySLClient({ companyId, companyName, initialEntries
                             {[1,2,3,4,5,6].map(i => <div key={i} className="w-2 h-2 rounded-full bg-slate-300"></div>)}
                         </div>
                         
-                        <div className="pl-14 p-8">
+                        <div className={`pl-14 p-8 ${printingEntryId ? (printingEntryId === entry.id ? 'print:fixed print:inset-0 print:bg-white print:z-[9999] print:block print:p-8 print:m-0' : 'print:hidden') : ''}`}>
                             <div className="flex justify-between items-start border-b-2 border-slate-800 pb-4 mb-6">
                                 <div>
                                     <h4 className="text-2xl font-black font-serif text-slate-800 uppercase tracking-widest">Acta de Visita</h4>
@@ -168,9 +169,24 @@ export default function LibroHySLClient({ companyId, companyName, initialEntries
                                         <span className="flex items-center gap-1"><Building2 className="w-4 h-4" /> {companyName}</span>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Folio N°</div>
-                                    <div className="text-4xl font-black text-rose-600 font-serif">{String(entry.folioNumber).padStart(4, '0')}</div>
+                                <div className="text-right flex items-start gap-4">
+                                    <div className="text-right">
+                                        <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Folio N°</div>
+                                        <div className="text-4xl font-black text-rose-600 font-serif">{String(entry.folioNumber).padStart(4, '0')}</div>
+                                    </div>
+                                    <button 
+                                        onClick={() => {
+                                            setPrintingEntryId(entry.id);
+                                            setTimeout(() => {
+                                                window.print();
+                                                setPrintingEntryId(null);
+                                            }, 100);
+                                        }}
+                                        className="print:hidden p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors mt-2"
+                                        title="Imprimir Folio"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
+                                    </button>
                                 </div>
                             </div>
                             
