@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Download, CheckCircle, FileText, Loader2, Database } from "lucide-react";
+import { Download, CheckCircle, FileText, Loader2, RefreshCw } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { TrainingTopic, saveTrainingProgramToDB } from "@/app/actions/programa-anual";
+import { TrainingTopic, generateRandomPlanData } from "@/app/actions/programa-anual";
 import { createDocument } from "@/app/actions/documents";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
