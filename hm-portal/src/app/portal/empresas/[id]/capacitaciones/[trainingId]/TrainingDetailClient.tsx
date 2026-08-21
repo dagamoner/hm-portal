@@ -3,8 +3,10 @@
 import React, { useState } from 'react';
 import { ExternalLink, Save, CheckCircle2, FileCheck, XCircle, Copy, Trash2, Printer } from 'lucide-react';
 import { saveTrainingRecords, updateTraining } from '@/app/actions/trainings';
+import { useRouter } from 'next/navigation';
 
 export default function TrainingDetailClient({ company, companyId, training, userRole }: any) {
+  const router = useRouter();
   const [records, setRecords] = useState(training.records || []);
   const [sheetLink, setSheetLink] = useState(training.sheetLink || '');
   const [externalLink, setExternalLink] = useState(training.externalLink || '');
@@ -49,7 +51,8 @@ export default function TrainingDetailClient({ company, companyId, training, use
       const updateRes = await updateTraining(training.id, companyId, { sheetLink, externalLink, status: trainingStatus });
       if ((updateRes as any)?.error) throw new Error((updateRes as any).error);
       
-      alert("Registros guardados correctamente");
+      router.refresh();
+      alert("Registros y estado guardados correctamente");
     } catch (error: any) {
       alert(error.message || "Error al guardar");
     } finally {

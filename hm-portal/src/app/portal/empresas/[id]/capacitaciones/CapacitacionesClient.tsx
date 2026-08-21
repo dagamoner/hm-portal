@@ -176,14 +176,12 @@ export default function CapacitacionesClient({ companyId, companyName, initialPl
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {MONTHS.map((monthName, index) => {
               const monthIdx = index + 1;
-              const isLocked = monthIdx > currentMonthIndex;
               const monthTrainings = trainings.filter((t: any) => t.monthIndex === monthIdx);
 
               return (
-                <div key={monthName} className={`rounded-3xl border ${isLocked ? 'bg-slate-50/50 border-slate-100' : 'bg-white border-slate-200'} overflow-hidden flex flex-col`}>
-                  <div className={`px-5 py-3 border-b ${isLocked ? 'bg-slate-100/50 border-slate-100' : 'bg-indigo-50/50 border-indigo-100'} flex items-center justify-between`}>
-                    <span className={`font-bold ${isLocked ? 'text-slate-400' : 'text-indigo-900'}`}>{monthName}</span>
-                    {isLocked ? <Lock className="w-4 h-4 text-slate-400" /> : <Unlock className="w-4 h-4 text-indigo-500" />}
+                <div key={monthName} className={`rounded-3xl border bg-white border-slate-200 overflow-hidden flex flex-col`}>
+                  <div className={`px-5 py-3 border-b bg-indigo-50/50 border-indigo-100 flex items-center justify-between`}>
+                    <span className={`font-bold text-indigo-900`}>{monthName}</span>
                   </div>
                   
                   <div className="p-5 flex-1 flex flex-col gap-3">
@@ -192,23 +190,30 @@ export default function CapacitacionesClient({ companyId, companyName, initialPl
                         <span className="text-sm font-medium text-slate-400">Sin programar</span>
                       </div>
                     ) : (
-                      monthTrainings.map((t: any) => (
-                        <div key={t.id} className={`p-4 rounded-2xl border ${isLocked ? 'border-slate-200 bg-white opacity-60' : 'border-slate-200 bg-white hover:border-indigo-300 hover:shadow-sm transition-all'} flex flex-col gap-3`}>
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${t.priority === 'Obligatoria' ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'}`}>
-                                {t.priority}
-                              </span>
-                              <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-black uppercase tracking-wider">
-                                {t.type}
-                              </span>
+                      monthTrainings.map((t: any) => {
+                        const isTrainingLocked = t.status === 'Bloqueada';
+                        
+                        return (
+                          <div key={t.id} className={`p-4 rounded-2xl border ${isTrainingLocked ? 'border-slate-200 bg-slate-50 opacity-75' : 'border-slate-200 bg-white hover:border-indigo-300 hover:shadow-sm'} transition-all flex flex-col gap-3`}>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${t.priority === 'Obligatoria' ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'}`}>
+                                    {t.priority}
+                                  </span>
+                                  <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-black uppercase tracking-wider">
+                                    {t.type}
+                                  </span>
+                                </div>
+                                <h4 className="font-bold text-slate-800 leading-tight">{t.title}</h4>
+                              </div>
+                              {isTrainingLocked && (
+                                <Lock className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                              )}
                             </div>
-                            <h4 className="font-bold text-slate-800 leading-tight">{t.title}</h4>
-                          </div>
-                          
-                          {!isLocked && (
+                            
                             <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
-                              <span className={`text-xs font-bold ${t.status === 'Completada' ? 'text-green-600' : t.status === 'En Progreso' ? 'text-amber-500' : 'text-slate-500'}`}>
+                              <span className={`text-xs font-bold ${t.status === 'Completada' ? 'text-green-600' : t.status === 'En Progreso' ? 'text-amber-500' : t.status === 'Bloqueada' ? 'text-slate-400' : 'text-slate-500'}`}>
                                 {t.status}
                               </span>
                               <div className="flex gap-2">
@@ -226,9 +231,9 @@ export default function CapacitacionesClient({ companyId, companyName, initialPl
                                 </Link>
                               </div>
                             </div>
-                          )}
-                        </div>
-                      ))
+                          </div>
+                        );
+                      })
                     )}
                   </div>
                 </div>
