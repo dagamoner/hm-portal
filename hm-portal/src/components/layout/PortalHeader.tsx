@@ -6,6 +6,8 @@ import { getSession } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { ClientChatWidget } from "@/components/chat/ClientChatWidget"
 
+import { MobileSidebarToggle } from "./MobileSidebarToggle"
+
 export async function PortalHeader() {
   const session = await getSession();
   const user = session?.user;
@@ -38,8 +40,9 @@ export async function PortalHeader() {
   }
 
   return (
-    <header className="print:hidden h-24 px-10 flex items-center justify-between border-b border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 transition-colors">
-      <div className="flex items-center gap-4">
+    <header className="print:hidden h-24 px-4 sm:px-10 flex items-center justify-between border-b border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 transition-colors">
+      <div className="flex items-center gap-2 sm:gap-4">
+        <MobileSidebarToggle />
         <div>
           <h1 className="text-xl font-black text-slate-900 dark:text-white capitalize tracking-tight transition-colors">
             Portal MH
