@@ -16,7 +16,7 @@ interface Props {
 }
 
 export default function ProgramaAnualClient({ companyId, companyName, topics: initialTopics }: Props) {
-  const { isClient } = useAuth();
+  const { isClient, isAdmin } = useAuth();
   const [topics, setTopics] = useState(initialTopics);
   const [isGenerating, setIsGenerating] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -117,6 +117,7 @@ export default function ProgramaAnualClient({ companyId, companyName, topics: in
       const tableBody = topics.map(t => [
         t.month,
         t.theme,
+        t.description,
         t.target,
         t.typeInternal ? 'X' : '',
         t.typeExternal ? 'X' : ''
@@ -128,6 +129,7 @@ export default function ProgramaAnualClient({ companyId, companyName, topics: in
           [
             { content: 'MES', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
             { content: 'TEMA', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+            { content: 'DESCRIPCIÓN', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
             { content: 'DIRIGIDO A NIVEL', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
             { content: 'TIPO DE CAPACITACIÓN', colSpan: 2, styles: { halign: 'center' } }
           ],
@@ -138,11 +140,12 @@ export default function ProgramaAnualClient({ companyId, companyName, topics: in
         headStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], lineColor: [203, 213, 225], lineWidth: 0.1 },
         styles: { fontSize: 8, cellPadding: 3, lineColor: [203, 213, 225], lineWidth: 0.1, textColor: [51, 65, 85], halign: 'center', valign: 'middle' },
         columnStyles: {
-          0: { cellWidth: 25 },
-          1: { cellWidth: 60, halign: 'left' },
-          2: { cellWidth: 35 },
-          3: { cellWidth: 35 },
-          4: { cellWidth: 25 }
+          0: { cellWidth: 20 }, // Mes
+          1: { cellWidth: 45, halign: 'left' }, // Tema
+          2: { cellWidth: 55, halign: 'left' }, // Descripción
+          3: { cellWidth: 25 }, // Dirigido A
+          4: { cellWidth: 20 }, // Interna
+          5: { cellWidth: 17 }  // Externa
         }
       });
 
@@ -260,9 +263,10 @@ export default function ProgramaAnualClient({ companyId, companyName, topics: in
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-200/50 text-slate-500">
               <tr>
-                <th className="p-3 rounded-tl-lg font-semibold w-32">Mes</th>
-                <th className="p-3 font-semibold">Tema</th>
-                <th className="p-3 rounded-tr-lg font-semibold w-48">Dirigido A</th>
+                <th className="p-3 rounded-tl-lg font-semibold w-24">Mes</th>
+                <th className="p-3 font-semibold w-64">Tema</th>
+                <th className="p-3 font-semibold">Descripción</th>
+                <th className="p-3 rounded-tr-lg font-semibold w-40">Dirigido A</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -270,20 +274,40 @@ export default function ProgramaAnualClient({ companyId, companyName, topics: in
                 <tr key={idx} className="hover:bg-white transition-colors">
                   <td className="p-3 font-medium text-slate-700 align-top">{t.month}</td>
                   <td className="p-1 align-top">
-                    <textarea 
-                      value={t.theme}
-                      onChange={(e) => handleTopicChange(idx, 'theme', e.target.value)}
-                      className="w-full p-2 bg-transparent border-none focus:ring-2 focus:ring-indigo-100 rounded-lg resize-none text-slate-600"
-                      rows={2}
-                    />
+                    {isAdmin ? (
+                      <textarea 
+                        value={t.theme}
+                        onChange={(e) => handleTopicChange(idx, 'theme', e.target.value)}
+                        className="w-full p-2 bg-transparent border-none focus:ring-2 focus:ring-indigo-100 rounded-lg resize-none text-slate-600"
+                        rows={2}
+                      />
+                    ) : (
+                      <div className="p-2 text-slate-600">{t.theme}</div>
+                    )}
                   </td>
                   <td className="p-1 align-top">
-                    <input 
-                      type="text"
-                      value={t.target}
-                      onChange={(e) => handleTopicChange(idx, 'target', e.target.value)}
-                      className="w-full p-2 bg-transparent border-none focus:ring-2 focus:ring-indigo-100 rounded-lg text-slate-500"
-                    />
+                    {isAdmin ? (
+                      <textarea 
+                        value={t.description}
+                        onChange={(e) => handleTopicChange(idx, 'description', e.target.value)}
+                        className="w-full p-2 bg-transparent border-none focus:ring-2 focus:ring-indigo-100 rounded-lg resize-none text-slate-500 text-xs"
+                        rows={3}
+                      />
+                    ) : (
+                      <div className="p-2 text-slate-500 text-xs">{t.description}</div>
+                    )}
+                  </td>
+                  <td className="p-1 align-top">
+                    {isAdmin ? (
+                      <input 
+                        type="text"
+                        value={t.target}
+                        onChange={(e) => handleTopicChange(idx, 'target', e.target.value)}
+                        className="w-full p-2 bg-transparent border-none focus:ring-2 focus:ring-indigo-100 rounded-lg text-slate-500"
+                      />
+                    ) : (
+                      <div className="p-2 text-slate-500">{t.target}</div>
+                    )}
                   </td>
                 </tr>
               ))}
