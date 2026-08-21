@@ -20,6 +20,7 @@ export default function ProgramaAnualClient({ companyId, companyName, topics: in
   const [topics, setTopics] = useState(initialTopics);
   const [isGenerating, setIsGenerating] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const [isSavingDB, setIsSavingDB] = useState(false);
   const [successDB, setSuccessDB] = useState(false);
   const router = useRouter();
