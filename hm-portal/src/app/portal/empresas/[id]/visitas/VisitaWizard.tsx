@@ -5,7 +5,7 @@ import { createVisit } from '@/app/actions/visits';
 import { ClipboardCheck, Building2, Save, AlertCircle, Plus, Trash2, ListChecks, CheckSquare, Square } from 'lucide-react';
 
 interface ChecklistAnswer {
-  status: 'SI' | 'NO' | 'N/A' | null;
+  status: string | null;
   peligro: string;
 }
 
