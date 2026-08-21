@@ -102,7 +102,7 @@ export default function VisitasClient({
         
         {!isManagingTemplates && !isClient && (
           <div className="flex items-center gap-3">
-            {(userRole === 'ADMIN' || userRole === 'MANAGER' || userRole === 'INSPECTOR') && (
+            {(isAdmin || isManager || isInspector) && (
               <button 
                 onClick={() => setIsManagingTemplates(true)}
                 className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-sm"
