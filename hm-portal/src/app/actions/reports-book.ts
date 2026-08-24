@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { getSession } from "@/lib/auth";
 
 // --- LIBRO HySL ---
 
@@ -43,6 +44,31 @@ export async function createSafetyBookEntry(companyId: string, data: any) {
             }
         });
         
+        const session = await getSession();
+        if (session?.user && session.user.role !== "CLIENT") {
+            const company = await prisma.company.findUnique({ where: { id: companyId }});
+            if (company) {
+                let dateStr = data.date;
+                if (data.date && data.date.includes('-')) {
+                    const parts = data.date.split('-');
+                    dateStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                }
+                
+                let msg = `En el día de la fecha ${dateStr} se asienta el folio N° ${String(nextFolio).padStart(4, '0')} en el Libro Digital de Higiene y Seguridad de la empresa ${company.name}, estableciendo las siguientes observaciones: "${data.observations}". A continuación se eleva informe correspondiente para la toma de medidas a fin de regularizar lo observado.`;
+
+                await prisma.internalMessage.create({
+                    data: {
+                        companyId,
+                        senderId: session.user.id,
+                        content: msg,
+                        isFromClient: false,
+                        readByAdmin: true,
+                        readByClient: false
+                    }
+                });
+            }
+        }
+
         revalidatePath(`/portal`);
         return { success: true, entry };
     } catch (error) {
