@@ -60,7 +60,7 @@ export async function saveEppDelivery(companyId: string, workerId: string, data:
       result = await prisma.eppDelivery.update({
         where: { id: existing.id },
         data: {
-          date: new Date(data.date),
+          date: new Date(data.date.includes('T') ? data.date : `${data.date}T12:00:00Z`),
           items: data.items,
           additionalInfo: data.additionalInfo || null,
           signed: data.signed || false
@@ -71,7 +71,7 @@ export async function saveEppDelivery(companyId: string, workerId: string, data:
         data: {
           workerId,
           companyId,
-          date: new Date(data.date),
+          date: new Date(data.date.includes('T') ? data.date : `${data.date}T12:00:00Z`),
           items: data.items,
           additionalInfo: data.additionalInfo || null,
           signed: data.signed || false

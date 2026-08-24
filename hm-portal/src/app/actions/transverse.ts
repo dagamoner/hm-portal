@@ -41,7 +41,7 @@ export async function createToolboxTalk(companyId: string, data: any) {
                 title: data.title,
                 topic: data.topic,
                 supervisor: data.supervisor,
-                date: new Date(data.date),
+                date: new Date(data.date.includes('T') ? data.date : `${data.date}T12:00:00Z`),
                 signatures: {
                     create: data.workerIds.map((workerId: string) => ({
                         workerId,

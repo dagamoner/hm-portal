@@ -83,7 +83,7 @@ export async function createEmergencyDrill(companyId: string, data: any) {
     data: {
       title: data.title,
       type: data.type,
-      date: new Date(data.date),
+      date: new Date(data.date.includes('T') ? data.date : `${data.date}T12:00:00Z`),
       companyId,
       targetTimeStr: data.targetTimeStr,
       actualTimeStr: data.actualTimeStr,
@@ -107,7 +107,7 @@ export async function updateEmergencyDrill(companyId: string, drillId: string, d
     data: {
       title: data.title,
       type: data.type,
-      date: data.date ? new Date(data.date) : undefined,
+      date: data.date ? new Date(data.date.includes('T') ? data.date : `${data.date}T12:00:00Z`) : undefined,
       targetTimeStr: data.targetTimeStr,
       actualTimeStr: data.actualTimeStr,
       evacuatedCount: data.evacuatedCount ? parseInt(data.evacuatedCount) : null,

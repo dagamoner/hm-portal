@@ -216,8 +216,21 @@ export async function getDashboardMetrics(companyId?: string) {
       { name: 'Noche', count: turnosCount['Noche'] }
     ];
 
-    // Inspecciones (Visitas)
-    const totalInspections = await prisma.visit.count({ where: companyId ? { establishment: { companyId: companyId } } : {} });
+    // Inspecciones (Visitas) -> Contamos fechas únicas (días de visita reales)
+    const visitsForCount = await prisma.visit.findMany({ 
+      where: companyId ? { establishment: { companyId: companyId } } : {},
+      select: { date: true }
+    });
+    const bookEntriesForCount = await prisma.safetyBookEntry.findMany({
+      where: whereCompany,
+      select: { date: true }
+    });
+    
+    const uniqueVisitDates = new Set([
+      ...visitsForCount.map(v => new Date(v.date).toISOString().split('T')[0]),
+      ...bookEntriesForCount.map(b => new Date(b.date).toISOString().split('T')[0])
+    ]);
+    const totalInspections = uniqueVisitDates.size;
 
     // 10. CUMPLIMIENTO DE PERSONAL
     const trainingRecords = await prisma.trainingRecord.findMany({ where: whereCompany });

@@ -60,7 +60,7 @@ export async function createVisit(companyId: string, data: any) {
       data: {
         companyId,
         establishmentId: data.establishmentId,
-        date: new Date(data.date),
+        date: new Date(data.date.includes('T') ? data.date : `${data.date}T12:00:00Z`),
         visitNumber: data.visitNumber ? parseInt(data.visitNumber) : null,
         inspectorName: data.inspectorName,
         observations: data.observations,
