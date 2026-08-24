@@ -1,14 +1,21 @@
 import React from 'react';
 import { ClipboardCheck, AlertCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
 
-export default function DashboardCards({ visits, findings }: { visits: any[], findings: any[] }) {
+export default function DashboardCards({ visits, findings, bookEntries = [] }: { visits: any[], findings: any[], bookEntries?: any[] }) {
   const activeFindings = findings.filter(f => f.status !== 'CERRADO');
   const criticalFindings = activeFindings.filter(f => f.hazardLevel === 'Alto' || f.hazardLevel === 'Crítico');
-  const thisMonthVisits = visits.filter(v => {
-    const d = new Date(v.date);
-    const now = new Date();
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  });
+  
+  const now = new Date();
+  
+  const allDates = new Set([
+    ...visits.map(v => new Date(v.date).toISOString().split('T')[0]),
+    ...bookEntries.map(b => new Date(b.date).toISOString().split('T')[0])
+  ]);
+
+  const thisMonthDates = new Set([
+    ...visits.filter(v => new Date(v.date).getMonth() === now.getMonth() && new Date(v.date).getFullYear() === now.getFullYear()).map(v => new Date(v.date).toISOString().split('T')[0]),
+    ...bookEntries.filter(b => new Date(b.date).getMonth() === now.getMonth() && new Date(b.date).getFullYear() === now.getFullYear()).map(b => new Date(b.date).toISOString().split('T')[0])
+  ]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -20,9 +27,9 @@ export default function DashboardCards({ visits, findings }: { visits: any[], fi
           <span className="text-sm font-bold">Total Visitas</span>
         </div>
         <div className="mt-auto flex items-end justify-between">
-          <span className="text-3xl font-black text-slate-800">{visits.length}</span>
+          <span className="text-3xl font-black text-slate-800">{allDates.size}</span>
           <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">
-            +{thisMonthVisits.length} este mes
+            +{thisMonthDates.size} este mes
           </span>
         </div>
       </div>

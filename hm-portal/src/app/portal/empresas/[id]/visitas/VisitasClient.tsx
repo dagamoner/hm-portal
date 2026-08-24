@@ -123,7 +123,7 @@ export default function VisitasClient({
 
       {/* KPI Cards */}
       <div className="print:hidden">
-        <DashboardCards visits={visits} findings={findings} />
+        <DashboardCards visits={visits} findings={findings} bookEntries={initialBookEntries || []} />
       </div>
 
       {/* Tabs */}
@@ -137,7 +137,7 @@ export default function VisitasClient({
                 : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
             }`}
           >
-            <FileText className="w-4 h-4" /> Historial de Visitas ({visits.length})
+            <FileText className="w-4 h-4" /> Actas / Check-lists ({visits.length})
           </button>
           <button
             onClick={() => setActiveTab('desvios')}
