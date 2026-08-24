@@ -176,12 +176,15 @@ export default function CompaniesClient({ initialCompanies, userRole, allUsers =
             setDownloadingLegajo(null);
         }
     };
+    const [activeLetter, setActiveLetter] = useState<string | null>(null);
 
-    const filteredCompanies = companies.filter((c: any) =>  
-        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.taxId.includes(searchTerm)
-    );
+    const filteredCompanies = companies.filter((c: any) => {
+        const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            c.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            c.taxId.includes(searchTerm);
+        const matchesLetter = activeLetter ? c.name.charAt(0).toUpperCase() === activeLetter : true;
+        return matchesSearch && matchesLetter;
+    }).sort((a: any, b: any) => a.name.localeCompare(b.name));
 
     return (
         <div className="space-y-6 animate-fade-in pb-12">
@@ -201,6 +204,32 @@ export default function CompaniesClient({ initialCompanies, userRole, allUsers =
                         <Plus className="w-5 h-5" /> Alta Nueva Empresa
                     </button>
                 )}
+            </div>
+
+            <div className="flex flex-wrap gap-1 px-2 py-4 items-center justify-center">
+                <button
+                    onClick={() => setActiveLetter(null)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                        activeLetter === null
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-white text-slate-500 hover:bg-slate-100 hover:text-indigo-600 border border-slate-200'
+                    }`}
+                >
+                    TODAS
+                </button>
+                {"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('').map(letter => (
+                    <button
+                        key={letter}
+                        onClick={() => setActiveLetter(activeLetter === letter ? null : letter)}
+                        className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-colors ${
+                            activeLetter === letter
+                                ? 'bg-indigo-600 text-white shadow-md'
+                                : 'bg-white text-slate-600 hover:bg-slate-100 hover:text-indigo-600 border border-slate-200'
+                        }`}
+                    >
+                        {letter}
+                    </button>
+                ))}
             </div>
 
             <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-sm border border-white/50 overflow-hidden">
