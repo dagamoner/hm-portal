@@ -82,31 +82,6 @@ export async function createVisit(companyId: string, data: any) {
         findings: true
       }
     });
-    const session = await getSession();
-    if (session?.user && session.user.role !== "CLIENT") {
-      const company = await prisma.company.findUnique({ where: { id: companyId }});
-      if (company && visit.establishment) {
-        let dateStr = data.date;
-        if (data.date && data.date.includes('-')) {
-            const parts = data.date.split('-');
-            dateStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
-        }
-        const findingsCount = visit.findings.length;
-        
-        let msg = `En fecha ${dateStr} se realiza la visita de Higienistas al establecimiento ${visit.establishment.name} de la empresa ${company.name}, en donde, en tareas de relevamiento de condiciones de Higiene y Seguridad en el trabajo, se detectaron ${findingsCount} desvíos / No Conformidades, y se realizó un acta de visita la cual contiene lo siguiente: "${visit.observations || 'Sin observaciones detalladas'}". A continuación se le eleva informe correspondiente para que tome las medidas correspondientes a fin de levantar dichas observaciones/desvíos/No conformidades.`;
-
-        await prisma.internalMessage.create({
-          data: {
-            companyId,
-            senderId: session.user.id,
-            content: msg,
-            isFromClient: false,
-            readByAdmin: true,
-            readByClient: false
-          }
-        });
-      }
-    }
 
     revalidatePath(`/portal/empresas/${companyId}/visitas`);
     return visit;
