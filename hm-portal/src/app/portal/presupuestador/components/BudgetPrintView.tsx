@@ -33,12 +33,20 @@ export default function BudgetPrintView({ budget }: { budget: BudgetData }) {
   const months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
   const displayDate = `${dateObj.getDate()} de ${months[dateObj.getMonth()]} de ${dateObj.getFullYear()}`;
 
+  const safeNumber = (val: any) => {
+    if (!val) return 0;
+    if (typeof val === 'number') return val;
+    const parsed = Number(val.toString().replace(/[^0-9.-]+/g,""));
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
   return (
-    <div className="bg-white text-black max-w-4xl mx-auto min-h-screen relative font-sans">
+    <div className="bg-white text-black max-w-4xl mx-auto min-h-screen print:min-h-0 print:h-auto print:block relative font-sans">
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           @page { margin: 0; }
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          body, html { height: auto !important; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; display: block !important; }
           .print-container { 
              padding: 1.5cm !important; 
              height: auto !important; 
@@ -103,7 +111,7 @@ export default function BudgetPrintView({ budget }: { budget: BudgetData }) {
               {budget.items.map((item, index) => (
                 <tr key={index} className="group">
                   <td className="py-4 px-4 text-gray-700 whitespace-pre-line leading-relaxed group-hover:bg-gray-50/50">{item.description}</td>
-                  <td className="py-4 px-4 text-right text-gray-700 font-medium group-hover:bg-gray-50/50">${Number(item.price).toLocaleString('es-AR', { minimumFractionDigits: 0 })}</td>
+                  <td className="py-4 px-4 text-right text-gray-700 font-medium group-hover:bg-gray-50/50">${safeNumber(item.price).toLocaleString('es-AR', { minimumFractionDigits: 0 })}</td>
                 </tr>
               ))}
             </tbody>
@@ -114,7 +122,7 @@ export default function BudgetPrintView({ budget }: { budget: BudgetData }) {
             <div className="w-1/2 md:w-1/3">
               <div className="flex justify-between items-center py-4 px-6 bg-gray-900 text-white rounded-lg shadow-sm">
                 <span className="font-bold text-[13px] tracking-widest uppercase">Total</span>
-                <span className="font-bold text-lg tracking-wide">${Number(budget.total).toLocaleString('es-AR', { minimumFractionDigits: 0 })}</span>
+                <span className="font-bold text-lg tracking-wide">${safeNumber(budget.total).toLocaleString('es-AR', { minimumFractionDigits: 0 })}</span>
               </div>
             </div>
           </div>
