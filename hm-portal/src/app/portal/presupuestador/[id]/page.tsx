@@ -101,7 +101,7 @@ export default function BudgetEditPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
+    <div className="flex h-screen bg-gray-100 overflow-hidden print:h-auto print:overflow-visible print:block">
       {/* LEFT: Editor Form (Hidden on Print) */}
       <div className="w-1/2 p-6 overflow-y-auto bg-white border-r border-gray-200 print:hidden flex flex-col">
         <div className="flex justify-between items-center mb-6">
@@ -248,8 +248,8 @@ export default function BudgetEditPage() {
       </div>
 
       {/* RIGHT: Print Preview */}
-      <div className="w-1/2 overflow-y-auto bg-gray-300 print:w-full print:bg-white print:overflow-visible flex flex-col p-8 print:p-0">
-        <div className="bg-white shadow-2xl print:shadow-none mx-auto w-full max-w-[210mm] min-h-[297mm]">
+      <div className="w-1/2 overflow-y-auto bg-gray-300 print:w-full print:bg-white print:overflow-visible flex flex-col p-8 print:p-0 print:block">
+        <div className="bg-white shadow-2xl print:shadow-none mx-auto w-full max-w-[210mm] min-h-[297mm] print:min-h-0 print:h-auto print:max-w-none print:w-auto">
           <BudgetPrintView budget={budget} />
         </div>
       </div>
