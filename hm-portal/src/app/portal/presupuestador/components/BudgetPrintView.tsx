@@ -39,11 +39,16 @@ export default function BudgetPrintView({ budget }: { budget: BudgetData }) {
         @media print {
           @page { margin: 0; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .print-container { padding: 2cm !important; }
+          .print-container { 
+             padding: 1.5cm !important; 
+             height: auto !important; 
+             display: block !important; 
+          }
+          .print-mt-auto { margin-top: 4rem !important; }
         }
       `}} />
       
-      <div className="print-container p-12 h-full flex flex-col">
+      <div className="print-container p-12 min-h-full flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center mb-10">
           <div className="w-28 h-28 flex items-center justify-center shrink-0">
@@ -117,14 +122,14 @@ export default function BudgetPrintView({ budget }: { budget: BudgetData }) {
 
         {/* Important Note */}
         {budget.importantNote && (
-          <div className="mb-12 p-6 bg-gray-50/80 border border-gray-100 rounded-lg text-[13px] text-gray-600 leading-relaxed">
+          <div className="mb-12 p-6 bg-gray-50/80 border border-gray-100 rounded-lg text-[13px] text-gray-600 leading-relaxed whitespace-pre-wrap break-inside-avoid">
             <span className="font-bold text-gray-900 tracking-wide uppercase text-[11px] block mb-2">Nota importante</span>
             {budget.importantNote}
           </div>
         )}
 
         {/* Signatures & Footer */}
-        <div className="mt-auto pt-24">
+        <div className="mt-auto print-mt-auto pt-24 print:pt-12 break-inside-avoid">
           <div className="flex justify-start mb-16">
             <div className="text-center">
               <div className="w-64 border-t border-gray-400 mb-2"></div>
