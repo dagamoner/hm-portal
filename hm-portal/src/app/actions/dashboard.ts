@@ -216,8 +216,8 @@ export async function getDashboardMetrics(companyId?: string) {
       { name: 'Noche', count: turnosCount['Noche'] }
     ];
 
-    // Inspecciones
-    const totalInspections = await prisma.inspection.count({ where: whereCompany });
+    // Inspecciones (Visitas)
+    const totalInspections = await prisma.visit.count({ where: companyId ? { establishment: { companyId: companyId } } : {} });
 
     // 10. CUMPLIMIENTO DE PERSONAL
     const trainingRecords = await prisma.trainingRecord.findMany({ where: whereCompany });
