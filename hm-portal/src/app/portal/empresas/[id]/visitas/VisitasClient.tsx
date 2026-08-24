@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Plus, ClipboardCheck, AlertCircle, Building2, MapPin, Calendar, CheckCircle2, ChevronRight, FileText, Settings, Book } from 'lucide-react';
+import { Plus, ClipboardCheck, AlertCircle, Building2, MapPin, Calendar, CheckCircle2, ChevronRight, FileText, Settings, Book, MessageSquare } from 'lucide-react';
 import VisitaWizard from './VisitaWizard';
 import DashboardCards from './components/DashboardCards';
 import FindingsList from './components/FindingsList';
 import VisitsList from './components/VisitsList';
 import PlantillasClient from './components/PlantillasClient';
 import LibroHySLClient from './components/LibroHySLClient';
+import InformesList from './components/InformesList';
 import { useAuth } from '@/components/providers/AuthProvider';
 
 export default function VisitasClient({ 
@@ -159,6 +160,16 @@ export default function VisitasClient({
           >
             <Book className="w-4 h-4" /> Libro Digital
           </button>
+          <button
+            onClick={() => setActiveTab('informes')}
+            className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${
+              activeTab === 'informes' 
+                ? 'text-amber-600 border-b-2 border-amber-600 bg-amber-50/50' 
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4" /> Informes
+          </button>
         </div>
 
         <div className="p-6">
@@ -171,6 +182,13 @@ export default function VisitasClient({
               companyId={company.id} 
               companyName={company.name} 
               initialEntries={initialBookEntries || []} 
+            />
+          )}
+          {activeTab === 'informes' && (
+            <InformesList 
+              visits={visits} 
+              bookEntries={initialBookEntries || []} 
+              companyName={company.name} 
             />
           )}
         </div>
