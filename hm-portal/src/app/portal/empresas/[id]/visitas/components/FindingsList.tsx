@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { updateFindingStatus } from '@/app/actions/visits';
+import { updateFindingStatus, deleteFinding } from '@/app/actions/visits';
 import { AlertCircle, Calendar, CheckCircle2, MoreVertical, X } from 'lucide-react';
 import { useAuth } from '@/components/providers/AuthProvider';
 
@@ -40,6 +40,19 @@ export default function FindingsList({ findings, onUpdate }: { findings: any[], 
       setEditingId(null);
     } catch (e) {
       alert("Error al actualizar el desvío");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Está seguro de que desea eliminar este desvío de forma permanente?')) return;
+    try {
+      setIsUpdating(true);
+      await deleteFinding(id);
+      onUpdate({ id, deleted: true });
+    } catch (e) {
+      alert("Error al eliminar el desvío");
     } finally {
       setIsUpdating(false);
     }
@@ -164,6 +177,15 @@ export default function FindingsList({ findings, onUpdate }: { findings: any[], 
                     Cerrar Desvío
                   </button>
                 </>
+              )}
+              {!isClient && (
+                <button 
+                  onClick={() => handleDelete(finding.id)}
+                  disabled={isUpdating}
+                  className="text-xs font-bold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg w-full text-center transition-colors"
+                >
+                  Borrar Desvío
+                </button>
               )}
             </div>
           </div>

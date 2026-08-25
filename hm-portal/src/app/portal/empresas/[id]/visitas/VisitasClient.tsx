@@ -42,7 +42,22 @@ export default function VisitasClient({
   };
 
   const handleFindingUpdated = (updatedFinding: any) => {
-    setFindings(findings.map(f => f.id === updatedFinding.id ? updatedFinding : f));
+    if (updatedFinding.deleted) {
+      setFindings(findings.filter(f => f.id !== updatedFinding.id));
+      setVisits(visits.map(v => ({
+        ...v,
+        findings: (v.findings || []).filter((f: any) => f.id !== updatedFinding.id)
+      })));
+    } else {
+      setFindings(findings.map(f => f.id === updatedFinding.id ? updatedFinding : f));
+      setVisits(visits.map(v => {
+        if (!v.findings) return v;
+        return {
+          ...v,
+          findings: v.findings.map((f: any) => f.id === updatedFinding.id ? updatedFinding : f)
+        };
+      }));
+    }
   };
 
   if (isCreating) {

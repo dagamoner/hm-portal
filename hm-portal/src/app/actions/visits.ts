@@ -137,3 +137,19 @@ export async function updateFindingStatus(id: string, status: string, actionPlan
         return { error: error.message || "Ha ocurrido un error inesperado." };
     }
 }
+
+export async function deleteFinding(id: string) {
+  try {
+    const finding = await prisma.visitFinding.delete({
+      where: { id },
+    });
+    
+    if (finding.companyId) {
+      revalidatePath(`/portal/empresas/${finding.companyId}/visitas`);
+    }
+    return { success: true };
+  } catch (error: any) {
+    console.error("Action Error:", error);
+    return { error: error.message || "Ha ocurrido un error inesperado." };
+  }
+}
