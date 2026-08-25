@@ -114,10 +114,11 @@ export async function getFindings(companyId: string) {
     }
 }
 
-export async function updateFindingStatus(id: string, status: string, actionPlan?: string) {
+export async function updateFindingStatus(id: string, status: string, actionPlan?: string, deadline?: Date | null) {
   try {
     const data: any = { status };
     if (actionPlan) data.actionPlan = actionPlan;
+    if (deadline !== undefined) data.deadline = deadline;
     if (status === 'CERRADO') {
       data.resolutionDate = new Date();
     } else {

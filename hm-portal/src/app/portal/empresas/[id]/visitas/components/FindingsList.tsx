@@ -8,10 +8,21 @@ const formatDate = (dateString: string | Date) => {
   return new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(dateString));
 };
 
+const RECOMMENDED_DEADLINES = [
+  { label: "Crítico / Inmediato (0–24 h)", days: 1 },
+  { label: "Muy urgente (24–72 h)", days: 3 },
+  { label: "Corto plazo (3–7 días)", days: 7 },
+  { label: "Plazo prioritario (7–15 días)", days: 15 },
+  { label: "Mediano plazo (15–30 días)", days: 30 },
+  { label: "Largo plazo / Mejora estructural (30–90 días)", days: 90 },
+  { label: "Seguimiento permanente (Continuo)", days: null },
+];
+
 export default function FindingsList({ findings, companyId, onUpdate }: { findings: any[], companyId: string, onUpdate: (f: any) => void }) {
   const { isClient } = useAuth();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [actionPlan, setActionPlan] = useState('');
+  const [deadline, setDeadline] = useState<Date | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [library, setLibrary] = useState<any[]>([]);
 
@@ -40,10 +51,10 @@ export default function FindingsList({ findings, companyId, onUpdate }: { findin
     }
   };
 
-  const handleUpdate = async (id: string, status: string, newActionPlan?: string) => {
+  const handleUpdate = async (id: string, status: string, plan: string, newDeadline?: Date | null) => {
     try {
       setIsUpdating(true);
-      const updated = await updateFindingStatus(id, status, newActionPlan);
+      const updated = await updateFindingStatus(id, status, plan, newDeadline !== undefined ? newDeadline : undefined);
       onUpdate(updated);
       setEditingId(null);
     } catch (e) {
@@ -122,33 +133,76 @@ export default function FindingsList({ findings, companyId, onUpdate }: { findin
                   <h5 className="text-xs font-bold text-slate-700 mb-1">Plan de Acción / Medidas:</h5>
                   {editingId === finding.id ? (
                     <div className="space-y-2 mt-2">
-                      {library.length > 0 && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <BookOpen className="w-4 h-4 text-slate-400" />
+                      <div className="flex flex-col md:flex-row gap-2 mb-2">
+                        {library.length > 0 && (
+                          <div className="flex-1 flex items-center gap-2">
+                            <BookOpen className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                            <select 
+                              className="w-full text-xs bg-white border border-slate-200 rounded-md p-1.5 outline-none focus:border-indigo-400"
+                              onChange={(e) => {
+                                if(e.target.value) {
+                                  setActionPlan(prev => prev ? prev + '\n' + e.target.value : e.target.value);
+                                  e.target.value = '';
+                                }
+                              }}
+                            >
+                              <option value="">Biblioteca...</option>
+                              {library.map(l => (
+                                <option key={l.id} value={l.description}>{l.title}</option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                        <div className="flex-1 flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
                           <select 
-                            className="flex-1 text-xs bg-white border border-slate-200 rounded-md p-1.5 outline-none focus:border-indigo-400"
+                            className="w-full text-xs bg-white border border-slate-200 rounded-md p-1.5 outline-none focus:border-indigo-400"
                             onChange={(e) => {
-                              if(e.target.value) {
-                                setActionPlan(prev => prev ? prev + '\n' + e.target.value : e.target.value);
+                              const selected = RECOMMENDED_DEADLINES.find(d => d.label === e.target.value);
+                              if (selected) {
+                                if (selected.days !== null) {
+                                  const newDate = new Date();
+                                  newDate.setDate(newDate.getDate() + selected.days);
+                                  setDeadline(newDate);
+                                } else {
+                                  setDeadline(null);
+                                }
+                                const prefix = `Plazo recomendado: ${selected.label}`;
+                                setActionPlan(prev => {
+                                  let updated = prev;
+                                  if (updated.includes("Plazo recomendado:")) {
+                                    updated = updated.replace(/Plazo recomendado:.*(\n|$)/, prefix + '\n');
+                                  } else {
+                                    updated = updated ? updated + '\n\n' + prefix : prefix;
+                                  }
+                                  return updated.trim();
+                                });
                                 e.target.value = '';
                               }
                             }}
                           >
-                            <option value="">Seleccionar desde la Biblioteca...</option>
-                            {library.map(l => (
-                              <option key={l.id} value={l.description}>{l.title}</option>
+                            <option value="">Plazo Recomendado...</option>
+                            {RECOMMENDED_DEADLINES.map(d => (
+                              <option key={d.label} value={d.label}>{d.label}</option>
                             ))}
                           </select>
                         </div>
-                      )}
+                      </div>
                       <textarea
                         className="w-full text-sm p-2 border border-slate-200 rounded-lg outline-none focus:border-indigo-500"
-                        rows={3}
+                        rows={4}
                         value={actionPlan}
                         onChange={(e) => setActionPlan(e.target.value)}
                         placeholder="Describa las acciones correctivas..."
                       />
-                      <div className="flex justify-end gap-2">
+                      
+                      {deadline && (
+                        <div className="text-xs text-indigo-600 font-bold flex items-center gap-1">
+                          <Calendar className="w-3 h-3" /> Vencimiento fijado para: {formatDate(deadline)}
+                        </div>
+                      )}
+
+                      <div className="flex justify-end gap-2 mt-2">
                         <button 
                           onClick={() => setEditingId(null)}
                           className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-lg"
@@ -156,7 +210,7 @@ export default function FindingsList({ findings, companyId, onUpdate }: { findin
                           Cancelar
                         </button>
                         <button 
-                          onClick={() => handleUpdate(finding.id, finding.status, actionPlan)}
+                          onClick={() => handleUpdate(finding.id, finding.status, actionPlan, deadline)}
                           disabled={isUpdating}
                           className="px-3 py-1.5 text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg disabled:opacity-50"
                         >
@@ -177,6 +231,7 @@ export default function FindingsList({ findings, companyId, onUpdate }: { findin
                   <button 
                     onClick={() => {
                       setActionPlan(finding.actionPlan || '');
+                      setDeadline(finding.deadline ? new Date(finding.deadline) : null);
                       setEditingId(finding.id);
                     }}
                     className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg w-full text-center transition-colors"
