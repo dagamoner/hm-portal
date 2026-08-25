@@ -1,17 +1,25 @@
 import React, { useState } from 'react';
 import { updateFindingStatus, deleteFinding } from '@/app/actions/visits';
-import { AlertCircle, Calendar, CheckCircle2, MoreVertical, X } from 'lucide-react';
+import { getStandardActions } from '@/app/actions/standard-actions';
+import { AlertCircle, Calendar, CheckCircle2, MoreVertical, X, BookOpen } from 'lucide-react';
 import { useAuth } from '@/components/providers/AuthProvider';
 
 const formatDate = (dateString: string | Date) => {
   return new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(dateString));
 };
 
-export default function FindingsList({ findings, onUpdate }: { findings: any[], onUpdate: (f: any) => void }) {
+export default function FindingsList({ findings, companyId, onUpdate }: { findings: any[], companyId: string, onUpdate: (f: any) => void }) {
   const { isClient } = useAuth();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [actionPlan, setActionPlan] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [library, setLibrary] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    if (!isClient && companyId) {
+      getStandardActions(companyId).then(setLibrary);
+    }
+  }, [companyId, isClient]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -114,6 +122,25 @@ export default function FindingsList({ findings, onUpdate }: { findings: any[], 
                   <h5 className="text-xs font-bold text-slate-700 mb-1">Plan de Acción / Medidas:</h5>
                   {editingId === finding.id ? (
                     <div className="space-y-2 mt-2">
+                      {library.length > 0 && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <BookOpen className="w-4 h-4 text-slate-400" />
+                          <select 
+                            className="flex-1 text-xs bg-white border border-slate-200 rounded-md p-1.5 outline-none focus:border-indigo-400"
+                            onChange={(e) => {
+                              if(e.target.value) {
+                                setActionPlan(prev => prev ? prev + '\n' + e.target.value : e.target.value);
+                                e.target.value = '';
+                              }
+                            }}
+                          >
+                            <option value="">Seleccionar desde la Biblioteca...</option>
+                            {library.map(l => (
+                              <option key={l.id} value={l.description}>{l.title}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                       <textarea
                         className="w-full text-sm p-2 border border-slate-200 rounded-lg outline-none focus:border-indigo-500"
                         rows={3}

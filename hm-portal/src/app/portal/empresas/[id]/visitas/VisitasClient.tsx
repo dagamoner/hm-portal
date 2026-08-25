@@ -9,6 +9,7 @@ import VisitsList from './components/VisitsList';
 import PlantillasClient from './components/PlantillasClient';
 import LibroHySLClient from './components/LibroHySLClient';
 import InformesList from './components/InformesList';
+import ActionLibraryModal from './components/ActionLibraryModal';
 import { useAuth } from '@/components/providers/AuthProvider';
 
 export default function VisitasClient({ 
@@ -30,6 +31,7 @@ export default function VisitasClient({
   const [activeTab, setActiveTab] = useState<'visitas' | 'desvios' | 'libro' | 'informes'>('visitas');
   const [isCreating, setIsCreating] = useState(false);
   const [isManagingTemplates, setIsManagingTemplates] = useState(false);
+  const [isManagingLibrary, setIsManagingLibrary] = useState(false);
   const [visits, setVisits] = useState(initialVisits);
   const [findings, setFindings] = useState(initialFindings);
 
@@ -119,12 +121,20 @@ export default function VisitasClient({
         {!isManagingTemplates && !isClient && (
           <div className="flex items-center gap-3">
             {(isAdmin || isManager || isInspector) && (
-              <button 
-                onClick={() => setIsManagingTemplates(true)}
-                className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-sm"
-              >
-                <Settings className="w-4 h-4" /> Plantillas
-              </button>
+              <>
+                <button 
+                  onClick={() => setIsManagingLibrary(true)}
+                  className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-sm"
+                >
+                  📚 Biblioteca de Acciones
+                </button>
+                <button 
+                  onClick={() => setIsManagingTemplates(true)}
+                  className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-sm"
+                >
+                  <Settings className="w-4 h-4" /> Plantillas
+                </button>
+              </>
             )}
             
             <button 
@@ -136,6 +146,13 @@ export default function VisitasClient({
           </div>
         )}
       </div>
+
+      {isManagingLibrary && (
+        <ActionLibraryModal 
+          companyId={company.id} 
+          onClose={() => setIsManagingLibrary(false)} 
+        />
+      )}
 
       {/* KPI Cards */}
       <div className="print:hidden">
@@ -190,7 +207,7 @@ export default function VisitasClient({
         <div className="p-6">
           {activeTab === 'visitas' && <VisitsList visits={visits} />}
           {activeTab === 'desvios' && (
-            <FindingsList findings={findings} onUpdate={handleFindingUpdated} />
+            <FindingsList findings={findings} companyId={company.id} onUpdate={handleFindingUpdated} />
           )}
           {activeTab === 'libro' && (
             <LibroHySLClient 

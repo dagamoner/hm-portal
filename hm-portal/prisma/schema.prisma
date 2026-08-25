@@ -377,6 +377,7 @@ model Company {
   investigations     Investigation[]
   visits             Visit[]
   visitFindings      VisitFinding[]
+  standardActions    StandardAction[]
   checklistTemplates ChecklistTemplate[]
 
   // New Relations for Risk Module
@@ -688,6 +689,16 @@ model Visit {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model StandardAction {
+  id          String   @id @default(uuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model VisitFinding {
