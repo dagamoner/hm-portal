@@ -118,7 +118,11 @@ export async function updateFindingStatus(id: string, status: string, actionPlan
   try {
     const data: any = { status };
     if (actionPlan) data.actionPlan = actionPlan;
-    if (status === 'CERRADO') data.resolutionDate = new Date();
+    if (status === 'CERRADO') {
+      data.resolutionDate = new Date();
+    } else {
+      data.resolutionDate = null;
+    }
     
     const finding = await prisma.visitFinding.update({
       where: { id },

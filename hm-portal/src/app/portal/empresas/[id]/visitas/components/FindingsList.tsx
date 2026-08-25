@@ -178,6 +178,19 @@ export default function FindingsList({ findings, onUpdate }: { findings: any[], 
                   </button>
                 </>
               )}
+              {!isClient && finding.status === 'CERRADO' && (
+                <button 
+                  onClick={() => {
+                    if (confirm('¿Desea reabrir este desvío?')) {
+                      handleUpdate(finding.id, 'EN_PROGRESO');
+                    }
+                  }}
+                  disabled={isUpdating}
+                  className="text-xs font-bold text-amber-600 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg w-full text-center transition-colors"
+                >
+                  Abrir Desvío
+                </button>
+              )}
               {!isClient && (
                 <button 
                   onClick={() => handleDelete(finding.id)}
