@@ -34,6 +34,7 @@ export default function VisitaWizard({
   // Checklist Data state
   const [template, setTemplate] = useState<{name: string, items: {id: string, text: string, type?: string}[]}[]>([]);
   const [answers, setAnswers] = useState<Record<string, ChecklistAnswer>>({});
+  const [manualFindings, setManualFindings] = useState<{id: string, description: string, hazardLevel: string}[]>([]);
 
   // Initialize template based on selected dynamic template
   useEffect(() => {
@@ -135,6 +136,12 @@ export default function VisitaWizard({
         }))
       };
 
+      const validManualFindings = manualFindings
+        .filter(f => f.description.trim() !== '')
+        .map(f => ({ description: f.description, hazardLevel: f.hazardLevel }));
+      
+      const allFindings = [...findings, ...validManualFindings];
+
       const payload = {
         establishmentId,
         date,
@@ -143,7 +150,7 @@ export default function VisitaWizard({
         observations,
         recommendedTrainings,
         checklistData,
-        findings
+        findings: allFindings
       };
 
       const newVisit = await createVisit(companyId, payload);
@@ -369,6 +376,58 @@ export default function VisitaWizard({
                 <p>Selecciona una plantilla para comenzar la inspección.</p>
             </div>
         )}
+
+        {/* Desvíos Manuales */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mt-6">
+          <div className="bg-slate-100/50 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+            <h3 className="font-bold text-slate-700 text-sm">Desvíos / No Conformidades Adicionales (Manuales)</h3>
+            <button 
+              onClick={() => setManualFindings([...manualFindings, { id: `manual_${Date.now()}`, description: '', hazardLevel: 'Medio' }])}
+              className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 bg-indigo-50 px-2 py-1 rounded-md"
+            >
+              <Plus className="w-3 h-3" /> Agregar Desvío Manual
+            </button>
+          </div>
+          
+          <div className="divide-y divide-slate-100">
+            {manualFindings.length === 0 ? (
+              <p className="text-xs text-slate-400 p-4 italic text-center">No se han agregado desvíos manuales.</p>
+            ) : (
+              manualFindings.map((finding) => (
+                <div key={finding.id} className="p-4 flex gap-4 items-start">
+                  <button 
+                    onClick={() => setManualFindings(manualFindings.filter(f => f.id !== finding.id))}
+                    className="mt-2 text-slate-300 hover:text-rose-500 transition-colors flex-shrink-0"
+                    title="Eliminar desvío"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <div className="flex-1 space-y-2">
+                    <textarea
+                      rows={2}
+                      placeholder="Describa el desvío o No Conformidad..."
+                      className="w-full text-sm text-slate-700 border border-slate-200 outline-none focus:ring-1 focus:ring-indigo-500/50 rounded-md p-2 resize-none bg-white"
+                      value={finding.description}
+                      onChange={(e) => setManualFindings(manualFindings.map(f => f.id === finding.id ? { ...f, description: e.target.value } : f))}
+                    />
+                  </div>
+                  <div className="w-[140px] flex-shrink-0">
+                    <select
+                      className="w-full bg-white border border-slate-200 rounded-md px-2 py-2 text-xs font-bold outline-none focus:ring-1 focus:ring-indigo-500/50 text-slate-600"
+                      value={finding.hazardLevel}
+                      onChange={(e) => setManualFindings(manualFindings.map(f => f.id === finding.id ? { ...f, hazardLevel: e.target.value } : f))}
+                    >
+                      <option value="Bajo">Riesgo Bajo</option>
+                      <option value="Medio">Riesgo Medio</option>
+                      <option value="Alto">Riesgo Alto</option>
+                      <option value="Crítico">Riesgo Crítico</option>
+                    </select>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
 
         {/* Footer info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
