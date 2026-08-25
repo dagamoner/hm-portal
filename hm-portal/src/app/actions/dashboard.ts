@@ -73,8 +73,22 @@ export async function getDashboardMetrics(companyId?: string) {
     });
 
     // Supongamos que level > 15 es ALTO/EXTREMO (matriz 5x5)
-    const openCriticalRisks = riskEvals.filter(r => (r.riskLevel || 0) >= 15 && r.status !== 'Cerrado').length;
+    const openRiskEvals = riskEvals.filter(r => (r.riskLevel || 0) >= 15 && r.status !== 'Cerrado').length;
     const verifiedCriticalControls = riskEvals.filter(r => (r.riskLevel || 0) >= 15 && r.status === 'Validado').length;
+    
+    // Novedad: integrar VisitFindings (Desvíos)
+    const visitFindings = await prisma.visitFinding.findMany({
+      where: whereCompany,
+      include: { visit: { include: { establishment: true } } }
+    });
+
+    const isCriticalFinding = (f: any) => {
+      const hl = f.hazardLevel?.toUpperCase() || '';
+      return hl.includes('ALTO') || hl.includes('CRITIC') || hl.includes('CRÍTIC') || hl.includes('EXTREMO');
+    };
+
+    const openCriticalFindings = visitFindings.filter(f => isCriticalFinding(f) && f.status !== 'CERRADO').length;
+    const openCriticalRisks = openRiskEvals + openCriticalFindings;
     const pctControlsVerified = openCriticalRisks > 0 ? Math.round((verifiedCriticalControls / openCriticalRisks) * 100) : 0;
 
     // 4. ACCIONES DE MEJORA
@@ -82,34 +96,36 @@ export async function getDashboardMetrics(companyId?: string) {
       where: {
         evaluation: {
           hazard: {
-            task: {
-              jobRole: {
-                process: {
-                  sector: {
-                    establishment: {
-                      ...whereCompany
-                    }
-                  }
-                }
-              }
-            }
+            task: { jobRole: { process: { sector: { establishment: { ...whereCompany } } } } }
           }
         }
       }
     });
 
     const openActions = actions.filter(a => a.status !== 'Cerrada');
-    const overdueActions = openActions.filter(a => a.deadline && new Date(a.deadline) < now).length;
+    const overdueRiskActions = openActions.filter(a => a.deadline && new Date(a.deadline) < now).length;
+    const overdueFindings = visitFindings.filter(f => f.deadline && new Date(f.deadline) < now && f.status !== 'CERRADO').length;
+    const overdueActions = overdueRiskActions + overdueFindings;
     
     let closedOnTime = 0;
     let totalClosedWithDeadline = 0;
+    
     actions.forEach(a => {
       if (a.status === 'Cerrada' && a.deadline) {
         totalClosedWithDeadline++;
-        const closedAt = new Date(a.updatedAt); // Aproximación
+        const closedAt = new Date(a.updatedAt);
         if (closedAt <= new Date(a.deadline)) closedOnTime++;
       }
     });
+
+    visitFindings.forEach(f => {
+      if (f.status === 'CERRADO' && f.deadline) {
+        totalClosedWithDeadline++;
+        const closedAt = f.resolutionDate ? new Date(f.resolutionDate) : new Date(f.updatedAt);
+        if (closedAt <= new Date(f.deadline)) closedOnTime++;
+      }
+    });
+
     const pctClosedOnTime = totalClosedWithDeadline > 0 ? Math.round((closedOnTime / totalClosedWithDeadline) * 100) : 0;
 
     // 5. TENDENCIAS MENSUALES (Últimos 12 meses)
@@ -135,6 +151,7 @@ export async function getDashboardMetrics(companyId?: string) {
 
     // 6. RIESGOS POR ESTABLECIMIENTO
     const riskByEst: Record<string, { low: number, medium: number, high: number, critical: number }> = {};
+    
     riskEvals.forEach(r => {
       const estName = r.hazard?.task?.jobRole?.process?.sector?.establishment?.name || 'Desconocido';
       if (!riskByEst[estName]) riskByEst[estName] = { low: 0, medium: 0, high: 0, critical: 0 };
@@ -143,6 +160,17 @@ export async function getDashboardMetrics(companyId?: string) {
       if (rl >= 20) riskByEst[estName].critical++;
       else if (rl >= 15) riskByEst[estName].high++;
       else if (rl >= 8) riskByEst[estName].medium++;
+      else riskByEst[estName].low++;
+    });
+
+    visitFindings.forEach(f => {
+      const estName = f.visit?.establishment?.name || 'Desconocido';
+      if (!riskByEst[estName]) riskByEst[estName] = { low: 0, medium: 0, high: 0, critical: 0 };
+      
+      const hl = f.hazardLevel?.toUpperCase() || '';
+      if (hl.includes('EXTREMO') || hl.includes('CRITIC') || hl.includes('CRÍTIC')) riskByEst[estName].critical++;
+      else if (hl.includes('ALTO')) riskByEst[estName].high++;
+      else if (hl.includes('MEDIO')) riskByEst[estName].medium++;
       else riskByEst[estName].low++;
     });
 
@@ -181,6 +209,14 @@ export async function getDashboardMetrics(companyId?: string) {
     
     openActions.forEach(a => {
       const diffTime = Math.abs(now.getTime() - new Date(a.createdAt).getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (diffDays <= 15) age0_15++;
+      else if (diffDays <= 30) age16_30++;
+      else age30plus++;
+    });
+
+    visitFindings.filter(f => f.status !== 'CERRADO').forEach(f => {
+      const diffTime = Math.abs(now.getTime() - new Date(f.createdAt).getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       if (diffDays <= 15) age0_15++;
       else if (diffDays <= 30) age16_30++;
