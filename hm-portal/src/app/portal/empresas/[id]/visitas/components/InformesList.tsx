@@ -100,8 +100,18 @@ export default function InformesList({ visits, bookEntries, companyName }: { vis
 
   return (
     <div className="space-y-6">
-      <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl text-sm mb-6">
-        <strong>Reportes Consolidados:</strong> Aquí se agrupan automáticamente todos los check-lists y folios digitales por fecha de visita. Puedes revisar el informe final y enviarlo al cliente haciendo clic en el botón.
+      <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl text-sm mb-2 flex justify-between items-center flex-wrap gap-4">
+        <div>
+          <strong>Reportes Consolidados:</strong> Aquí se agrupan automáticamente todos los check-lists y folios digitales por fecha de visita. Puedes revisar el informe final y enviarlo al cliente haciendo clic en el botón.
+        </div>
+        <button 
+          onClick={() => {
+            window.location.reload();
+          }}
+          className="bg-white text-amber-700 hover:bg-amber-100 border border-amber-300 px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors whitespace-nowrap"
+        >
+          ↻ Actualizar Informes
+        </button>
       </div>
       {allReports.map(report => (
         <div key={report.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all">
