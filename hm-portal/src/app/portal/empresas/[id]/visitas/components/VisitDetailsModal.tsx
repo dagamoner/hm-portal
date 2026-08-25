@@ -106,10 +106,17 @@ export default function VisitDetailsModal({ visit, onClose }: { visit: any, onCl
                         const peligro = item.answer?.peligro;
                         
                         let statusBadge = <span className="text-slate-400 font-bold text-[10px]">N/A</span>;
-                        if (status === 'SI' || status === 'OK' || status === 'C') {
+                        if (!status) {
+                          statusBadge = <span className="text-slate-400 font-bold text-[10px]">N/A</span>;
+                        } else if (status === 'SI' || status === 'OK' || status === 'C') {
                           statusBadge = <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold text-[10px]">CUMPLE</span>;
                         } else if (status === 'NO' || status === 'PENDIENTE' || status === 'NC') {
                           statusBadge = <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-bold text-[10px]">INCUMPLE</span>;
+                        } else if (status === 'N/A') {
+                          statusBadge = <span className="text-slate-400 font-bold text-[10px]">N/A</span>;
+                        } else {
+                          // This means it's a text input or custom value (e.g. text/date answers)
+                          statusBadge = <span className="text-slate-700 font-medium text-sm text-right">{status}</span>;
                         }
 
                         return (
