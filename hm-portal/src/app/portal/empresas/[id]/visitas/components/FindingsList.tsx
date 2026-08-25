@@ -51,7 +51,7 @@ export default function FindingsList({ findings, companyId, onUpdate }: { findin
     }
   };
 
-  const handleUpdate = async (id: string, status: string, plan: string, newDeadline?: Date | null) => {
+  const handleUpdate = async (id: string, status: string, plan?: string, newDeadline?: Date | null) => {
     try {
       setIsUpdating(true);
       const updated = await updateFindingStatus(id, status, plan, newDeadline !== undefined ? newDeadline : undefined);
