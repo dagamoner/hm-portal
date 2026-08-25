@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ClipboardCheck, Download, AlertCircle, Eye, Building2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import VisitDetailsModal from './VisitDetailsModal';
 
 const formatDate = (dateString: string | Date) => {
   return new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(dateString));
 };
 
 export default function VisitsList({ visits }: { visits: any[] }) {
+  const [selectedVisit, setSelectedVisit] = useState<any>(null);
+
   if (visits.length === 0) {
     return (
       <div className="text-center py-10">
@@ -261,7 +264,7 @@ export default function VisitsList({ visits }: { visits: any[] }) {
                 <td className="py-4 px-4 align-top text-right">
                   <div className="flex items-center justify-end gap-2">
                     <button 
-                      onClick={() => alert("Vista de detalles de acta en desarrollo")}
+                      onClick={() => setSelectedVisit(visit)}
                       className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                       title="Ver Detalles"
                     >
@@ -281,6 +284,12 @@ export default function VisitsList({ visits }: { visits: any[] }) {
           })}
         </tbody>
       </table>
+      {selectedVisit && (
+        <VisitDetailsModal 
+          visit={selectedVisit} 
+          onClose={() => setSelectedVisit(null)} 
+        />
+      )}
     </div>
   );
 }
