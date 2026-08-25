@@ -120,3 +120,4 @@ export default function ActionLibraryModal({ companyId, onClose }: { companyId: 
       </div>
     </div>
   );
+} 
