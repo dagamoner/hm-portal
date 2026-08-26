@@ -1,13 +1,17 @@
 import { prisma } from "@/lib/prisma";
 import CalendarClient from "./CalendarClient";
 import { getCalendarEvents } from "@/app/actions/calendar";
-import { cookies } from "next/headers";
-import { verifyAuth } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function CalendarPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('auth_token')?.value;
-  const user = await verifyAuth(token);
+  const session = await getSession();
+  
+  if (!session || !session.user) {
+    redirect('/login');
+  }
+
+  const user = session.user;
 
   let events = [];
   
