@@ -207,11 +207,11 @@ export async function createVisitFromCalendar(establishmentId: string, dateIso: 
   const visit = await prisma.visit.create({
     data: {
       establishmentId,
+      companyId: establishment.companyId,
       date: new Date(dateIso),
       visitNumber: visitCount + 1,
       inspectorName: "Inspector Asignado",
-      objective: "Visita programada desde el calendario",
-      status: "Programada",
+      observations: "Visita programada desde el calendario",
     }
   });
 
