@@ -78,7 +78,7 @@ export async function getCalendarEvents(companyId?: string): Promise<CalendarEve
   const measurements = await prisma.measurementRecord.findMany({
     where: {
       ...whereCompany,
-      expirationDate: { not: null }
+      status: 'Pendiente'
     },
     include: { company: true }
   });
@@ -86,8 +86,8 @@ export async function getCalendarEvents(companyId?: string): Promise<CalendarEve
   measurements.forEach(m => {
     events.push({
       id: `measurement-${m.id}`,
-      title: `Vence medición: ${m.type}`,
-      date: m.expirationDate!,
+      title: `Medición Pendiente: ${m.type}`,
+      date: m.date,
       type: 'measurement',
       color: 'bg-purple-500',
       companyName: m.company.name,
