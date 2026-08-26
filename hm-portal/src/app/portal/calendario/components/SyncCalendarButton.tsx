@@ -89,6 +89,21 @@ export function SyncCalendarButton({ token }: { token: string }) {
                   </button>
                 </div>
               </div>
+              {/* Opción 3: Descargar Archivo (Ideal para pruebas locales) */}
+              <div className="p-4 border border-slate-200 rounded-2xl bg-white">
+                <h4 className="font-bold text-slate-800 mb-1">Descargar archivo (.ics)</h4>
+                <p className="text-xs text-slate-500 mb-3">Si estás probando el sistema de forma local, Google Calendar no puede leer tu URL. Descarga el archivo e impórtalo manualmente.</p>
+                <div className="flex gap-2">
+                  <a 
+                    href={syncUrl}
+                    download="hm-portal.ics"
+                    className="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg font-bold text-sm hover:bg-indigo-100 transition-colors flex items-center gap-2 w-full justify-center"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    Descargar Archivo .ics
+                  </a>
+                </div>
+              </div>
             </div>
 
             <div className="mt-6 flex justify-end">
