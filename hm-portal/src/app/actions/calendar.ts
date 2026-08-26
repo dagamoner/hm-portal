@@ -65,8 +65,8 @@ export async function getCalendarEvents(companyId?: string): Promise<CalendarEve
   trainings.forEach(t => {
     events.push({
       id: `training-${t.id}`,
-      title: `Capacitación: ${t.topic}`,
-      date: t.date,
+      title: `Capacitación: ${t.title}`,
+      date: new Date(new Date().getFullYear(), t.monthIndex - 1, 1),
       type: 'training',
       color: 'bg-blue-500',
       companyName: t.plan.company.name,
