@@ -152,39 +152,28 @@ export default function ChecklistClient({ initialTemplates }: { initialTemplates
         if (!file) return;
 
         try {
-            const XLSX = await import('xlsx');
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-                const bstr = evt.target?.result;
-                const wb = XLSX.read(bstr, { type: 'binary' });
-                const wsname = wb.SheetNames[0];
-                const ws = wb.Sheets[wsname];
-                const data = XLSX.utils.sheet_to_json(ws);
+            if (file.name.endsWith('.docx')) {
+                const mammoth = await import('mammoth');
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer });
+                const text = result.value;
                 
+                const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
                 const categoryMap = new Map<string, any[]>();
-                let lastCategoryName = 'Sin Categoría';
+                let currentCategory = 'General';
                 
-                data.forEach((row: any) => {
-                    let catName = row['Categoría (Ej: Título del Sector)'] || row['Categoría'] || row['Categoria'];
-                    if (catName && String(catName).trim() !== '') {
-                        lastCategoryName = String(catName).trim();
-                    } else {
-                        catName = lastCategoryName;
-                    }
+                lines.forEach(line => {
+                    const isQuestion = line.endsWith('?') || line.startsWith('-') || line.startsWith('•') || /^\d+\./.test(line) || line.length > 80;
                     
-                    const question = row['Pregunta a Evaluar'] || row['Pregunta'] || row['Item'] || '';
-                    const typeRaw = (row['Formato (SI/NO/NA, TEXTO, CHECKBOX)'] || row['Tipo'] || 'SI/NO/NA').toString().toLowerCase();
-                    let type = 'boolean';
-                    if (typeRaw.includes('check') || typeRaw.includes('tildable')) type = 'checkbox';
-                    if (typeRaw.includes('text') || typeRaw.includes('texto')) type = 'text';
-                    if (typeRaw.includes('c/nc') || typeRaw.includes('c_nc_na') || typeRaw === 'c/nc/n.a.') type = 'c_nc_na';
-
-                    if (question) {
-                        if (!categoryMap.has(catName)) categoryMap.set(catName, []);
-                        categoryMap.get(catName)!.push({ id: generateId(), question, type });
+                    if (isQuestion) {
+                        if (!categoryMap.has(currentCategory)) categoryMap.set(currentCategory, []);
+                        const cleanQuestion = line.replace(/^[-•]\s*/, '').replace(/^\d+\.\s*/, '');
+                        categoryMap.get(currentCategory)!.push({ id: generateId(), question: cleanQuestion, type: 'boolean' });
+                    } else if (line.length > 3 && line.length <= 80) {
+                        currentCategory = line;
                     }
                 });
-                
+
                 const newCategories = Array.from(categoryMap.entries()).map(([name, items]) => ({
                     id: generateId(),
                     name,
@@ -195,14 +184,62 @@ export default function ChecklistClient({ initialTemplates }: { initialTemplates
                     ...prev, 
                     categories: [...prev.categories, ...newCategories] 
                 }));
-                // Auto expand new categories
                 const newExpanded = new Set(expandedCategories);
                 newCategories.forEach(c => newExpanded.add(c.id));
                 setExpandedCategories(newExpanded);
-            };
-            reader.readAsBinaryString(file);
+
+            } else {
+                const XLSX = await import('xlsx');
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    const bstr = evt.target?.result;
+                    const wb = XLSX.read(bstr, { type: 'binary' });
+                    const wsname = wb.SheetNames[0];
+                    const ws = wb.Sheets[wsname];
+                    const data = XLSX.utils.sheet_to_json(ws);
+                    
+                    const categoryMap = new Map<string, any[]>();
+                    let lastCategoryName = 'Sin Categoría';
+                    
+                    data.forEach((row: any) => {
+                        let catName = row['Categoría (Ej: Título del Sector)'] || row['Categoría'] || row['Categoria'];
+                        if (catName && String(catName).trim() !== '') {
+                            lastCategoryName = String(catName).trim();
+                        } else {
+                            catName = lastCategoryName;
+                        }
+                        
+                        const question = row['Pregunta a Evaluar'] || row['Pregunta'] || row['Item'] || '';
+                        const typeRaw = (row['Formato (SI/NO/NA, TEXTO, CHECKBOX)'] || row['Tipo'] || 'SI/NO/NA').toString().toLowerCase();
+                        let type = 'boolean';
+                        if (typeRaw.includes('check') || typeRaw.includes('tildable')) type = 'checkbox';
+                        if (typeRaw.includes('text') || typeRaw.includes('texto')) type = 'text';
+                        if (typeRaw.includes('c/nc') || typeRaw.includes('c_nc_na') || typeRaw === 'c/nc/n.a.') type = 'c_nc_na';
+
+                        if (question) {
+                            if (!categoryMap.has(catName)) categoryMap.set(catName, []);
+                            categoryMap.get(catName)!.push({ id: generateId(), question, type });
+                        }
+                    });
+                    
+                    const newCategories = Array.from(categoryMap.entries()).map(([name, items]) => ({
+                        id: generateId(),
+                        name,
+                        items
+                    }));
+                    
+                    setFormData(prev => ({ 
+                        ...prev, 
+                        categories: [...prev.categories, ...newCategories] 
+                    }));
+                    const newExpanded = new Set(expandedCategories);
+                    newCategories.forEach(c => newExpanded.add(c.id));
+                    setExpandedCategories(newExpanded);
+                };
+                reader.readAsBinaryString(file);
+            }
         } catch (error) {
-            alert('Error al leer el archivo Excel');
+            alert('Error al leer el archivo');
         }
         e.target.value = '';
     };
@@ -322,8 +359,8 @@ export default function ChecklistClient({ initialTemplates }: { initialTemplates
                                                 <Download className="w-4 h-4" /> Plantilla Excel
                                             </button>
                                             <label className="cursor-pointer px-4 py-2 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors">
-                                                <Upload className="w-4 h-4" /> Importar Excel
-                                                <input type="file" accept=".xlsx, .xls" className="hidden" onChange={handleFileUpload} />
+                                                <Upload className="w-4 h-4" /> Importar Archivo
+                                                <input type="file" accept=".xlsx, .xls, .csv, .docx" className="hidden" onChange={handleFileUpload} />
                                             </label>
                                             <button type="button" onClick={addCategory} className="px-4 py-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors">
                                                 <Plus className="w-4 h-4" /> Categoría
