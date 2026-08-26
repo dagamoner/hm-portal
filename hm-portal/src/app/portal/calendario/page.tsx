@@ -3,6 +3,7 @@ import CalendarClient from "./CalendarClient";
 import { getCalendarEvents } from "@/app/actions/calendar";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { SyncCalendarButton } from "./components/SyncCalendarButton";
 
 export default async function CalendarPage() {
   const session = await getSession();
@@ -42,14 +43,7 @@ export default async function CalendarPage() {
           </h1>
           <p className="text-slate-500 mt-1">Torre de control: vencimientos, visitas y auditorías programadas.</p>
         </div>
-        <a 
-          href={`/api/calendar/sync?token=${user.id}`}
-          target="_blank"
-          className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm shadow-sm hover:bg-indigo-700 transition-colors flex items-center gap-2"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-          Sincronizar (iCal)
-        </a>
+        <SyncCalendarButton token={user.id} />
       </div>
       <CalendarClient initialEvents={serializedEvents} companies={companies} userRole={user.role} />
     </div>
