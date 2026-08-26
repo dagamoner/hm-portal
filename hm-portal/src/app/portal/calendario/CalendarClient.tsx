@@ -26,6 +26,10 @@ type SerializedEvent = {
   color: string;
   companyName: string;
   url: string;
+  description?: string;
+  status?: string;
+  criticidad?: string;
+  responsable?: string;
 };
 
 export default function CalendarClient({ initialEvents }: { initialEvents: SerializedEvent[] }) {
@@ -41,6 +45,8 @@ export default function CalendarClient({ initialEvents }: { initialEvents: Seria
   };
 
   const [view, setView] = useState<'month' | 'week' | 'agenda'>('month');
+  const [hoveredEvent, setHoveredEvent] = useState<SerializedEvent | null>(null);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
@@ -213,8 +219,13 @@ export default function CalendarClient({ initialEvents }: { initialEvents: Seria
                     <Link 
                       key={event.id}
                       href={event.url}
+                      onMouseEnter={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setHoveredEvent(event);
+                        setTooltipPos({ x: rect.left + rect.width / 2, y: rect.top - 10 });
+                      }}
+                      onMouseLeave={() => setHoveredEvent(null)}
                       className={`text-[10px] leading-tight px-1.5 py-1 rounded-md text-white font-medium truncate hover:opacity-90 transition-opacity ${event.color}`}
-                      title={`${event.title} (${event.companyName})`}
                     >
                       <span className="opacity-80 mr-1">[{event.companyName.substring(0, 5)}]</span>
                       {event.title}
@@ -228,6 +239,51 @@ export default function CalendarClient({ initialEvents }: { initialEvents: Seria
       </>
     )}
   </div>
+
+  {/* Tooltip Portal */}
+  {hoveredEvent && (
+    <div 
+      className="fixed z-50 pointer-events-none transform -translate-x-1/2 -translate-y-full"
+      style={{ left: tooltipPos.x, top: tooltipPos.y }}
+    >
+      <div className="bg-slate-900 text-white p-3 rounded-xl shadow-xl border border-slate-700 w-64 text-sm animate-fade-in relative">
+        <div className="font-bold mb-1 pb-1 border-b border-slate-700 flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full ${hoveredEvent.color}`}></span>
+          {hoveredEvent.title}
+        </div>
+        <p className="text-slate-300 text-xs mb-2 line-clamp-2">{hoveredEvent.description || 'Sin detalles'}</p>
+        
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          {hoveredEvent.companyName && (
+            <div className="col-span-2 flex flex-col">
+              <span className="text-slate-500">Empresa</span>
+              <span className="font-medium text-slate-200">{hoveredEvent.companyName}</span>
+            </div>
+          )}
+          {hoveredEvent.status && (
+            <div className="flex flex-col">
+              <span className="text-slate-500">Estado</span>
+              <span className="font-medium text-slate-200">{hoveredEvent.status}</span>
+            </div>
+          )}
+          {hoveredEvent.criticidad && (
+            <div className="flex flex-col">
+              <span className="text-slate-500">Criticidad</span>
+              <span className="font-medium text-slate-200">{hoveredEvent.criticidad}</span>
+            </div>
+          )}
+          {hoveredEvent.responsable && (
+            <div className="flex flex-col col-span-2">
+              <span className="text-slate-500">Responsable</span>
+              <span className="font-medium text-slate-200">{hoveredEvent.responsable}</span>
+            </div>
+          )}
+        </div>
+        {/* Flechita abajo */}
+        <div className="absolute left-1/2 bottom-[-6px] -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-slate-900"></div>
+      </div>
+    </div>
+  )}
       
       <style dangerouslySetInnerHTML={{__html: `
         .custom-scrollbar::-webkit-scrollbar {

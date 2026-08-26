@@ -10,6 +10,10 @@ export type CalendarEvent = {
   color: string;
   companyName: string;
   url: string;
+  description?: string;
+  status?: string;
+  criticidad?: string;
+  responsable?: string;
 };
 
 export async function getCalendarEvents(companyId?: string): Promise<CalendarEvent[]> {
@@ -30,7 +34,9 @@ export async function getCalendarEvents(companyId?: string): Promise<CalendarEve
       type: 'visit',
       color: 'bg-emerald-500',
       companyName: v.establishment.company.name,
-      url: `/portal/empresas/${v.establishment.companyId}/visitas`
+      url: `/portal/empresas/${v.establishment.companyId}/visitas`,
+      description: `Visita nro ${v.visitNumber} por ${v.inspectorName}`,
+      responsable: v.inspectorName
     });
   });
 
@@ -41,18 +47,21 @@ export async function getCalendarEvents(companyId?: string): Promise<CalendarEve
       status: { not: 'CERRADO' },
       deadline: { not: null }
     },
-    include: { company: true }
+    include: { company: true, visit: true }
   });
 
   findings.forEach(f => {
     events.push({
       id: `finding-${f.id}`,
-      title: `Vence desvío: ${f.description.substring(0, 30)}...`,
+      title: `Vence desvío en ${f.company.name}`,
       date: f.deadline!,
       type: 'finding',
       color: f.hazardLevel?.toUpperCase().includes('CRITIC') || f.hazardLevel?.toUpperCase().includes('EXTREMO') ? 'bg-red-500' : 'bg-orange-500',
       companyName: f.company.name,
-      url: `/portal/empresas/${f.companyId}/visitas`
+      url: `/portal/empresas/${f.companyId}/visitas`,
+      description: f.description,
+      status: f.status,
+      criticidad: f.hazardLevel || 'N/A'
     });
   });
 
@@ -70,7 +79,10 @@ export async function getCalendarEvents(companyId?: string): Promise<CalendarEve
       type: 'training',
       color: 'bg-blue-500',
       companyName: t.plan.company.name,
-      url: `/portal/empresas/${t.plan.companyId}/capacitaciones`
+      url: `/portal/empresas/${t.plan.companyId}/capacitaciones`,
+      description: t.description || 'Sin descripción',
+      status: t.status,
+      criticidad: t.priority
     });
   });
 
@@ -91,7 +103,9 @@ export async function getCalendarEvents(companyId?: string): Promise<CalendarEve
       type: 'measurement',
       color: 'bg-purple-500',
       companyName: m.company.name,
-      url: `/portal/empresas/${m.companyId}/mediciones`
+      url: `/portal/empresas/${m.companyId}/mediciones`,
+      description: `Sector: ${m.area}`,
+      status: m.status
     });
   });
 
@@ -112,7 +126,9 @@ export async function getCalendarEvents(companyId?: string): Promise<CalendarEve
       type: 'invoice',
       color: 'bg-slate-700',
       companyName: i.company.name,
-      url: `/portal/facturacion` 
+      url: `/portal/facturacion`,
+      description: `Monto: $${i.amount}`,
+      status: i.status
     });
   });
 
@@ -135,12 +151,15 @@ export async function getCalendarEvents(companyId?: string): Promise<CalendarEve
     if (comp) {
       events.push({
         id: `imp-${a.id}`,
-        title: `Vence Acción: ${a.description.substring(0, 30)}...`,
+        title: `Acción Preventiva`,
         date: a.deadline!,
         type: 'improvement_action',
         color: 'bg-amber-600',
         companyName: comp.name,
-        url: `/portal/empresas/${comp.id}/matriz`
+        url: `/portal/empresas/${comp.id}/matriz`,
+        description: a.description,
+        status: a.status,
+        responsable: a.responsible || 'N/A'
       });
     }
   });
