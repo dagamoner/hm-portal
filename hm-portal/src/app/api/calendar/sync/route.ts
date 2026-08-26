@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 
-  const calendar = ical({ name: 'Seguridad e Higiene - HM Portal' });
+  const calendar = ical({ name: 'MH Calendario' });
   
   // Re-use logic to get events (simplified for API)
   const companyId = user.role === 'CLIENT' ? user.companyId : undefined;
