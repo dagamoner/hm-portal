@@ -166,3 +166,54 @@ export async function getCalendarEvents(companyId?: string): Promise<CalendarEve
 
   return events;
 }
+
+export async function updateEventDate(eventId: string, type: string, newDateIso: string) {
+  const date = new Date(newDateIso);
+  
+  if (type === 'visit') {
+    const id = eventId.replace('visit-', '');
+    await prisma.visit.update({ where: { id }, data: { date } });
+  } else if (type === 'finding') {
+    const id = eventId.replace('finding-', '');
+    await prisma.visitFinding.update({ where: { id }, data: { deadline: date } });
+  } else if (type === 'improvement_action') {
+    const id = eventId.replace('imp-', '');
+    await prisma.improvementAction.update({ where: { id }, data: { deadline: date } });
+  } else if (type === 'measurement') {
+    const id = eventId.replace('measurement-', '');
+    await prisma.measurementRecord.update({ where: { id }, data: { date } });
+  } else if (type === 'invoice') {
+    const id = eventId.replace('invoice-', '');
+    await prisma.invoice.update({ where: { id }, data: { dueDate: date } });
+  }
+  // Training cannot be updated accurately here because it relies on monthIndex. We'll skip or just update monthIndex.
+  else if (type === 'training') {
+    const id = eventId.replace('training-', '');
+    await prisma.training.update({ where: { id }, data: { monthIndex: date.getMonth() + 1 } });
+  }
+
+  return { success: true };
+}
+
+export async function createVisitFromCalendar(establishmentId: string, dateIso: string) {
+  const establishment = await prisma.establishment.findUnique({
+    where: { id: establishmentId }
+  });
+  
+  if (!establishment) throw new Error("Establishment not found");
+
+  const visitCount = await prisma.visit.count({ where: { establishmentId } });
+
+  const visit = await prisma.visit.create({
+    data: {
+      establishmentId,
+      date: new Date(dateIso),
+      visitNumber: visitCount + 1,
+      inspectorName: "Inspector Asignado",
+      objective: "Visita programada desde el calendario",
+      status: "Programada",
+    }
+  });
+
+  return visit;
+}

@@ -32,11 +32,22 @@ type SerializedEvent = {
   responsable?: string;
 };
 
-export default function CalendarClient({ initialEvents }: { initialEvents: SerializedEvent[] }) {
+export default function CalendarClient({ 
+  initialEvents, 
+  companies, 
+  userRole 
+}: { 
+  initialEvents: SerializedEvent[], 
+  companies?: any[],
+  userRole?: string 
+}) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeFilters, setActiveFilters] = useState<string[]>([
     'visit', 'finding', 'training', 'measurement', 'invoice', 'improvement_action'
   ]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDateForModal, setSelectedDateForModal] = useState<Date | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const toggleFilter = (type: string) => {
     setActiveFilters(prev => 
@@ -91,6 +102,46 @@ export default function CalendarClient({ initialEvents }: { initialEvents: Seria
     { type: 'measurement', label: 'Mediciones', color: 'bg-purple-500' },
     { type: 'invoice', label: 'Facturas', color: 'bg-slate-700' },
   ];
+
+  const canEdit = userRole === 'ADMIN' || userRole === 'MANAGER' || userRole === 'INSPECTOR';
+
+  const handleDoubleClick = (day: Date) => {
+    if (!canEdit) return;
+    setSelectedDateForModal(day);
+    setIsModalOpen(true);
+  };
+
+  const onDragStart = (e: React.DragEvent, eventId: string, eventType: string) => {
+    if (!canEdit) {
+      e.preventDefault();
+      return;
+    }
+    e.dataTransfer.setData('eventId', eventId);
+    e.dataTransfer.setData('eventType', eventType);
+  };
+
+  const onDragOver = (e: React.DragEvent) => {
+    if (!canEdit) return;
+    e.preventDefault();
+  };
+
+  const onDrop = async (e: React.DragEvent, day: Date) => {
+    if (!canEdit) return;
+    e.preventDefault();
+    const eventId = e.dataTransfer.getData('eventId');
+    const eventType = e.dataTransfer.getData('eventType');
+    
+    if (eventId && eventType) {
+      // Optimistic or just full reload
+      try {
+        const { updateEventDate } = await import('@/app/actions/calendar');
+        await updateEventDate(eventId, eventType, day.toISOString());
+        window.location.reload(); // Simple reload to refetch
+      } catch (error) {
+        alert("Error al actualizar la fecha");
+      }
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -208,6 +259,9 @@ export default function CalendarClient({ initialEvents }: { initialEvents: Seria
             return (
               <div 
                 key={day.toISOString()} 
+                onDoubleClick={() => handleDoubleClick(day)}
+                onDragOver={onDragOver}
+                onDrop={(e) => onDrop(e, day)}
                 className={`bg-white p-2 flex flex-col gap-1 transition-colors hover:bg-slate-50 ${!isCurrentMonth ? 'opacity-50' : ''}`}
               >
                 <div className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full mb-1 ${isToday ? 'bg-indigo-600 text-white' : 'text-slate-600'}`}>
@@ -219,13 +273,15 @@ export default function CalendarClient({ initialEvents }: { initialEvents: Seria
                     <Link 
                       key={event.id}
                       href={event.url}
+                      draggable={canEdit}
+                      onDragStart={(e) => onDragStart(e, event.id, event.type)}
                       onMouseEnter={(e) => {
                         const rect = e.currentTarget.getBoundingClientRect();
                         setHoveredEvent(event);
                         setTooltipPos({ x: rect.left + rect.width / 2, y: rect.top - 10 });
                       }}
                       onMouseLeave={() => setHoveredEvent(null)}
-                      className={`text-[10px] leading-tight px-1.5 py-1 rounded-md text-white font-medium truncate hover:opacity-90 transition-opacity ${event.color}`}
+                      className={`text-[10px] leading-tight px-1.5 py-1 rounded-md text-white font-medium truncate hover:opacity-90 transition-opacity ${event.color} ${canEdit ? 'cursor-grab active:cursor-grabbing' : ''}`}
                     >
                       <span className="opacity-80 mr-1">[{event.companyName.substring(0, 5)}]</span>
                       {event.title}
@@ -285,7 +341,69 @@ export default function CalendarClient({ initialEvents }: { initialEvents: Seria
     </div>
   )}
       
-      <style dangerouslySetInnerHTML={{__html: `
+      {/* Modal de Carga Rápida */}
+  {isModalOpen && canEdit && (
+    <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl shadow-xl w-full max-w-md p-6 animate-fade-in relative">
+        <h3 className="text-xl font-bold text-slate-800 mb-2">Agendar Visita</h3>
+        <p className="text-sm text-slate-500 mb-6">
+          Fecha: {selectedDateForModal && format(selectedDateForModal, "dd 'de' MMMM, yyyy", { locale: es })}
+        </p>
+
+        <form onSubmit={async (e) => {
+          e.preventDefault();
+          setIsSubmitting(true);
+          const formData = new FormData(e.currentTarget);
+          const estId = formData.get('establishmentId') as string;
+          if (estId && selectedDateForModal) {
+            try {
+              const { createVisitFromCalendar } = await import('@/app/actions/calendar');
+              await createVisitFromCalendar(estId, selectedDateForModal.toISOString());
+              window.location.reload();
+            } catch (err) {
+              alert("Error al agendar visita");
+            }
+          }
+          setIsSubmitting(false);
+        }}>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1">Empresa / Establecimiento</label>
+              <select name="establishmentId" required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">Selecciona un establecimiento...</option>
+                {companies?.map(c => (
+                  <optgroup key={c.id} label={c.name}>
+                    {c.establishments?.map((est: any) => (
+                      <option key={est.id} value={est.id}>{est.name}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+            
+            <div className="flex gap-3 pt-4">
+              <button 
+                type="button" 
+                onClick={() => setIsModalOpen(false)}
+                className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="flex-1 px-4 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
+              >
+                {isSubmitting ? 'Agendando...' : 'Agendar Visita'}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  )}
+
+  <style dangerouslySetInnerHTML={{__html: `
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
         }
