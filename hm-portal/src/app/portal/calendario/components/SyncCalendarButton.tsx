@@ -1,15 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Copy, CalendarPlus, X, ExternalLink } from "lucide-react";
 
 export function SyncCalendarButton({ token }: { token: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [baseUrl, setBaseUrl] = useState('');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setBaseUrl(window.location.origin);
+    setMounted(true);
   }, []);
 
   const cacheBuster = Date.now().toString(36);
@@ -24,25 +27,15 @@ export function SyncCalendarButton({ token }: { token: string }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  return (
-    <>
-      <button 
-        onClick={() => setIsOpen(true)}
-        className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm shadow-sm hover:bg-indigo-700 transition-colors flex items-center gap-2"
-      >
-        <CalendarPlus size={16} />
-        Sincronizar (iCal)
-      </button>
-
-      {isOpen && (
-        <div className="fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg p-6 animate-fade-in relative max-h-[90vh] overflow-y-auto">
-            <button 
-              onClick={() => setIsOpen(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
-            >
-              <X size={20} />
-            </button>
+  const modalContent = isOpen ? (
+    <div className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg p-6 animate-fade-in relative max-h-[90vh] overflow-y-auto">
+        <button 
+          onClick={() => setIsOpen(false)}
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+        >
+          <X size={20} />
+        </button>
 
             <h3 className="text-xl font-bold text-slate-800 mb-2">Sincronizar Calendario</h3>
             <p className="text-sm text-slate-500 mb-6">
@@ -117,7 +110,21 @@ export function SyncCalendarButton({ token }: { token: string }) {
             </div>
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <>
+      <button 
+        onClick={() => setIsOpen(true)}
+        className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm shadow-sm hover:bg-indigo-700 transition-colors flex items-center gap-2"
+      >
+        <CalendarPlus size={16} />
+        Sincronizar (iCal)
+      </button>
+
+      {mounted && modalContent && createPortal(modalContent, document.body)}
     </>
   );
 }
