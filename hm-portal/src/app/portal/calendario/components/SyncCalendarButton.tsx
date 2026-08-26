@@ -110,8 +110,6 @@ export function SyncCalendarButton({ token }: { token: string }) {
             </div>
           </div>
         </div>
-      </div>
-    </div>
   ) : null;
 
   return (
