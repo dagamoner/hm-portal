@@ -99,7 +99,7 @@ export async function getCalendarEvents(companyId?: string): Promise<CalendarEve
   const invoices = await prisma.invoice.findMany({
     where: {
       ...whereCompany,
-      status: { not: 'PAGADA' }
+      status: { not: 'PAGADO' }
     },
     include: { company: true }
   });
