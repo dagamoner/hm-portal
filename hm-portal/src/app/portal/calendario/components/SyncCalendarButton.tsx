@@ -12,7 +12,8 @@ export function SyncCalendarButton({ token }: { token: string }) {
     setBaseUrl(window.location.origin);
   }, []);
 
-  const syncUrl = `${baseUrl}/api/calendar/sync?token=${token}`;
+  const cacheBuster = Date.now().toString(36);
+  const syncUrl = `${baseUrl}/api/calendar/sync?token=${token}&cb=${cacheBuster}`;
   
   // Google Calendar format: https://calendar.google.com/calendar/r?cid=URL
   const googleCalendarUrl = `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(syncUrl)}`;
@@ -35,7 +36,7 @@ export function SyncCalendarButton({ token }: { token: string }) {
 
       {isOpen && (
         <div className="fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg p-6 animate-fade-in relative">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg p-6 animate-fade-in relative max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setIsOpen(false)}
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
