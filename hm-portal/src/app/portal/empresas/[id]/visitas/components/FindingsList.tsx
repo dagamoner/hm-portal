@@ -196,11 +196,24 @@ export default function FindingsList({ findings, companyId, onUpdate }: { findin
                         placeholder="Describa las acciones correctivas..."
                       />
                       
-                      {deadline && (
-                        <div className="text-xs text-indigo-600 font-bold flex items-center gap-1">
-                          <Calendar className="w-3 h-3" /> Vencimiento fijado para: {formatDate(deadline)}
-                        </div>
-                      )}
+                      <div className="mt-3 flex items-center gap-2 bg-indigo-50/50 p-2 rounded-lg border border-indigo-100">
+                        <Calendar className="w-4 h-4 text-indigo-500" />
+                        <span className="text-sm font-bold text-slate-700">Fecha de Vencimiento:</span>
+                        <input 
+                          type="date"
+                          className="text-sm border border-slate-200 rounded-md px-2 py-1 outline-none focus:border-indigo-500"
+                          value={deadline ? new Date(deadline.getTime() - (deadline.getTimezoneOffset() * 60000)).toISOString().split('T')[0] : ''}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              // Asegurarse de tomar la fecha local sin desfases de zona horaria
+                              const [year, month, day] = e.target.value.split('-').map(Number);
+                              setDeadline(new Date(year, month - 1, day));
+                            } else {
+                              setDeadline(null);
+                            }
+                          }}
+                        />
+                      </div>
 
                       <div className="flex justify-end gap-2 mt-2">
                         <button 
@@ -236,7 +249,7 @@ export default function FindingsList({ findings, companyId, onUpdate }: { findin
                     }}
                     className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg w-full text-center transition-colors"
                   >
-                    Editar Acción
+                    Editar / Reprogramar
                   </button>
                   {finding.status === 'ABIERTO' && (
                     <button 
