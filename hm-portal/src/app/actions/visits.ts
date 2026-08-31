@@ -64,6 +64,7 @@ export async function createVisit(companyId: string, data: any) {
         date: new Date(data.date.includes('T') ? data.date : `${data.date}T12:00:00Z`),
         visitNumber: data.visitNumber ? parseInt(data.visitNumber) : null,
         inspectorName: data.inspectorName,
+        inspectorSignatureUrl: data.inspectorSignatureUrl || null,
         observations: data.observations,
         recommendedTrainings: data.recommendedTrainings,
         checklistData: data.checklistData,

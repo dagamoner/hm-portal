@@ -41,6 +41,7 @@ export async function createSafetyBookEntry(companyId: string, data: any) {
                 deadlines: data.deadlines,
                 signature: true,
                 signedBy: data.signedBy,
+                inspectorSignatureUrl: data.inspectorSignatureUrl || null,
             }
         });
 

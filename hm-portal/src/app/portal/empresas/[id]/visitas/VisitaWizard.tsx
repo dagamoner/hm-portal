@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { createVisit } from '@/app/actions/visits';
 import { ClipboardCheck, Building2, Save, AlertCircle, Plus, Trash2, ListChecks, CheckSquare, Square } from 'lucide-react';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 interface ChecklistAnswer {
   status: string | null;
@@ -22,7 +23,9 @@ export default function VisitaWizard({
   professionals?: any[];
   onComplete: (visit: any) => void;
 }) {
+  const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
+  const [includeSignature, setIncludeSignature] = useState(true);
   
   // Basic info
   const [establishmentId, setEstablishmentId] = useState(establishments[0]?.id || '');
@@ -188,6 +191,7 @@ export default function VisitaWizard({
         date,
         visitNumber,
         inspectorName,
+        inspectorSignatureUrl: (includeSignature && user?.signatureUrl) ? user.signatureUrl : null,
         observations,
         recommendedTrainings,
         checklistData,
@@ -296,6 +300,17 @@ export default function VisitaWizard({
               value={inspectorName}
               onChange={e => setInspectorName(e.target.value)}
             />
+            {user?.signatureUrl && (
+              <label className="flex items-center gap-2 mt-3 cursor-pointer text-sm font-bold text-slate-700">
+                <input 
+                  type="checkbox" 
+                  checked={includeSignature} 
+                  onChange={(e) => setIncludeSignature(e.target.checked)}
+                  className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                />
+                Incrustar mi firma digital en el documento final
+              </label>
+            )}
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">Número de Visita (Opcional)</label>

@@ -21,7 +21,8 @@ export default function LibroHySLClient({ companyId, companyName, initialEntries
         deadlines: "",
         professional: user?.name || "",
         registryNumber: "",
-        signedBy: user?.name || ""
+        signedBy: user?.name || "",
+        inspectorSignatureUrl: user?.signatureUrl || null
     });
 
     const [signatureChecked, setSignatureChecked] = useState(false);
@@ -45,7 +46,8 @@ export default function LibroHySLClient({ companyId, companyName, initialEntries
                     deadlines: "",
                     professional: user?.name || "",
                     registryNumber: "",
-                    signedBy: user?.name || ""
+                    signedBy: user?.name || "",
+                    inspectorSignatureUrl: user?.signatureUrl || null
                 });
                 setSignatureChecked(false);
             } else {
@@ -215,12 +217,15 @@ export default function LibroHySLClient({ companyId, companyName, initialEntries
                                 <div className="text-center w-64">
                                     {entry.signature ? (
                                         <div className="mb-2">
+                                            {entry.inspectorSignatureUrl && (
+                                                <img src={entry.inspectorSignatureUrl} alt="Firma" className="max-h-16 mx-auto mb-2 mix-blend-multiply" />
+                                            )}
                                             <span className="inline-block px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded text-[10px] font-black uppercase tracking-widest font-sans">
                                                 Firma Digital Válida
                                             </span>
                                         </div>
                                     ) : null}
-                                    <p className="font-bold text-slate-800 border-b border-slate-300 pb-2">{entry.professional}</p>
+                                    <p className="font-bold text-slate-800 border-b border-slate-300 pb-2 pt-2">{entry.professional}</p>
                                     <p className="text-xs text-slate-500 mt-1 uppercase tracking-widest font-sans">Profesional Actuante</p>
                                     {entry.registryNumber && <p className="text-xs text-slate-500 font-sans">MP: {entry.registryNumber}</p>}
                                     <p className="text-[10px] text-slate-400 mt-2 font-sans">Registrado por: {entry.signedBy} el {format(new Date(entry.createdAt), "dd/MM/yyyy HH:mm")}</p>

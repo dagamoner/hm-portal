@@ -681,6 +681,7 @@ model Visit {
   date          DateTime
   visitNumber   Int?
   inspectorName String
+  inspectorSignatureUrl String?
 
   observations         String?
   recommendedTrainings String?
@@ -1167,6 +1168,7 @@ model SafetyBookEntry {
 
   signature Boolean @default(true) // Validado digitalmente en el sistema
   signedBy  String // Nombre del usuario que asienta la firma en el sistema
+  inspectorSignatureUrl String? // Embedded signature image
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

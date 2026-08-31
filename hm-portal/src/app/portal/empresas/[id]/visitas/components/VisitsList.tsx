@@ -188,6 +188,15 @@ export default function VisitsList({ visits }: { visits: any[] }) {
       doc.line(70, currentY, 230, currentY);
       doc.line(pageWidth - 230, currentY, pageWidth - 70, currentY);
       
+      if (visit.inspectorSignatureUrl) {
+        try {
+          // Some signatures might be jpeg, but jspdf usually handles data uris fine
+          doc.addImage(visit.inspectorSignatureUrl, pageWidth - 210, currentY - 55, 120, 50);
+        } catch (e) {
+          console.warn('Could not add embedded signature');
+        }
+      }
+
       doc.setFontSize(9);
       doc.setTextColor(100, 100, 100);
       doc.text('Firma Responsable Empresa', 150, currentY + 15, { align: 'center' });
