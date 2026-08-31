@@ -85,6 +85,19 @@ export default async function NuevoUsuarioPage() {
               </div>
 
               <div>
+                <label htmlFor="matricula" className="block text-sm font-bold text-slate-700 mb-1.5">
+                  Matrícula Habilitante
+                </label>
+                <input
+                  id="matricula"
+                  name="matricula"
+                  type="text"
+                  placeholder="Ej. A-10.808 (Solo para Inspectores)"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium text-slate-900 placeholder:font-normal"
+                />
+              </div>
+
+              <div>
                 <label htmlFor="username" className="block text-sm font-bold text-slate-700 mb-1.5">
                   Nombre de Usuario
                 </label>

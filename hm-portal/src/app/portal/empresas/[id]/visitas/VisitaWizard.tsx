@@ -13,11 +13,13 @@ export default function VisitaWizard({
   companyId, 
   establishments, 
   templates,
+  professionals = [],
   onComplete 
 }: { 
   companyId: string;
   establishments: any[];
   templates: any[];
+  professionals?: any[];
   onComplete: (visit: any) => void;
 }) {
   const [isSaving, setIsSaving] = useState(false);
@@ -27,6 +29,7 @@ export default function VisitaWizard({
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [visitNumber, setVisitNumber] = useState('');
   const [inspectorName, setInspectorName] = useState('');
+  const [selectedProfIds, setSelectedProfIds] = useState<string[]>([]);
   const [observations, setObservations] = useState('');
   const [recommendedTrainings, setRecommendedTrainings] = useState('');
   const [selectedTemplateId, setSelectedTemplateId] = useState(templates.length > 0 ? templates[0].id : '');
@@ -63,6 +66,44 @@ export default function VisitaWizard({
     setTemplate(editableTemplate);
     setAnswers({});
   }, [selectedTemplateId, templates]);
+
+  // Autofill inspector logic
+  useEffect(() => {
+    if (!professionals || professionals.length === 0) return;
+
+    const selected = professionals.filter(p => selectedProfIds.includes(p.id));
+    if (selected.length > 0) {
+      const namesStr = selected.map(p => `${p.name} ${p.matricula ? `(Mat: ${p.matricula})` : ''}`).join(' / ');
+      setInspectorName(namesStr);
+    } else {
+      setInspectorName('');
+    }
+
+    if (template.length > 0 && selected.length > 0) {
+      const newAnswers = { ...answers };
+      let changed = false;
+      template.forEach(cat => {
+        cat.items.forEach(item => {
+          const lowerQ = item.text.toLowerCase();
+          if (lowerQ.includes('nombre') && (lowerQ.includes('completo') || lowerQ.includes('profesional') || lowerQ.includes('inspector') || lowerQ.includes('responsable'))) {
+             const val = selected.map(p => p.name).join(' / ');
+             if (newAnswers[item.id]?.status !== val) {
+               newAnswers[item.id] = { ...newAnswers[item.id], status: val };
+               changed = true;
+             }
+          }
+          if (lowerQ.includes('matrícula') || lowerQ.includes('matricula')) {
+             const val = selected.map(p => p.matricula || '-').join(' / ');
+             if (newAnswers[item.id]?.status !== val) {
+               newAnswers[item.id] = { ...newAnswers[item.id], status: val };
+               changed = true;
+             }
+          }
+        });
+      });
+      if (changed) setAnswers(newAnswers);
+    }
+  }, [selectedProfIds, professionals, template]);
 
   const handleAnswerChange = (itemId: string, field: 'status' | 'peligro', value: string | null) => {
     setAnswers(prev => ({
@@ -226,9 +267,31 @@ export default function VisitaWizard({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">Inspector / Profesional HyS</label>
+            {professionals && professionals.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {professionals.map(p => {
+                  const isSelected = selectedProfIds.includes(p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedProfIds(prev => 
+                          isSelected ? prev.filter(id => id !== p.id) : [...prev, p.id]
+                        );
+                      }}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-colors flex items-center gap-1.5 ${isSelected ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-slate-200 text-slate-500 hover:border-indigo-200 hover:text-indigo-600'}`}
+                    >
+                      {isSelected ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
+                      {p.name} {p.matricula && <span className="opacity-70 ml-1 font-normal">({p.matricula})</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             <input
               type="text"
-              placeholder="Nombre del licenciado/técnico..."
+              placeholder="O escriba manualmente el nombre..."
               className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm"
               value={inspectorName}
               onChange={e => setInspectorName(e.target.value)}

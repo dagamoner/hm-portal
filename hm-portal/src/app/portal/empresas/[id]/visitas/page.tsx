@@ -3,6 +3,7 @@ import { getCompanyById } from '@/app/actions/companies';
 import { getEstablishments, getVisits, getFindings } from '@/app/actions/visits';
 import { getChecklistTemplates } from '@/app/actions/templates';
 import { getSafetyBookEntries } from '@/app/actions/reports-book';
+import { getProfessionals } from '@/app/actions/users';
 import VisitasClient from './VisitasClient';
 
 export default async function VisitasPage({ params }: { params: Promise<{ id: string }> }) {
@@ -18,6 +19,7 @@ export default async function VisitasPage({ params }: { params: Promise<{ id: st
   const findings = (await getFindings(company.id)) as any;
   const templates = (await getChecklistTemplates(company.id)) as any;
   const bookEntries = (await getSafetyBookEntries(company.id)) as any;
+  const professionals = (await getProfessionals()) as any;
 
   return (
     <VisitasClient 
@@ -27,6 +29,7 @@ export default async function VisitasPage({ params }: { params: Promise<{ id: st
       initialFindings={findings}
       initialTemplates={templates}
       initialBookEntries={bookEntries}
+      professionals={professionals}
     />
   );
 }

@@ -18,7 +18,8 @@ export default function VisitasClient({
   initialVisits,
   initialFindings,
   initialTemplates = [],
-  initialBookEntries = []
+  initialBookEntries = [],
+  professionals = []
 }: { 
   company: any;
   establishments: any[];
@@ -26,6 +27,7 @@ export default function VisitasClient({
   initialFindings: any[];
   initialTemplates?: any[];
   initialBookEntries?: any[];
+  professionals?: any[];
 }) {
   const { user, isClient, isAdmin, isManager, isInspector } = useAuth();
   const [activeTab, setActiveTab] = useState<'visitas' | 'desvios' | 'libro' | 'informes'>('visitas');
@@ -89,6 +91,7 @@ export default function VisitasClient({
             companyId={company.id} 
             establishments={establishments} 
             templates={initialTemplates}
+            professionals={professionals}
             onComplete={handleVisitCreated}
           />
         )}

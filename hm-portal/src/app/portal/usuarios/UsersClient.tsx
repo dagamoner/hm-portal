@@ -20,13 +20,13 @@ export default function UsersClient({ initialUsers, companies }) {
     const [isPending, startTransition] = useTransition();
 
     const [formData, setFormData] = useState({
-        id: '', username: '', password: '', name: '', role: 'CLIENT', companyId: '', dni: '', phone: '',
+        id: '', username: '', password: '', name: '', role: 'CLIENT', companyId: '', dni: '', phone: '', matricula: '',
         hasGlobalAccess: false,
         assignedCompanyIds: [] as string[]
     });
 
     const openCreate = () => {
-        setFormData({ id: '', username: '', password: '', name: '', role: 'CLIENT', companyId: '', dni: '', phone: '', hasGlobalAccess: false, assignedCompanyIds: [] });
+        setFormData({ id: '', username: '', password: '', name: '', role: 'CLIENT', companyId: '', dni: '', phone: '', matricula: '', hasGlobalAccess: false, assignedCompanyIds: [] });
         setError(null);
         setIsCreateModalOpen(true);
     };
@@ -41,6 +41,7 @@ export default function UsersClient({ initialUsers, companies }) {
             companyId: u.companyId || '',
             dni: u.dni || '',
             phone: u.phone || '',
+            matricula: u.matricula || '',
             hasGlobalAccess: u.hasGlobalAccess || false,
             assignedCompanyIds: u.assignedCompanyIds || []
         });
@@ -210,7 +211,8 @@ export default function UsersClient({ initialUsers, companies }) {
                                         <div className="flex flex-col gap-1 text-xs text-slate-600">
                                             {user.dni ? <div className="flex items-center gap-1"><CreditCard className="w-3 h-3 text-slate-400"/> {user.dni}</div> : null}
                                             {user.phone ? <div className="flex items-center gap-1"><Phone className="w-3 h-3 text-slate-400"/> {user.phone}</div> : null}
-                                            {!user.dni && !user.phone && <span className="text-slate-400 italic">Sin datos</span>}
+                                            {user.matricula ? <div className="flex items-center gap-1"><span className="text-slate-400 font-bold text-[10px]">MAT:</span> {user.matricula}</div> : null}
+                                            {!user.dni && !user.phone && !user.matricula && <span className="text-slate-400 italic">Sin datos</span>}
                                         </div>
                                     </td>
                                     <td className="px-6 py-5">
@@ -317,6 +319,12 @@ export default function UsersClient({ initialUsers, companies }) {
                                     <div className="relative">
                                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                         <input type="text" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full pl-9 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-slate-700 shadow-sm" placeholder="Opcional" />
+                                    </div>
+                                </div>
+                                <div className="space-y-1 col-span-2">
+                                    <label className="text-xs font-black uppercase text-slate-600 ml-1">Matrícula Habilitante</label>
+                                    <div className="relative">
+                                        <input type="text" value={formData.matricula} onChange={(e) => setFormData({...formData, matricula: e.target.value})} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-slate-700 shadow-sm" placeholder="Ej. A-10.808 (Solo inspectores)" />
                                     </div>
                                 </div>
                             </div>

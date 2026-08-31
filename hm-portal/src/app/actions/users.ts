@@ -30,6 +30,7 @@ export async function createUser(formData: FormData) {
     const companyId = formData.get("companyId") as string;
     const dni = formData.get("dni") as string;
     const phone = formData.get("phone") as string;
+    const matricula = formData.get("matricula") as string;
     const hasGlobalAccess = formData.get("hasGlobalAccess") === 'true';
     const assignedCompanyIds = formData.getAll("assignedCompanyIds") as string[];
 
@@ -49,6 +50,7 @@ export async function createUser(formData: FormData) {
         companyId: companyId || null,
         dni: dni || null,
         phone: phone || null,
+        matricula: matricula || null,
         hasGlobalAccess,
         assignedCompanyIds,
         needsPasswordChange: (role || 'CLIENT') === 'CLIENT',
@@ -94,6 +96,7 @@ export async function updateUser(id: string, formData: FormData) {
     const companyId = formData.get("companyId") as string;
     const dni = formData.get("dni") as string;
     const phone = formData.get("phone") as string;
+    const matricula = formData.get("matricula") as string;
     const hasGlobalAccess = formData.get("hasGlobalAccess") === 'true';
     const assignedCompanyIds = formData.getAll("assignedCompanyIds") as string[];
 
@@ -111,6 +114,7 @@ export async function updateUser(id: string, formData: FormData) {
         companyId: companyId || null,
         dni: dni || null,
         phone: phone || null,
+        matricula: matricula || null,
         hasGlobalAccess,
         assignedCompanyIds,
       }
@@ -125,6 +129,26 @@ export async function updateUser(id: string, formData: FormData) {
     return { error: "Ocurrió un error al actualizar el usuario." };
   }
 }
+
+  export async function getProfessionals() {
+    try {
+      const users = await prisma.user.findMany({
+        where: {
+          role: { in: ['MANAGER', 'INSPECTOR', 'ADMIN'] }
+        },
+        select: {
+          id: true,
+          name: true,
+          matricula: true,
+          role: true
+        },
+        orderBy: { name: 'asc' }
+      });
+      return users;
+    } catch (e) {
+      return [];
+    }
+  }
 
 export async function resetUserPassword(id: string, newPassword?: string) {
   await requireAuth(undefined, ['ADMIN']);
