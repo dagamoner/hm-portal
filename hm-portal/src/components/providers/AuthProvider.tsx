@@ -13,6 +13,7 @@ interface AuthUser {
   assignedCompanyIds?: string[];
   hasGlobalAccess?: boolean;
   needsPasswordChange?: boolean;
+  signatureUrl?: string | null;
 }
 
 interface AuthContextType {
