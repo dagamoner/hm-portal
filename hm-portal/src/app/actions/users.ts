@@ -160,7 +160,8 @@ export async function updateUser(id: string, formData: FormData) {
           id: true,
           name: true,
           matricula: true,
-          role: true
+          role: true,
+          signatureUrl: true
         },
         orderBy: { name: 'asc' }
       });

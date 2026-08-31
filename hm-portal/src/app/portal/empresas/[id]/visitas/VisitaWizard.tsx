@@ -44,7 +44,8 @@ export default function VisitaWizard({
   const [answers, setAnswers] = useState<Record<string, ChecklistAnswer>>({});
   const [manualFindings, setManualFindings] = useState<{id: string, description: string, hazardLevel: string}[]>([]);
 
-  const hasAvailableSignature = !!user?.signatureUrl || (professionals || []).some(p => selectedProfIds.includes(p.id) && !!p.signatureUrl);
+  const currentUserData = professionals?.find(p => p.id === user?.id);
+  const hasAvailableSignature = !!user?.signatureUrl || !!currentUserData?.signatureUrl || (professionals || []).some(p => selectedProfIds.includes(p.id) && !!p.signatureUrl);
 
   // Initialize template based on selected dynamic template
   useEffect(() => {
@@ -236,7 +237,7 @@ export default function VisitaWizard({
       const allFindings = [...findings, ...validManualFindings];
 
       const signatureToEmbed = includeSignature 
-        ? ((professionals || []).find(p => selectedProfIds.includes(p.id) && p.signatureUrl)?.signatureUrl || user?.signatureUrl || null)
+        ? ((professionals || []).find(p => selectedProfIds.includes(p.id) && p.signatureUrl)?.signatureUrl || currentUserData?.signatureUrl || user?.signatureUrl || null)
         : null;
 
       const payload = {
