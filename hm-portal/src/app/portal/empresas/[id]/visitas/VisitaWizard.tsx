@@ -295,10 +295,10 @@ export default function VisitaWizard({
                       
                       <textarea
                         rows={2}
-                        placeholder="Observaciones / Peligros específicos..."
-                        className="w-full text-sm text-slate-700 border border-slate-300 rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/50 bg-white shadow-sm resize-y min-h-[60px]"
-                        value={ans?.peligro || ''}
-                        onChange={(e) => handleAnswerChange(item.id, 'peligro', e.target.value)}
+                        placeholder={item.type === 'text' ? "Escriba aquí su respuesta..." : "Observaciones / Peligros específicos..."}
+                        className={`w-full text-sm text-slate-700 border border-slate-300 rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/50 bg-white shadow-sm resize-y min-h-[60px] ${item.type === 'text' ? 'font-bold' : ''}`}
+                        value={item.type === 'text' ? (ans?.status && !['SI','NO','N/A','C','NC'].includes(ans.status) ? ans.status : '') : (ans?.peligro || '')}
+                        onChange={(e) => handleAnswerChange(item.id, item.type === 'text' ? 'status' : 'peligro', e.target.value)}
                       />
                     </div>
                     
@@ -314,10 +314,10 @@ export default function VisitaWizard({
                       ) : item.type === 'text' ? (
                         <textarea
                           rows={2}
-                          placeholder="Escriba aquí su respuesta..."
-                          className="w-full md:w-[250px] text-sm text-slate-700 font-bold border border-slate-300 rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/50 bg-white shadow-sm resize-y min-h-[60px]"
-                          value={ans?.status && !['SI','NO','N/A','C','NC'].includes(ans.status) ? ans.status : ''}
-                          onChange={(e) => handleAnswerChange(item.id, 'status', e.target.value)}
+                          placeholder="Observaciones (Opc.)..."
+                          className="w-full md:w-[250px] text-sm text-slate-500 border border-slate-300 rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/50 bg-white shadow-sm resize-y min-h-[60px]"
+                          value={ans?.peligro || ''}
+                          onChange={(e) => handleAnswerChange(item.id, 'peligro', e.target.value)}
                         />
                       ) : item.type === 'c_nc_na' ? (
                         <div className="flex gap-1 w-full md:w-[140px]">
