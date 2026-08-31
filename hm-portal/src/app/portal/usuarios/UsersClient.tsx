@@ -22,11 +22,14 @@ export default function UsersClient({ initialUsers, companies }) {
     const [formData, setFormData] = useState({
         id: '', username: '', password: '', name: '', role: 'CLIENT', companyId: '', dni: '', phone: '', matricula: '',
         hasGlobalAccess: false,
-        assignedCompanyIds: [] as string[]
+        assignedCompanyIds: [] as string[],
+        signatureFile: null as File | null,
+        removeSignature: false,
+        signaturePreview: ''
     });
 
     const openCreate = () => {
-        setFormData({ id: '', username: '', password: '', name: '', role: 'CLIENT', companyId: '', dni: '', phone: '', matricula: '', hasGlobalAccess: false, assignedCompanyIds: [] });
+        setFormData({ id: '', username: '', password: '', name: '', role: 'CLIENT', companyId: '', dni: '', phone: '', matricula: '', hasGlobalAccess: false, assignedCompanyIds: [], signatureFile: null, removeSignature: false, signaturePreview: '' });
         setError(null);
         setIsCreateModalOpen(true);
     };
@@ -35,7 +38,7 @@ export default function UsersClient({ initialUsers, companies }) {
         setFormData({
             id: u.id,
             username: u.username,
-            password: '', // Edit doesn't change password directly here
+            password: '', 
             name: u.name,
             role: u.role,
             companyId: u.companyId || '',
@@ -43,25 +46,36 @@ export default function UsersClient({ initialUsers, companies }) {
             phone: u.phone || '',
             matricula: u.matricula || '',
             hasGlobalAccess: u.hasGlobalAccess || false,
-            assignedCompanyIds: u.assignedCompanyIds || []
+            assignedCompanyIds: u.assignedCompanies?.map((ac: any) => ac.companyId) || [],
+            signatureFile: null,
+            removeSignature: false,
+            signaturePreview: u.signatureUrl || ''
         });
         setError(null);
         setIsEditModalOpen(true);
+    };
+
+    const appendFormData = (data: FormData) => {
+        Object.entries(formData).forEach(([key, value]) => {
+            if (key === 'assignedCompanyIds') {
+                (value as string[]).forEach(id => data.append('assignedCompanyIds', id));
+            } else if (key === 'hasGlobalAccess') {
+                data.append(key, value ? 'true' : 'false');
+            } else if (key === 'signatureFile') {
+                if (value) data.append('signature', value as File);
+            } else if (key === 'removeSignature') {
+                if (value) data.append('removeSignature', 'true');
+            } else {
+                data.append(key, value as string);
+            }
+        });
     };
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         const data = new FormData();
-        Object.entries(formData).forEach(([key, value]) => {
-            if (key === 'assignedCompanyIds') {
-                (value as string[]).forEach(id => data.append('assignedCompanyIds', id));
-            } else if (key === 'hasGlobalAccess') {
-                data.append(key, value ? 'true' : 'false');
-            } else {
-                data.append(key, value as string);
-            }
-        });
+        appendFormData(data);
 
         startTransition(async () => {
             const res = await createUser(data);
@@ -77,15 +91,7 @@ export default function UsersClient({ initialUsers, companies }) {
         e.preventDefault();
         setError(null);
         const data = new FormData();
-        Object.entries(formData).forEach(([key, value]) => {
-            if (key === 'assignedCompanyIds') {
-                (value as string[]).forEach(id => data.append('assignedCompanyIds', id));
-            } else if (key === 'hasGlobalAccess') {
-                data.append(key, value ? 'true' : 'false');
-            } else {
-                data.append(key, value as string);
-            }
-        });
+        appendFormData(data);
 
         startTransition(async () => {
             const res = await updateUser(formData.id, data);
@@ -328,6 +334,40 @@ export default function UsersClient({ initialUsers, companies }) {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Firma Digital (No para CLIENT) */}
+                            {['ADMIN', 'MANAGER', 'INSPECTOR'].includes(formData.role) && (
+                                <div className="space-y-1 mt-4">
+                                    <label className="text-xs font-black uppercase text-slate-600 ml-1">Firma Digital (Opcional)</label>
+                                    <div className="flex flex-col gap-3">
+                                        {(formData.signaturePreview && !formData.removeSignature) ? (
+                                            <div className="relative inline-block w-48 h-24 border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+                                                <img src={formData.signaturePreview} alt="Firma" className="w-full h-full object-contain" />
+                                                <button 
+                                                    type="button" 
+                                                    onClick={() => setFormData({...formData, removeSignature: true, signaturePreview: ''})}
+                                                    className="absolute top-1 right-1 bg-white/90 text-red-500 p-1 rounded-lg hover:bg-red-50"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <input 
+                                                type="file" 
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        const url = URL.createObjectURL(file);
+                                                        setFormData({...formData, signatureFile: file, signaturePreview: url, removeSignature: false});
+                                                    }
+                                                }}
+                                                className="w-full text-sm file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 cursor-pointer"
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="space-y-1">
                                 <label className="text-xs font-black uppercase text-slate-600 ml-1">Rol en el Sistema</label>

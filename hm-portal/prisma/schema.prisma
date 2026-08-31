@@ -88,6 +88,7 @@ model User {
   dni       String?
   phone     String?
   matricula String?
+  signatureUrl String? // Base64 image data for digital signature
 
   // Role-based access control
   hasGlobalAccess    Boolean  @default(false)

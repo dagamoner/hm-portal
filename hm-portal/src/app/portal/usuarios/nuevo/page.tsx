@@ -98,6 +98,20 @@ export default async function NuevoUsuarioPage() {
               </div>
 
               <div>
+                <label htmlFor="signature" className="block text-sm font-bold text-slate-700 mb-1.5">
+                  Firma Digital (Imagen)
+                </label>
+                <input
+                  id="signature"
+                  name="signature"
+                  type="file"
+                  accept="image/*"
+                  className="w-full text-sm file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 cursor-pointer"
+                />
+                <p className="text-xs text-slate-500 mt-1.5">Solo útil para Admin, Gerente o Inspector.</p>
+              </div>
+
+              <div>
                 <label htmlFor="username" className="block text-sm font-bold text-slate-700 mb-1.5">
                   Nombre de Usuario
                 </label>

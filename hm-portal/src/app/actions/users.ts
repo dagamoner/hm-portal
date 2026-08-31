@@ -41,6 +41,14 @@ export async function createUser(formData: FormData) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const signatureFile = formData.get("signature") as File | null;
+    let signatureUrl = null;
+    if (signatureFile && signatureFile.size > 0) {
+      const buffer = Buffer.from(await signatureFile.arrayBuffer());
+      const base64 = buffer.toString('base64');
+      signatureUrl = `data:${signatureFile.type || 'image/png'};base64,${base64}`;
+    }
+
     await prisma.user.create({
       data: {
         username,
@@ -51,6 +59,7 @@ export async function createUser(formData: FormData) {
         dni: dni || null,
         phone: phone || null,
         matricula: matricula || null,
+        signatureUrl,
         hasGlobalAccess,
         assignedCompanyIds,
         needsPasswordChange: (role || 'CLIENT') === 'CLIENT',
@@ -106,6 +115,16 @@ export async function updateUser(id: string, formData: FormData) {
       return { error: "No se puede cambiar el rol del administrador principal." };
     }
 
+    const signatureFile = formData.get("signature") as File | null;
+    let signatureUrl = undefined;
+    if (signatureFile && signatureFile.size > 0) {
+      const buffer = Buffer.from(await signatureFile.arrayBuffer());
+      const base64 = buffer.toString('base64');
+      signatureUrl = `data:${signatureFile.type || 'image/png'};base64,${base64}`;
+    } else if (formData.get("removeSignature") === 'true') {
+      signatureUrl = null;
+    }
+
     await prisma.user.update({
       where: { id },
       data: {
@@ -115,6 +134,7 @@ export async function updateUser(id: string, formData: FormData) {
         dni: dni || null,
         phone: phone || null,
         matricula: matricula || null,
+        ...(signatureUrl !== undefined && { signatureUrl }),
         hasGlobalAccess,
         assignedCompanyIds,
       }
