@@ -44,6 +44,8 @@ export default function VisitaWizard({
   const [answers, setAnswers] = useState<Record<string, ChecklistAnswer>>({});
   const [manualFindings, setManualFindings] = useState<{id: string, description: string, hazardLevel: string}[]>([]);
 
+  const hasAvailableSignature = !!user?.signatureUrl || (professionals || []).some(p => selectedProfIds.includes(p.id) && !!p.signatureUrl);
+
   // Initialize template based on selected dynamic template
   useEffect(() => {
     if (!selectedTemplateId) {
@@ -233,12 +235,16 @@ export default function VisitaWizard({
       
       const allFindings = [...findings, ...validManualFindings];
 
+      const signatureToEmbed = includeSignature 
+        ? ((professionals || []).find(p => selectedProfIds.includes(p.id) && p.signatureUrl)?.signatureUrl || user?.signatureUrl || null)
+        : null;
+
       const payload = {
         establishmentId,
         date,
         visitNumber,
         inspectorName,
-        inspectorSignatureUrl: (includeSignature && user?.signatureUrl) ? user.signatureUrl : null,
+        inspectorSignatureUrl: signatureToEmbed,
         observations,
         recommendedTrainings,
         checklistData,
@@ -347,17 +353,6 @@ export default function VisitaWizard({
               value={inspectorName}
               onChange={e => setInspectorName(e.target.value)}
             />
-            {user?.signatureUrl && (
-              <label className="flex items-center gap-2 mt-3 cursor-pointer text-sm font-bold text-slate-700">
-                <input 
-                  type="checkbox" 
-                  checked={includeSignature} 
-                  onChange={(e) => setIncludeSignature(e.target.checked)}
-                  className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
-                />
-                Incrustar mi firma digital en el documento final
-              </label>
-            )}
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">Número de Visita (Opcional)</label>
@@ -580,7 +575,20 @@ export default function VisitaWizard({
 
       </div>
 
-      <div className="p-4 border-t border-slate-100 bg-white flex justify-end">
+      <div className="p-4 border-t border-slate-100 bg-white flex justify-between items-center">
+        <div>
+          {hasAvailableSignature && (
+            <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-700 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100">
+              <input 
+                type="checkbox" 
+                checked={includeSignature} 
+                onChange={(e) => setIncludeSignature(e.target.checked)}
+                className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+              />
+              Incrustar firma digital en el Acta
+            </label>
+          )}
+        </div>
         <button
           onClick={handleSave}
           disabled={isSaving || template.length === 0}
