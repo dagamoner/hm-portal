@@ -88,6 +88,7 @@ export default function VisitasClient({
           </div>
         ) : (
           <VisitaWizard 
+            company={company}
             companyId={company.id} 
             establishments={establishments} 
             templates={initialTemplates}

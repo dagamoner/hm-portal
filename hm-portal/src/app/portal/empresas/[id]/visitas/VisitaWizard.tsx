@@ -11,12 +11,14 @@ interface ChecklistAnswer {
 }
 
 export default function VisitaWizard({ 
+  company,
   companyId, 
   establishments, 
   templates,
   professionals = [],
   onComplete 
 }: { 
+  company?: any;
   companyId: string;
   establishments: any[];
   templates: any[];
@@ -71,10 +73,10 @@ export default function VisitaWizard({
   }, [selectedTemplateId, templates]);
 
   // Autofill inspector logic
+  // Autofill inspector & checklist data logic
   useEffect(() => {
-    if (!professionals || professionals.length === 0) return;
-
-    const selected = professionals.filter(p => selectedProfIds.includes(p.id));
+    // 1. Update inspectorName input based on selected professionals
+    const selected = (professionals || []).filter(p => selectedProfIds.includes(p.id));
     if (selected.length > 0) {
       const namesStr = selected.map(p => `${p.name} ${p.matricula ? `(Mat: ${p.matricula})` : ''}`).join(' / ');
       setInspectorName(namesStr);
@@ -82,12 +84,20 @@ export default function VisitaWizard({
       setInspectorName('');
     }
 
-    if (template.length > 0 && selected.length > 0) {
-      const newAnswers = { ...answers };
-      let changed = false;
-      template.forEach(cat => {
-        cat.items.forEach(item => {
-          const lowerQ = item.text.toLowerCase();
+    if (template.length === 0) return;
+
+    // 2. Auto-fill checklist fields
+    const selectedEst = establishments?.find(e => e.id === establishmentId);
+    
+    const newAnswers = { ...answers };
+    let changed = false;
+    
+    template.forEach(cat => {
+      cat.items.forEach(item => {
+        const lowerQ = item.text.trim().toLowerCase();
+        
+        // Match Professionals
+        if (selected.length > 0) {
           if (lowerQ.includes('nombre') && (lowerQ.includes('completo') || lowerQ.includes('profesional') || lowerQ.includes('inspector') || lowerQ.includes('responsable'))) {
              const val = selected.map(p => p.name).join(' / ');
              if (newAnswers[item.id]?.status !== val) {
@@ -102,11 +112,48 @@ export default function VisitaWizard({
                changed = true;
              }
           }
-        });
+        }
+
+        // Match Company
+        if (company) {
+          if (lowerQ === 'empresa' || lowerQ === 'razón social' || lowerQ === 'razon social' || lowerQ === 'cliente' || lowerQ === 'nombre de la empresa' || lowerQ === 'razon social / empresa') {
+             const val = company.name || company.businessName || '';
+             if (val && newAnswers[item.id]?.status !== val) {
+               newAnswers[item.id] = { ...newAnswers[item.id], status: val };
+               changed = true;
+             }
+          }
+          if (lowerQ.includes('cuit')) {
+             const val = company.cuit || '';
+             if (val && newAnswers[item.id]?.status !== val) {
+               newAnswers[item.id] = { ...newAnswers[item.id], status: val };
+               changed = true;
+             }
+          }
+        }
+
+        // Match Establishment
+        if (selectedEst) {
+          if (lowerQ === 'establecimiento' || lowerQ === 'obra' || lowerQ === 'planta' || lowerQ === 'locación' || lowerQ === 'locacion' || lowerQ === 'sucursal' || lowerQ === 'establecimiento / sector' || lowerQ === 'establecimiento / sector/obra') {
+             const val = selectedEst.name || '';
+             if (val && newAnswers[item.id]?.status !== val) {
+               newAnswers[item.id] = { ...newAnswers[item.id], status: val };
+               changed = true;
+             }
+          }
+          if (lowerQ === 'domicilio' || lowerQ === 'dirección' || lowerQ === 'direccion' || lowerQ === 'ubicación' || lowerQ === 'ubicacion' || lowerQ === 'domicilio / dirección') {
+             const val = selectedEst.address || '';
+             if (val && newAnswers[item.id]?.status !== val) {
+               newAnswers[item.id] = { ...newAnswers[item.id], status: val };
+               changed = true;
+             }
+          }
+        }
       });
-      if (changed) setAnswers(newAnswers);
-    }
-  }, [selectedProfIds, professionals, template]);
+    });
+    
+    if (changed) setAnswers(newAnswers);
+  }, [selectedProfIds, professionals, template, establishmentId, establishments, company]);
 
   const handleAnswerChange = (itemId: string, field: 'status' | 'peligro', value: string | null) => {
     setAnswers(prev => ({
