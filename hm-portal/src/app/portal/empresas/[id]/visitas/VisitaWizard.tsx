@@ -578,16 +578,18 @@ export default function VisitaWizard({
 
       <div className="p-4 border-t border-slate-100 bg-white flex justify-between items-center">
         <div>
-          {hasAvailableSignature && (
-            <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-700 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100">
-              <input 
-                type="checkbox" 
-                checked={includeSignature} 
-                onChange={(e) => setIncludeSignature(e.target.checked)}
-                className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
-              />
-              Incrustar firma digital en el Acta
-            </label>
+          <label className={`flex items-center gap-2 cursor-pointer text-sm font-bold ${hasAvailableSignature ? 'text-slate-700 bg-indigo-50 border-indigo-100' : 'text-slate-400 bg-slate-50 border-slate-200'} px-4 py-2 rounded-xl border`}>
+            <input 
+              type="checkbox" 
+              checked={includeSignature && hasAvailableSignature} 
+              onChange={(e) => setIncludeSignature(e.target.checked)}
+              disabled={!hasAvailableSignature}
+              className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 disabled:opacity-50"
+            />
+            Incrustar firma digital en el Acta
+          </label>
+          {!hasAvailableSignature && (
+            <p className="text-[10px] text-amber-600 mt-1 max-w-[200px] leading-tight">El profesional seleccionado no tiene una firma digital cargada en el sistema.</p>
           )}
         </div>
         <button
