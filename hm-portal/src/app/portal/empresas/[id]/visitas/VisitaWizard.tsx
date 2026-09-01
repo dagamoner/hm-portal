@@ -34,7 +34,8 @@ export default function VisitaWizard({
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [visitNumber, setVisitNumber] = useState('');
   const [inspectorName, setInspectorName] = useState('');
-  const [selectedProfIds, setSelectedProfIds] = useState<string[]>([]);
+  const initialProfIds = user?.role === 'ADMIN' ? [] : (user?.id ? [user.id] : []);
+  const [selectedProfIds, setSelectedProfIds] = useState<string[]>(initialProfIds);
   const [observations, setObservations] = useState('');
   const [recommendedTrainings, setRecommendedTrainings] = useState('');
   const [selectedTemplateId, setSelectedTemplateId] = useState(templates.length > 0 ? templates[0].id : '');
@@ -101,14 +102,22 @@ export default function VisitaWizard({
         
         // Match Professionals
         if (selected.length > 0) {
-          if (lowerQ.includes('nombre') && (lowerQ.includes('completo') || lowerQ.includes('profesional') || lowerQ.includes('inspector') || lowerQ.includes('responsable'))) {
+          const asksName = lowerQ.includes('nombre') && (lowerQ.includes('completo') || lowerQ.includes('profesional') || lowerQ.includes('inspector') || lowerQ.includes('responsable'));
+          const asksMatricula = lowerQ.includes('matrícula') || lowerQ.includes('matricula');
+
+          if (asksName && asksMatricula) {
+             const val = selected.map(p => `${p.name} - Mat: ${p.matricula || '-'}`).join(' / ');
+             if (newAnswers[item.id]?.status !== val) {
+               newAnswers[item.id] = { ...newAnswers[item.id], status: val };
+               changed = true;
+             }
+          } else if (asksName) {
              const val = selected.map(p => p.name).join(' / ');
              if (newAnswers[item.id]?.status !== val) {
                newAnswers[item.id] = { ...newAnswers[item.id], status: val };
                changed = true;
              }
-          }
-          if (lowerQ.includes('matrícula') || lowerQ.includes('matricula')) {
+          } else if (asksMatricula) {
              const val = selected.map(p => p.matricula || '-').join(' / ');
              if (newAnswers[item.id]?.status !== val) {
                newAnswers[item.id] = { ...newAnswers[item.id], status: val };
@@ -325,7 +334,7 @@ export default function VisitaWizard({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">Inspector / Profesional HyS</label>
-            {professionals && professionals.length > 0 && (
+            {professionals && professionals.length > 0 && user?.role === 'ADMIN' && (
               <div className="flex flex-wrap gap-2 mb-2">
                 {professionals.map(p => {
                   const isSelected = selectedProfIds.includes(p.id);
@@ -349,10 +358,11 @@ export default function VisitaWizard({
             )}
             <input
               type="text"
-              placeholder="O escriba manualmente el nombre..."
-              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm"
+              placeholder={user?.role === 'ADMIN' ? "O escriba manualmente el nombre..." : "Nombre del inspector..."}
+              className={`w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm ${user?.role !== 'ADMIN' ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
               value={inspectorName}
               onChange={e => setInspectorName(e.target.value)}
+              readOnly={user?.role !== 'ADMIN'}
             />
           </div>
           <div>
