@@ -16,6 +16,7 @@ const RECOMMENDED_DEADLINES = [
   { label: "Mediano plazo (15–30 días)", days: 30 },
   { label: "Largo plazo / Mejora estructural (30–90 días)", days: 90 },
   { label: "Seguimiento permanente (Continuo)", days: null },
+  { label: "Plazo libre (Definido manualmente)", days: undefined },
 ];
 
 export default function FindingsList({ findings, companyId, onUpdate }: { findings: any[], companyId: string, onUpdate: (f: any) => void }) {
@@ -160,11 +161,11 @@ export default function FindingsList({ findings, companyId, onUpdate }: { findin
                             onChange={(e) => {
                               const selected = RECOMMENDED_DEADLINES.find(d => d.label === e.target.value);
                               if (selected) {
-                                if (selected.days !== null) {
+                                if (selected.days !== null && selected.days !== undefined) {
                                   const newDate = new Date();
                                   newDate.setDate(newDate.getDate() + selected.days);
                                   setDeadline(newDate);
-                                } else {
+                                } else if (selected.days === null) {
                                   setDeadline(null);
                                 }
                                 const prefix = `Plazo recomendado: ${selected.label}`;
