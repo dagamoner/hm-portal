@@ -11,7 +11,7 @@ import { requireAuth } from '@/lib/auth';
 export async function getTrainingPlans(companyId: string) {
   try {
     await requireAuth(companyId);
-    return await prisma.trainingPlan.findMany({
+    const plans = await prisma.trainingPlan.findMany({
       where: { companyId },
       include: {
         trainings: {
@@ -22,6 +22,39 @@ export async function getTrainingPlans(companyId: string) {
       },
       orderBy: { year: 'desc' }
     });
+
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+
+    for (const plan of plans) {
+      for (const t of plan.trainings) {
+        let newStatus = t.status;
+
+        if (plan.year === currentYear) {
+          if (t.monthIndex < currentMonth && t.status !== 'Completada') {
+            newStatus = 'Bloqueada';
+          } else if (t.monthIndex === currentMonth && t.status === 'Bloqueada') {
+            newStatus = 'Pendiente';
+          } else if (t.monthIndex > currentMonth && t.status !== 'Completada') {
+            newStatus = 'Bloqueada';
+          }
+        } else if (plan.year < currentYear) {
+          if (t.status !== 'Completada') newStatus = 'Bloqueada';
+        } else if (plan.year > currentYear) {
+          newStatus = 'Bloqueada';
+        }
+
+        if (newStatus !== t.status) {
+          await prisma.training.update({
+            where: { id: t.id },
+            data: { status: newStatus }
+          });
+          t.status = newStatus;
+        }
+      }
+    }
+
+    return plans;
   } catch (error: any) {
         console.error("Action Error:", error);
         return { error: error.message || "Ha ocurrido un error inesperado." };
@@ -31,7 +64,7 @@ export async function getTrainingPlans(companyId: string) {
 export async function getTrainingPlanByYear(companyId: string, year: number) {
   try {
     await requireAuth(companyId);
-    return await prisma.trainingPlan.findUnique({
+    const plan = await prisma.trainingPlan.findUnique({
       where: {
         companyId_year: {
           companyId,
@@ -47,6 +80,39 @@ export async function getTrainingPlanByYear(companyId: string, year: number) {
         }
       }
     });
+
+    if (plan) {
+      const currentMonth = new Date().getMonth() + 1;
+      const currentYear = new Date().getFullYear();
+
+      for (const t of plan.trainings) {
+        let newStatus = t.status;
+
+        if (plan.year === currentYear) {
+          if (t.monthIndex < currentMonth && t.status !== 'Completada') {
+            newStatus = 'Bloqueada';
+          } else if (t.monthIndex === currentMonth && t.status === 'Bloqueada') {
+            newStatus = 'Pendiente';
+          } else if (t.monthIndex > currentMonth && t.status !== 'Completada') {
+            newStatus = 'Bloqueada';
+          }
+        } else if (plan.year < currentYear) {
+          if (t.status !== 'Completada') newStatus = 'Bloqueada';
+        } else if (plan.year > currentYear) {
+          newStatus = 'Bloqueada';
+        }
+
+        if (newStatus !== t.status) {
+          await prisma.training.update({
+            where: { id: t.id },
+            data: { status: newStatus }
+          });
+          t.status = newStatus;
+        }
+      }
+    }
+
+    return plan;
   } catch (error: any) {
         console.error("Action Error:", error);
         return { error: error.message || "Ha ocurrido un error inesperado." };
