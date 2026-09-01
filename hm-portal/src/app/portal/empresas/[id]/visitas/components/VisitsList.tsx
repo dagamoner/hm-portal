@@ -80,7 +80,15 @@ export default function VisitsList({ visits }: { visits: any[] }) {
       doc.setFont('helvetica', 'bold'); doc.text(`${formatDate(visit.date)}`, 80, 115); doc.setFont('helvetica', 'normal');
       
       doc.text(`Inspector:`, 40, 130);
-      doc.setFont('helvetica', 'bold'); doc.text(`${visit.inspectorName}`, 95, 130); doc.setFont('helvetica', 'normal');
+      doc.setFont('helvetica', 'bold'); 
+      const inspectors = visit.inspectorName ? visit.inspectorName.split(' / ') : ['N/A'];
+      let inspectorY = 130;
+      inspectors.forEach((insp: string) => {
+         const splitInsp = doc.splitTextToSize(insp.trim(), 145);
+         doc.text(splitInsp, 95, inspectorY);
+         inspectorY += splitInsp.length * 12;
+      });
+      doc.setFont('helvetica', 'normal');
       
       if (visit.visitNumber) {
         doc.text(`Visita N°: ${visit.visitNumber}`, pageWidth - 40, 115, { align: 'right' });
@@ -96,7 +104,7 @@ export default function VisitsList({ visits }: { visits: any[] }) {
       doc.setFont('helvetica', 'normal');
 
       // Checklist data
-      let currentY = 160 + (addrSplit.length > 1 ? (addrSplit.length - 1) * 12 : 0);
+      let currentY = Math.max(inspectorY, 130 + (addrSplit.length * 12)) + 15;
       
       if (categories && categories.length > 0) {
         categories.forEach((category: any) => {
