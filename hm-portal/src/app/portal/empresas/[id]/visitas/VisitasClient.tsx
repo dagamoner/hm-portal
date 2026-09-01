@@ -10,6 +10,7 @@ import PlantillasClient from './components/PlantillasClient';
 import LibroHySLClient from './components/LibroHySLClient';
 import InformesList from './components/InformesList';
 import ActionLibraryModal from './components/ActionLibraryModal';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 
 export default function VisitasClient({ 
@@ -29,13 +30,28 @@ export default function VisitasClient({
   initialBookEntries?: any[];
   professionals?: any[];
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { user, isClient, isAdmin, isManager, isInspector } = useAuth();
-  const [activeTab, setActiveTab] = useState<'visitas' | 'desvios' | 'libro' | 'informes'>('visitas');
+  
+  const activeTab = (searchParams.get('tab') as 'visitas' | 'desvios' | 'libro' | 'informes') || 'visitas';
+  
+  const setActiveTab = (tab: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', tab);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
   const [isCreating, setIsCreating] = useState(false);
   const [isManagingTemplates, setIsManagingTemplates] = useState(false);
   const [isManagingLibrary, setIsManagingLibrary] = useState(false);
   const [visits, setVisits] = useState(initialVisits);
   const [findings, setFindings] = useState(initialFindings);
+
+  React.useEffect(() => {
+    setVisits(initialVisits);
+    setFindings(initialFindings);
+  }, [initialVisits, initialFindings]);
 
   const handleVisitCreated = (newVisit: any) => {
     setVisits([newVisit, ...visits]);

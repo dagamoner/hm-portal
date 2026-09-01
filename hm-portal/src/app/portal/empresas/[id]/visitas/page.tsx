@@ -6,6 +6,8 @@ import { getSafetyBookEntries } from '@/app/actions/reports-book';
 import { getProfessionals } from '@/app/actions/users';
 import VisitasClient from './VisitasClient';
 
+import { Suspense } from 'react';
+
 export default async function VisitasPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const company = (await getCompanyById(id)) as any;
@@ -22,14 +24,16 @@ export default async function VisitasPage({ params }: { params: Promise<{ id: st
   const professionals = (await getProfessionals()) as any;
 
   return (
-    <VisitasClient 
-      company={company} 
-      establishments={establishments}
-      initialVisits={visits}
-      initialFindings={findings}
-      initialTemplates={templates}
-      initialBookEntries={bookEntries}
-      professionals={professionals}
-    />
+    <Suspense fallback={<div className="p-8 text-center text-slate-500">Cargando...</div>}>
+      <VisitasClient 
+        company={company} 
+        establishments={establishments}
+        initialVisits={visits}
+        initialFindings={findings}
+        initialTemplates={templates}
+        initialBookEntries={bookEntries}
+        professionals={professionals}
+      />
+    </Suspense>
   );
 }
