@@ -61,9 +61,10 @@ export async function login(formData: FormData) {
       });
     }
 
-    // Create session
+    // Create session (only include necessary fields to keep JWT size under 4KB)
+    const { password: _, signatureUrl: __, ...safeUser } = user;
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-    const session = await encrypt({ user, expires });
+    const session = await encrypt({ user: safeUser, expires });
     
     const cookieStore = await cookies();
     cookieStore.set("mh_session", session, { httpOnly: true, secure: process.env.NODE_ENV === "production" });
