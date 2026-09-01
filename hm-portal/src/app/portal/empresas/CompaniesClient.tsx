@@ -11,9 +11,11 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { getLegajoData } from '@/app/actions/legajo';
 import { MODULES } from '@/components/ui/CompanyTabs';
+import { useRouter } from 'next/navigation';
 
 // @ts-ignore
 export default function CompaniesClient({ initialCompanies, userRole, allUsers = [] }: { initialCompanies: any, userRole?: string, allUsers?: any[] }) {
+    const router = useRouter();
     const [companies, setCompanies] = useState(initialCompanies);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -250,8 +252,27 @@ export default function CompaniesClient({ initialCompanies, userRole, allUsers =
                     </div>
                 </div>
 
-                <div className="overflow-x-auto px-2 pb-2">
-                    <table className="w-full text-sm text-left">
+                {activeLetter === null ? (
+                    <div className="p-12 flex flex-col items-center justify-center bg-slate-50/50">
+                        <label className="text-slate-600 font-bold mb-4">Seleccione una empresa para gestionar:</label>
+                        <select 
+                            className="w-full max-w-xl p-4 border border-slate-300 rounded-2xl bg-white shadow-sm outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700 text-lg cursor-pointer hover:border-indigo-300 transition-colors"
+                            onChange={(e) => {
+                                if(e.target.value) {
+                                    router.push(`/portal/empresas/${e.target.value}`);
+                                }
+                            }}
+                            defaultValue=""
+                        >
+                            <option value="" disabled>-- Seleccionar Empresa ({filteredCompanies.length}) --</option>
+                            {filteredCompanies.map((c: any) => (
+                                <option key={c.id} value={c.id}>{c.name} (CUIT: {c.taxId})</option>
+                            ))}
+                        </select>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto px-2 pb-2">
+                        <table className="w-full text-sm text-left">
                         <thead className="text-slate-500 uppercase text-[10px] font-black tracking-widest border-b border-slate-200">
                             <tr>
                                 <th className="px-6 py-5">Empresa / CUIT</th>
@@ -355,8 +376,9 @@ export default function CompaniesClient({ initialCompanies, userRole, allUsers =
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
-                </div>
+                        </table>
+                    </div>
+                )}
             </div>
 
             {/* KPI Cards */}
