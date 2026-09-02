@@ -177,7 +177,7 @@ export async function getLegajoData(companyId: string) {
 
     // 20. Permisos de Trabajo
     ptws.forEach(p => {
-      items.push({ name: `Permiso de Trabajo: ${p.type}`, status: `Validez: ${formatDate(p.validUntil)} | Estado: ${p.status}` });
+      items.push({ name: `Permiso de Trabajo: ${truncate(p.taskDescription)}`, status: `Válido hasta: ${formatDate(p.expirationDate)} | Estado: ${p.status}` });
     });
 
     return { success: true, items };
