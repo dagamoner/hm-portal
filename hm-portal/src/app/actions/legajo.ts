@@ -167,7 +167,7 @@ export async function getLegajoData(companyId: string) {
 
     // 18. Investigaciones
     investigations.forEach(i => {
-      items.push({ name: `Investigación Accidente`, status: `Fecha: ${formatDate(i.date)} | Estado: ${i.status}` });
+      items.push({ name: `Investigación Accidente`, status: `Fecha: ${formatDate(i.createdAt)} | Estado: ${i.status}` });
     });
 
     // 19. Planes de Emergencia
