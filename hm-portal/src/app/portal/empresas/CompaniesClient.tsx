@@ -157,13 +157,15 @@ export default function CompaniesClient({ initialCompanies, userRole, allUsers =
                 headStyles: { fillColor: [250, 204, 21], textColor: [30, 30, 30] },
                 didParseCell: function(data) {
                     if (data.section === 'body' && data.column.index === 1) {
-                        if (data.cell.raw === 'Vigente') {
-                            data.cell.styles.textColor = [22, 163, 74];
+                        const val = data.cell.raw.toString().toLowerCase();
+                        if (val.includes('vencido')) {
+                            data.cell.styles.textColor = [220, 38, 38]; // Red
                             data.cell.styles.fontStyle = 'bold';
-                        } else if (data.cell.raw === 'Pendiente') {
-                            data.cell.styles.textColor = [202, 138, 4];
+                        } else if (val.includes('pendiente')) {
+                            data.cell.styles.textColor = [202, 138, 4]; // Yellow
                         } else {
-                            data.cell.styles.textColor = [220, 38, 38];
+                            data.cell.styles.textColor = [22, 163, 74]; // Green for 'al día', 'x registros', etc
+                            data.cell.styles.fontStyle = 'bold';
                         }
                     }
                 }

@@ -5,7 +5,7 @@ import { requireAuth } from "@/lib/auth";
 
 export interface LegajoItem {
   name: string;
-  status: "Vigente" | "Pendiente" | "Sin registros";
+  status: string;
 }
 
 export async function getLegajoData(companyId: string) {
@@ -34,8 +34,6 @@ export async function getLegajoData(companyId: string) {
       prisma.training.findMany({ where: { companyId } }),
       prisma.trainingPlan.findMany({ where: { companyId } }),
       prisma.inspection.findMany({ where: { companyId } }),
-      // RiskEvaluations don't have direct companyId, they are tied to hazards -> tasks -> roles -> processes -> sectors -> establishments -> company
-      // For simplicity in this v1 of Legajo, let's just query if there's any establishment for the company
       prisma.establishment.findMany({ where: { companyId }, include: { sectors: { include: { processes: { include: { jobRoles: { include: { tasks: { include: { hazards: { include: { evaluations: true } } } } } } } } } } } }),
       prisma.incident.findMany({ where: { companyId } }),
       prisma.equipment.findMany({ where: { companyId } }),
@@ -50,61 +48,74 @@ export async function getLegajoData(companyId: string) {
       prisma.permitToWork.findMany({ where: { companyId } }),
     ]);
 
-    // Flatten Risk Evaluations
     const allRiskEvaluations = riskEvaluations.flatMap(e => e.sectors.flatMap(s => s.processes.flatMap(p => p.jobRoles.flatMap(j => j.tasks.flatMap(t => t.hazards.flatMap(h => h.evaluations))))));
 
     const checkDocs = (keywords: string[]) => {
-      const match = documents.find(d => keywords.some(k => d.title.toLowerCase().includes(k.toLowerCase())));
-      return match ? "Vigente" : "Sin registros";
+      const matches = documents.filter(d => keywords.some(k => d.title.toLowerCase().includes(k.toLowerCase())));
+      if (matches.length === 0) return null;
+      
+      const alDia = matches.filter(d => d.status === 'VIGENTE' || (d.expirationDate && new Date(d.expirationDate) >= new Date())).length;
+      const vencidos = matches.filter(d => d.status === 'VENCIDO' || (d.expirationDate && new Date(d.expirationDate) < new Date())).length;
+      
+      if (vencidos > 0 && alDia > 0) return `${alDia} al día, ${vencidos} vencido(s)`;
+      if (vencidos > 0) return `${vencidos} vencido(s)`;
+      return `${alDia} al día`;
     };
 
     const checkInspections = (keywords: string[]) => {
-      const match = inspections.find(i => keywords.some(k => i.title.toLowerCase().includes(k.toLowerCase())));
-      return match ? "Vigente" : "Sin registros";
+      const matches = inspections.filter(i => keywords.some(k => i.title.toLowerCase().includes(k.toLowerCase())));
+      if (matches.length === 0) return null;
+      return `${matches.length} registro(s)`;
     };
 
-    const items: LegajoItem[] = [
+    const checkCount = (count: number, suffix: string = "registro(s)") => {
+      return count > 0 ? `${count} ${suffix}` : null;
+    };
+
+    const rawItems = [
+      { name: "Libro de Higiene y Seguridad en el Trabajo", status: checkDocs(["libro de higiene", "libro hys", "visación", "visacion"]) },
+      { name: "Manual de procedimientos del servicio de Higiene y Seguridad", status: checkDocs(["manual de procedimiento", "procedimientos del servicio"]) },
+      { name: "Normas Generales de seguridad", status: checkDocs(["normas generales", "normas de seguridad"]) },
+      { name: "Plan de contingencia con roles asignados", status: emergencyPlans.length > 0 ? checkCount(emergencyPlans.length, "plan(es)") : checkDocs(["contingencia", "plan de contingencia"]) },
+      { name: "ATS, PTS, ARO, IPER", status: checkDocs(["ats", "pts", "aro", "iper", "procedimiento seguro"]) },
+      { name: "Evaluación de cumplimiento a normativa vigente", status: checkDocs(["evaluación normativa", "cumplimiento normativa", "legal"]) },
+      { name: "Evaluación de cumplimiento en planes de la S.R.T.", status: checkDocs(["plan srt", "s.r.t"]) },
+      { name: "Evaluación de cumplimiento en requerimientos de la A.R.T.", status: checkDocs(["requerimiento art", "a.r.t"]) },
+      { name: "Actualización y mantenimiento (Diagramas y Planos)", status: checkDocs(["diagrama", "plano", "layout"]) },
+      { name: "Mediciones, evaluaciones y registros (Contaminantes/PAT/Ruido)", status: checkCount(measurements.length, "medición(es)") },
+      { name: "Registro de Entrega de EPP (Res. 299/11)", status: checkCount(eppDeliveries.length, "entrega(s)") },
       { name: "Programa de Seguridad de Obra", status: checkDocs(["programa de seguridad", "pso"]) },
       { name: "Aviso de Inicio de Obra", status: checkDocs(["aviso de inicio", "aio"]) },
-      { name: "Cronograma y Plan Anual de Capacitaciones", status: trainingPlans.length > 0 ? "Vigente" : "Sin registros" },
-      { name: "Check List decreto 911", status: checkInspections(["911", "decreto"]) },
-      { name: "Relevamiento de Agentes de Riesgos", status: allRiskEvaluations.length > 0 ? "Vigente" : "Sin registros" },
-      { name: "Relevamiento General de Riesgos Laborales", status: allRiskEvaluations.length > 0 ? "Vigente" : "Sin registros" },
-      { name: "Charlas de 5 minutos", status: trainings.some(t => t.title.toLowerCase().includes("charla") || t.title.toLowerCase().includes("5 minutos")) ? "Vigente" : "Sin registros" },
-      { name: "Estadísticas Mensuales de Siniestralidad de la Obra", status: incidents.length > 0 ? "Vigente" : "Sin registros" },
-      { name: "Check List de herramientas manuales", status: equipments.some(e => e.category.toLowerCase().includes("manual")) ? "Vigente" : "Sin registros" },
-      { name: "Check List de Simulacros", status: emergencyDrills.length > 0 ? "Vigente" : "Sin registros" },
-      { name: "Check List de tableros Eléctricos", status: checkInspections(["tablero", "eléctrico"]) === "Vigente" || equipments.some(e => e.category.toLowerCase().includes("tablero")) ? "Vigente" : "Sin registros" },
-      { name: "Check List de Botiquines de primeros auxilios", status: emergencyEquipments.some(e => e.type.toLowerCase().includes("botiquín") || e.type.toLowerCase().includes("botiquin")) ? "Vigente" : "Sin registros" },
-      { name: "Informes Semanales y Mensuales de HySL", status: checkDocs(["informe semanal", "informe mensual", "hysl"]) },
-      { name: "Mediciones de Puesta A Tierra", status: measurements.some(m => m.type.toLowerCase().includes("tierra") || m.type.toLowerCase().includes("pat")) ? "Vigente" : "Sin registros" },
-      { name: "Mediciones de Ruido", status: measurements.some(m => m.type.toLowerCase().includes("ruido")) ? "Vigente" : "Sin registros" },
-      { name: "Medición Protocolo de Ergonomía", status: ergonomics.length > 0 ? "Vigente" : "Sin registros" },
-      { name: "Planillas de Mantenimiento de Máquinas y Herramientas", status: equipments.length > 0 ? "Vigente" : "Sin registros" },
-      { name: "Planillas de Mantenimiento de Prolongaciones", status: checkDocs(["prolongacion", "prolongación", "mantenimiento"]) },
+      { name: "Cronograma y Plan Anual de Capacitaciones", status: checkCount(trainings.length, "capacitación(es) programada(s)") },
+      { name: "Coordinación de acciones de prevención (Contratistas)", status: checkDocs(["coordinación de acciones", "contratista", "simultáneo"]) },
+      { name: "Check List Decreto 911", status: checkInspections(["911", "decreto"]) },
+      { name: "Relevamiento de Agentes de Riesgos / Riesgos Laborales", status: checkCount(allRiskEvaluations.length, "evaluación(es)") },
+      { name: "Charlas de 5 minutos", status: checkCount(trainings.filter(t => t.title.toLowerCase().includes("charla") || t.title.toLowerCase().includes("5 minutos")).length, "charla(s)") },
+      { name: "Estadísticas Mensuales de Siniestralidad", status: checkCount(incidents.length, "incidente(s) registrado(s)") },
+      { name: "Check List de herramientas manuales", status: checkCount(equipments.filter(e => e.category.toLowerCase().includes("manual")).length, "herramienta(s)") },
+      { name: "Check List de Simulacros", status: checkCount(emergencyDrills.length, "simulacro(s)") },
+      { name: "Check List de tableros Eléctricos", status: checkCount(equipments.filter(e => e.category.toLowerCase().includes("tablero") || e.category.toLowerCase().includes("eléctric")).length, "tablero(s)") },
+      { name: "Check List de Botiquines de primeros auxilios", status: checkCount(emergencyEquipments.filter(e => e.type.toLowerCase().includes("botiquín") || e.type.toLowerCase().includes("botiquin")).length, "botiquín(es)") },
+      { name: "Informes Semanales y Mensuales de HySL", status: checkDocs(["informe"]) },
+      { name: "Planillas de Mantenimiento de Máquinas y Herramientas", status: checkCount(equipments.length, "equipo(s)") },
+      { name: "Planillas de Mantenimiento de Prolongaciones", status: checkDocs(["prolongacion", "prolongación"]) },
       { name: "Notas Varias", status: checkDocs(["nota"]) },
       { name: "Pliego de Obra", status: checkDocs(["pliego"]) },
-      { name: "Entrega de EPP", status: eppDeliveries.length > 0 ? "Vigente" : "Sin registros" },
       { name: "Constancia de Entrega de Credenciales de ART", status: checkDocs(["credencial", "art"]) },
-      { name: "Visitas de ART", status: visits.length > 0 ? "Vigente" : "Sin registros" },
+      { name: "Visitas de ART / Externas", status: checkCount(visits.length, "visita(s)") },
       { name: "Planillas y Verificación de Orden y Limpieza", status: checkInspections(["orden", "limpieza"]) },
-      { name: "Procedimientos Seguros de Trabajo", status: checkDocs(["procedimiento", "pst", "seguro"]) },
-      { name: "Registro de Accidentes e Incidentes", status: incidents.length > 0 ? "Vigente" : "Sin registros" },
-      { name: "Investigaciones de Accidentes", status: investigations.length > 0 ? "Vigente" : "Sin registros" },
-      { name: "Relevamiento de Extintores de Incendios", status: emergencyEquipments.some(e => e.type.toLowerCase().includes("extintor") || e.type.toLowerCase().includes("matafuego")) ? "Vigente" : "Sin registros" },
-      { name: "Relevamiento de Escaleras y Andamios", status: equipments.some(e => e.category.toLowerCase().includes("escalera") || e.category.toLowerCase().includes("andamio")) ? "Vigente" : "Sin registros" },
-      { name: "Relevamiento de herramientas Eléctricas", status: equipments.some(e => e.category.toLowerCase().includes("eléctrica") || e.category.toLowerCase().includes("electrica")) ? "Vigente" : "Sin registros" },
-      { name: "Rol de Llamadas de Emergencias en obra e In Itinere", status: emergencyPlans.length > 0 ? "Vigente" : "Sin registros" },
-      { name: "Plan de Emergencias", status: emergencyPlans.length > 0 ? "Vigente" : "Sin registros" },
-      { name: "Coordinación Divisional de Emergencias", status: checkDocs(["coordinación divisional", "coordinacion", "emergencia"]) },
-      { name: "Políticas de HySL en la Empresa y en Obra", status: checkDocs(["política", "politica", "hysl"]) },
-      { name: "Políticas de prevención de alcohol y drogas en la Empresa", status: checkDocs(["alcohol", "droga"]) },
-      { name: "Matriz de riesgos", status: allRiskEvaluations.length > 0 ? "Vigente" : "Sin registros" },
-      { name: "Programa de Control de Riesgos, evaluación de riesgos", status: allRiskEvaluations.length > 0 ? "Vigente" : "Sin registros" },
-      { name: "Coordinación ante emergencias", status: emergencyPlans.length > 0 ? "Vigente" : "Sin registros" },
-      { name: "Registros de Permisos de trabajo", status: ptws.length > 0 ? "Vigente" : "Sin registros" },
-      { name: "Visación del Libro de higiene y Seguridad en el Trabajo.", status: checkDocs(["libro", "visación", "visacion"]) }
+      { name: "Investigaciones de Accidentes", status: checkCount(investigations.length, "investigación(es)") },
+      { name: "Relevamiento de Extintores de Incendios", status: checkCount(emergencyEquipments.filter(e => e.type.toLowerCase().includes("extintor") || e.type.toLowerCase().includes("matafuego")).length, "extintor(es)") },
+      { name: "Relevamiento de Escaleras y Andamios", status: checkCount(equipments.filter(e => e.category.toLowerCase().includes("escalera") || e.category.toLowerCase().includes("andamio")).length, "equipo(s)") },
+      { name: "Rol de Llamadas de Emergencias", status: checkDocs(["rol de llamada"]) },
+      { name: "Políticas de HySL y Prevención", status: checkDocs(["política", "politica", "alcohol", "droga"]) },
+      { name: "Registros de Permisos de trabajo", status: checkCount(ptws.length, "permiso(s)") }
     ];
+
+    // Filter out items that have no records (status is null)
+    const items: LegajoItem[] = rawItems
+      .filter(item => item.status !== null)
+      .map(item => ({ name: item.name, status: item.status as string }));
 
     return { success: true, items };
   } catch (error) {
