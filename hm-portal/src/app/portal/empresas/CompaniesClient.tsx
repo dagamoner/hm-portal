@@ -158,14 +158,16 @@ export default function CompaniesClient({ initialCompanies, userRole, allUsers =
                 didParseCell: function(data) {
                     if (data.section === 'body' && data.column.index === 1 && data.cell.raw) {
                         const val = data.cell.raw.toString().toLowerCase();
-                        if (val.includes('vencido')) {
+                        if (val.includes('vencido') || val.includes('abierto')) {
                             data.cell.styles.textColor = [220, 38, 38]; // Red
                             data.cell.styles.fontStyle = 'bold';
                         } else if (val.includes('pendiente')) {
                             data.cell.styles.textColor = [202, 138, 4]; // Yellow
-                        } else {
-                            data.cell.styles.textColor = [22, 163, 74]; // Green for 'al día', 'x registros', etc
+                        } else if (val.includes('al día') || val.includes('vigente')) {
+                            data.cell.styles.textColor = [22, 163, 74]; // Green
                             data.cell.styles.fontStyle = 'bold';
+                        } else {
+                            data.cell.styles.textColor = [50, 50, 50]; // Default gray for standard info
                         }
                     }
                 }

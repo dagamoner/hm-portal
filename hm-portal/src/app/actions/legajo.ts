@@ -28,7 +28,12 @@ export async function getLegajoData(companyId: string) {
       visits,
       investigations,
       emergencyPlans,
-      ptws
+      ptws,
+      safetyBookEntries,
+      managementReports,
+      psts,
+      toolboxTalks,
+      companyPolicies
     ] = await Promise.all([
       prisma.document.findMany({ where: { companyId } }),
       prisma.training.findMany({ where: { companyId } }),
@@ -46,88 +51,134 @@ export async function getLegajoData(companyId: string) {
       prisma.investigation.findMany({ where: { companyId } }),
       prisma.emergencyPlan.findMany({ where: { companyId } }),
       prisma.permitToWork.findMany({ where: { companyId } }),
+      prisma.safetyBookEntry.findMany({ where: { companyId } }),
+      prisma.managementReport.findMany({ where: { companyId } }),
+      prisma.pST.findMany({ where: { companyId } }),
+      prisma.toolboxTalk.findMany({ where: { companyId } }),
+      prisma.companyPolicy.findMany({ where: { companyId } })
     ]);
 
     const allRiskEvaluations = riskEvaluations.flatMap(e => e.sectors.flatMap(s => s.processes.flatMap(p => p.jobRoles.flatMap(j => j.tasks.flatMap(t => t.hazards.flatMap(h => h.evaluations))))));
     const allFindings = visits.flatMap(v => v.findings);
     const openFindings = allFindings.filter(f => f.status !== 'CERRADA' && f.status !== 'CERRADO');
 
-    const checkDocs = (keywords: string[]) => {
-      const matches = documents.filter(d => keywords.some(k => d.title.toLowerCase().includes(k.toLowerCase())));
-      if (matches.length === 0) return null;
-      
-      const alDia = matches.filter(d => d.status === 'VIGENTE' || (d.expirationDate && new Date(d.expirationDate) >= new Date())).length;
-      const vencidos = matches.filter(d => d.status === 'VENCIDO' || (d.expirationDate && new Date(d.expirationDate) < new Date())).length;
-      
-      if (vencidos > 0 && alDia > 0) return `${alDia} al día, ${vencidos} vencido(s)`;
-      if (vencidos > 0) return `${vencidos} vencido(s)`;
-      return `${alDia} al día`;
-    };
+    const items: LegajoItem[] = [];
 
-    const checkInspections = (keywords: string[]) => {
-      const matches = inspections.filter(i => keywords.some(k => i.title.toLowerCase().includes(k.toLowerCase())));
-      const visitMatches = visits.filter(v => {
-        if (!v.checklistData) return false;
-        const data = v.checklistData as any;
-        const name = data.templateName || '';
-        return keywords.some(k => name.toLowerCase().includes(k.toLowerCase()));
+    const formatDate = (d: Date | null | undefined) => d ? new Date(d).toLocaleDateString() : '';
+    const truncate = (str: string, length: number = 60) => str && str.length > length ? str.substring(0, length) + '...' : str;
+
+    // 1. Documentos
+    documents.forEach(d => {
+      let statusStr = d.status;
+      if (d.expirationDate) statusStr += ` (Vence: ${formatDate(d.expirationDate)})`;
+      items.push({ name: `Documento: ${d.title}`, status: statusStr });
+    });
+
+    // 2. Capacitaciones
+    trainings.forEach(t => {
+      items.push({ name: `Capacitación: ${t.title}`, status: `${t.status} - ${formatDate(t.date)}` });
+    });
+
+    // 3. Inspecciones
+    inspections.forEach(i => {
+      items.push({ name: `Inspección: ${i.title}`, status: `Realizada: ${formatDate(i.date)}` });
+    });
+
+    // 4. Visitas y Actas
+    visits.forEach(v => {
+      const templateName = (v.checklistData as any)?.templateName || "Acta de Visita";
+      let statusStr = `Realizada: ${formatDate(v.date)} por ${v.inspectorName}`;
+      if (v.observations) statusStr += ` | Obs: ${truncate(v.observations)}`;
+      items.push({ name: `Acta/CheckList: ${templateName}`, status: statusStr });
+      
+      v.findings.forEach(f => {
+        let fStatus = f.status;
+        if (f.deadline) fStatus += ` (Plazo: ${formatDate(f.deadline)})`;
+        items.push({ name: `   ↳ Desvío: ${truncate(f.description)}`, status: fStatus });
       });
-      
-      const total = matches.length + visitMatches.length;
-      if (total === 0) return null;
-      return `${total} registro(s)`;
-    };
+    });
 
-    const checkCount = (count: number, suffix: string = "registro(s)") => {
-      return count > 0 ? `${count} ${suffix}` : null;
-    };
+    // 5. Libro de Actas
+    safetyBookEntries.forEach(b => {
+      items.push({ name: `Libro de Actas (Folio ${b.folioNumber})`, status: `Fecha: ${formatDate(b.date)} | Obs: ${truncate(b.observations)}` });
+    });
 
-    const rawItems = [
-      { name: "Libro de Higiene y Seguridad en el Trabajo", status: checkDocs(["libro de higiene", "libro hys", "visación", "visacion"]) },
-      { name: "Manual de procedimientos del servicio de Higiene y Seguridad", status: checkDocs(["manual de procedimiento", "procedimientos del servicio"]) },
-      { name: "Normas Generales de seguridad", status: checkDocs(["normas generales", "normas de seguridad"]) },
-      { name: "Plan de contingencia con roles asignados", status: emergencyPlans.length > 0 ? checkCount(emergencyPlans.length, "plan(es)") : checkDocs(["contingencia", "plan de contingencia"]) },
-      { name: "ATS, PTS, ARO, IPER", status: checkDocs(["ats", "pts", "aro", "iper", "procedimiento seguro"]) },
-      { name: "Evaluación de cumplimiento a normativa vigente", status: checkDocs(["evaluación normativa", "cumplimiento normativa", "legal"]) },
-      { name: "Evaluación de cumplimiento en planes de la S.R.T.", status: checkDocs(["plan srt", "s.r.t"]) },
-      { name: "Evaluación de cumplimiento en requerimientos de la A.R.T.", status: checkDocs(["requerimiento art", "a.r.t"]) },
-      { name: "Actualización y mantenimiento (Diagramas y Planos)", status: checkDocs(["diagrama", "plano", "layout"]) },
-      { name: "Mediciones, evaluaciones y registros (Contaminantes/PAT/Ruido)", status: checkCount(measurements.length, "medición(es)") },
-      { name: "Registro de Entrega de EPP (Res. 299/11)", status: checkCount(eppDeliveries.length, "entrega(s)") },
-      { name: "Programa de Seguridad de Obra", status: checkDocs(["programa de seguridad", "pso"]) },
-      { name: "Aviso de Inicio de Obra", status: checkDocs(["aviso de inicio", "aio"]) },
-      { name: "Cronograma y Plan Anual de Capacitaciones", status: checkCount(trainings.length, "capacitación(es) programada(s)") },
-      { name: "Coordinación de acciones de prevención (Contratistas)", status: checkDocs(["coordinación de acciones", "contratista", "simultáneo"]) },
-      { name: "Check List Decreto 911", status: checkInspections(["911", "decreto"]) },
-      { name: "Relevamiento de Agentes de Riesgos / Riesgos Laborales", status: checkCount(allRiskEvaluations.length, "evaluación(es)") },
-      { name: "Charlas de 5 minutos", status: checkCount(trainings.filter(t => t.title.toLowerCase().includes("charla") || t.title.toLowerCase().includes("5 minutos")).length, "charla(s)") },
-      { name: "Estadísticas Mensuales de Siniestralidad", status: checkCount(incidents.length, "incidente(s) registrado(s)") },
-      { name: "Check List de herramientas manuales", status: checkCount(equipments.filter(e => e.category.toLowerCase().includes("manual")).length, "herramienta(s)") },
-      { name: "Check List de Simulacros", status: checkCount(emergencyDrills.length, "simulacro(s)") },
-      { name: "Check List de tableros Eléctricos", status: checkCount(equipments.filter(e => e.category.toLowerCase().includes("tablero") || e.category.toLowerCase().includes("eléctric")).length, "tablero(s)") },
-      { name: "Check List de Botiquines de primeros auxilios", status: checkCount(emergencyEquipments.filter(e => e.type.toLowerCase().includes("botiquín") || e.type.toLowerCase().includes("botiquin")).length, "botiquín(es)") },
-      { name: "Informes Semanales y Mensuales de HySL", status: checkDocs(["informe"]) },
-      { name: "Planillas de Mantenimiento de Máquinas y Herramientas", status: checkCount(equipments.length, "equipo(s)") },
-      { name: "Planillas de Mantenimiento de Prolongaciones", status: checkDocs(["prolongacion", "prolongación"]) },
-      { name: "Notas Varias", status: checkDocs(["nota"]) },
-      { name: "Pliego de Obra", status: checkDocs(["pliego"]) },
-      { name: "Constancia de Entrega de Credenciales de ART", status: checkDocs(["credencial", "art"]) },
-      { name: "Visitas de ART / Externas", status: checkCount(visits.filter(v => (v.inspectorName && v.inspectorName.toLowerCase().includes("art")) || checkDocs(["visita art"])).length, "visita(s)") },
-      { name: "Planillas y Verificación de Orden y Limpieza", status: checkInspections(["orden", "limpieza"]) },
-      { name: "Investigaciones de Accidentes", status: checkCount(investigations.length, "investigación(es)") },
-      { name: "Relevamiento de Extintores de Incendios", status: checkCount(emergencyEquipments.filter(e => e.type.toLowerCase().includes("extintor") || e.type.toLowerCase().includes("matafuego")).length, "extintor(es)") },
-      { name: "Relevamiento de Escaleras y Andamios", status: checkCount(equipments.filter(e => e.category.toLowerCase().includes("escalera") || e.category.toLowerCase().includes("andamio")).length, "equipo(s)") },
-      { name: "Rol de Llamadas de Emergencias", status: checkDocs(["rol de llamada"]) },
-      { name: "Políticas de HySL y Prevención", status: checkDocs(["política", "politica", "alcohol", "droga"]) },
-      { name: "Registros de Permisos de trabajo", status: checkCount(ptws.length, "permiso(s)") },
-      { name: "Planillas y Check Lists con Desvíos", status: checkCount(allFindings.length, `desvío(s) / ${openFindings.length} abierto(s)`) },
-      { name: "Informes y Actas de Visita (Libro)", status: checkCount(visits.length, "acta(s)") }
-    ];
+    // 6. Informes de Gestión
+    managementReports.forEach(r => {
+      items.push({ name: `Informe de Gestión: ${r.type}`, status: `Período: ${r.period}` });
+    });
 
-    // Filter out items that have no records (status is null)
-    const items: LegajoItem[] = rawItems
-      .filter(item => item.status !== null)
-      .map(item => ({ name: item.name, status: item.status as string }));
+    // 7. PTS / ATS
+    psts.forEach(p => {
+      items.push({ name: `PST/ATS: ${p.title}`, status: `Estado: ${p.status} (v${p.version})` });
+    });
+
+    // 8. Toolbox Talks (Charlas)
+    toolboxTalks.forEach(t => {
+      items.push({ name: `Charla de 5 Minutos: ${t.topic}`, status: `Fecha: ${formatDate(t.date)}` });
+    });
+
+    // 9. Políticas
+    companyPolicies.forEach(p => {
+      items.push({ name: `Política: ${p.title}`, status: `Versión: ${p.version} | Aprobada: ${formatDate(p.approvalDate)}` });
+    });
+
+    // 10. Evaluaciones de Riesgo
+    allRiskEvaluations.forEach(r => {
+      items.push({ name: `Eval. de Riesgo: ${r.riskType}`, status: `Nivel: ${r.riskLevel}` });
+    });
+
+    // 11. Incidentes
+    incidents.forEach(i => {
+      items.push({ name: `Incidente: ${i.type}`, status: `Fecha: ${formatDate(i.date)} | Estado: ${i.status}` });
+    });
+
+    // 12. Equipos y Máquinas
+    equipments.forEach(e => {
+      items.push({ name: `Equipo/Máquina: ${e.name}`, status: `Categoría: ${e.category} | Estado: ${e.status}` });
+    });
+
+    // 13. Simulacros
+    emergencyDrills.forEach(d => {
+      items.push({ name: `Simulacro: ${d.type}`, status: `Fecha: ${formatDate(d.date)} | Resultado: ${d.result}` });
+    });
+
+    // 14. Equipos de Emergencia
+    emergencyEquipments.forEach(e => {
+      let statusStr = e.status;
+      if (e.expirationDate) statusStr += ` (Vence: ${formatDate(e.expirationDate)})`;
+      items.push({ name: `Equipo Emergencia: ${e.type} (${e.location})`, status: statusStr });
+    });
+
+    // 15. Mediciones
+    measurements.forEach(m => {
+      items.push({ name: `Medición: ${m.type}`, status: `Fecha: ${formatDate(m.date)} | Resultado: ${m.result}` });
+    });
+
+    // 16. Ergonomía
+    ergonomics.forEach(e => {
+      items.push({ name: `Eval. Ergonómica`, status: `Fecha: ${formatDate(e.date)} | Riesgo: ${e.riskLevel}` });
+    });
+
+    // 17. EPP
+    eppDeliveries.forEach(e => {
+      items.push({ name: `Entrega EPP (Res. 299/11)`, status: `Fecha: ${formatDate(e.date)}` });
+    });
+
+    // 18. Investigaciones
+    investigations.forEach(i => {
+      items.push({ name: `Investigación Accidente`, status: `Fecha: ${formatDate(i.date)} | Estado: ${i.status}` });
+    });
+
+    // 19. Planes de Emergencia
+    emergencyPlans.forEach(e => {
+      items.push({ name: `Plan de Contingencia/Emergencia`, status: `Actualización: ${formatDate(e.updatedAt)}` });
+    });
+
+    // 20. Permisos de Trabajo
+    ptws.forEach(p => {
+      items.push({ name: `Permiso de Trabajo: ${p.type}`, status: `Validez: ${formatDate(p.validUntil)} | Estado: ${p.status}` });
+    });
 
     return { success: true, items };
   } catch (error) {
