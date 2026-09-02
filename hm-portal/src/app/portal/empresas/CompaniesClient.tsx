@@ -156,7 +156,7 @@ export default function CompaniesClient({ initialCompanies, userRole, allUsers =
                 theme: 'striped',
                 headStyles: { fillColor: [250, 204, 21], textColor: [30, 30, 30] },
                 didParseCell: function(data) {
-                    if (data.section === 'body' && data.column.index === 1) {
+                    if (data.section === 'body' && data.column.index === 1 && data.cell.raw) {
                         const val = data.cell.raw.toString().toLowerCase();
                         if (val.includes('vencido')) {
                             data.cell.styles.textColor = [220, 38, 38]; // Red
