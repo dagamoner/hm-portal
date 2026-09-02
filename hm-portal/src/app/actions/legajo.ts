@@ -76,7 +76,7 @@ export async function getLegajoData(companyId: string) {
 
     // 2. Capacitaciones
     trainings.forEach(t => {
-      items.push({ name: `Capacitación: ${t.title}`, status: `${t.status} - ${formatDate(t.date)}` });
+      items.push({ name: `Capacitación: ${t.title}`, status: `${t.status} - Mes ${t.monthIndex}` });
     });
 
     // 3. Inspecciones
