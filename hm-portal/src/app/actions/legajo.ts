@@ -42,13 +42,15 @@ export async function getLegajoData(companyId: string) {
       prisma.measurementRecord.findMany({ where: { companyId } }),
       prisma.ergonomicEvaluation.findMany({ where: { companyId } }),
       prisma.eppDelivery.findMany({ where: { companyId } }),
-      prisma.visit.findMany({ where: { companyId } }),
+      prisma.visit.findMany({ where: { companyId }, include: { findings: true } }),
       prisma.investigation.findMany({ where: { companyId } }),
       prisma.emergencyPlan.findMany({ where: { companyId } }),
       prisma.permitToWork.findMany({ where: { companyId } }),
     ]);
 
     const allRiskEvaluations = riskEvaluations.flatMap(e => e.sectors.flatMap(s => s.processes.flatMap(p => p.jobRoles.flatMap(j => j.tasks.flatMap(t => t.hazards.flatMap(h => h.evaluations))))));
+    const allFindings = visits.flatMap(v => v.findings);
+    const openFindings = allFindings.filter(f => f.status !== 'CERRADA' && f.status !== 'CERRADO');
 
     const checkDocs = (keywords: string[]) => {
       const matches = documents.filter(d => keywords.some(k => d.title.toLowerCase().includes(k.toLowerCase())));
@@ -64,8 +66,16 @@ export async function getLegajoData(companyId: string) {
 
     const checkInspections = (keywords: string[]) => {
       const matches = inspections.filter(i => keywords.some(k => i.title.toLowerCase().includes(k.toLowerCase())));
-      if (matches.length === 0) return null;
-      return `${matches.length} registro(s)`;
+      const visitMatches = visits.filter(v => {
+        if (!v.checklistData) return false;
+        const data = v.checklistData as any;
+        const name = data.templateName || '';
+        return keywords.some(k => name.toLowerCase().includes(k.toLowerCase()));
+      });
+      
+      const total = matches.length + visitMatches.length;
+      if (total === 0) return null;
+      return `${total} registro(s)`;
     };
 
     const checkCount = (count: number, suffix: string = "registro(s)") => {
@@ -102,14 +112,16 @@ export async function getLegajoData(companyId: string) {
       { name: "Notas Varias", status: checkDocs(["nota"]) },
       { name: "Pliego de Obra", status: checkDocs(["pliego"]) },
       { name: "Constancia de Entrega de Credenciales de ART", status: checkDocs(["credencial", "art"]) },
-      { name: "Visitas de ART / Externas", status: checkCount(visits.length, "visita(s)") },
+      { name: "Visitas de ART / Externas", status: checkCount(visits.filter(v => (v.inspectorName && v.inspectorName.toLowerCase().includes("art")) || checkDocs(["visita art"])).length, "visita(s)") },
       { name: "Planillas y Verificación de Orden y Limpieza", status: checkInspections(["orden", "limpieza"]) },
       { name: "Investigaciones de Accidentes", status: checkCount(investigations.length, "investigación(es)") },
       { name: "Relevamiento de Extintores de Incendios", status: checkCount(emergencyEquipments.filter(e => e.type.toLowerCase().includes("extintor") || e.type.toLowerCase().includes("matafuego")).length, "extintor(es)") },
       { name: "Relevamiento de Escaleras y Andamios", status: checkCount(equipments.filter(e => e.category.toLowerCase().includes("escalera") || e.category.toLowerCase().includes("andamio")).length, "equipo(s)") },
       { name: "Rol de Llamadas de Emergencias", status: checkDocs(["rol de llamada"]) },
       { name: "Políticas de HySL y Prevención", status: checkDocs(["política", "politica", "alcohol", "droga"]) },
-      { name: "Registros de Permisos de trabajo", status: checkCount(ptws.length, "permiso(s)") }
+      { name: "Registros de Permisos de trabajo", status: checkCount(ptws.length, "permiso(s)") },
+      { name: "Planillas y Check Lists con Desvíos", status: checkCount(allFindings.length, `desvío(s) / ${openFindings.length} abierto(s)`) },
+      { name: "Informes y Actas de Visita (Libro)", status: checkCount(visits.length, "acta(s)") }
     ];
 
     // Filter out items that have no records (status is null)
