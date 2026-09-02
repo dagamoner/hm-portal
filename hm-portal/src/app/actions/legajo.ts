@@ -120,7 +120,7 @@ export async function getLegajoData(companyId: string) {
 
     // 9. Políticas
     companyPolicies.forEach(p => {
-      items.push({ name: `Política: ${p.title}`, status: `Versión: ${p.version} | Aprobada: ${formatDate(p.approvalDate)}` });
+      items.push({ name: `Política: ${p.title}`, status: `Tipo: ${p.type} | Actualizada: ${formatDate(p.updatedAt)}` });
     });
 
     // 10. Evaluaciones de Riesgo
@@ -140,7 +140,7 @@ export async function getLegajoData(companyId: string) {
 
     // 13. Simulacros
     emergencyDrills.forEach(d => {
-      items.push({ name: `Simulacro: ${d.type}`, status: `Fecha: ${formatDate(d.date)} | Resultado: ${d.result}` });
+      items.push({ name: `Simulacro: ${d.title} (${d.type})`, status: `Fecha: ${formatDate(d.date)}` });
     });
 
     // 14. Equipos de Emergencia
@@ -152,7 +152,7 @@ export async function getLegajoData(companyId: string) {
 
     // 15. Mediciones
     measurements.forEach(m => {
-      items.push({ name: `Medición: ${m.type}`, status: `Fecha: ${formatDate(m.date)} | Resultado: ${m.result}` });
+      items.push({ name: `Medición: ${m.type}`, status: `Fecha: ${formatDate(m.date)} | ${m.value} ${m.unit} | Estado: ${m.status}` });
     });
 
     // 16. Ergonomía
