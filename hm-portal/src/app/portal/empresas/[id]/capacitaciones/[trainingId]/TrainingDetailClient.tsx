@@ -38,7 +38,7 @@ export default function TrainingDetailClient({ company, companyId, training, use
 
   const handleRecordChange = (recordId: string, field: string, value: any) => {
     setRecords(records.map((r: any) => 
-      r.id === recordId ? { ...r, [field]: value } : r
+      r.id === recordId ? { ...r, [field]: value, _isDirty: true } : r
     ));
   };
 
@@ -90,9 +90,9 @@ export default function TrainingDetailClient({ company, companyId, training, use
       return fullName.includes(search) || dni.includes(search);
     })
     .sort((a: any, b: any) => {
-      // Only jump to bottom if explicitly saved in this session
-      const aSaved = savedRecordIds.has(a.id);
-      const bSaved = savedRecordIds.has(b.id);
+      // Jump to bottom if saved in DB or saved in session
+      const aSaved = savedRecordIds.has(a.id) || (a.completed && !a._isDirty);
+      const bSaved = savedRecordIds.has(b.id) || (b.completed && !b._isDirty);
       
       if (aSaved && !bSaved) return 1;
       if (!aSaved && bSaved) return -1;
@@ -296,7 +296,7 @@ export default function TrainingDetailClient({ company, companyId, training, use
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredRecords.map((record: any) => {
-                const isSavedInSession = savedRecordIds.has(record.id);
+                const isSavedInSession = savedRecordIds.has(record.id) || (record.completed && !record._isDirty);
                 return (
                 <tr key={record.id} className={`transition-colors ${isSavedInSession ? 'bg-slate-100 opacity-60' : 'hover:bg-slate-50/50'}`}>
                   <td className="px-6 py-4">
