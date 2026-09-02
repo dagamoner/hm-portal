@@ -125,12 +125,12 @@ export async function getLegajoData(companyId: string) {
 
     // 10. Evaluaciones de Riesgo
     allRiskEvaluations.forEach(r => {
-      items.push({ name: `Eval. de Riesgo: ${r.riskType}`, status: `Nivel: ${r.riskLevel}` });
+      items.push({ name: `Evaluación de Riesgo`, status: `Nivel: ${r.riskLevel} | Prob: ${r.probability} | Sev: ${r.severity}` });
     });
 
     // 11. Incidentes
     incidents.forEach(i => {
-      items.push({ name: `Incidente: ${i.type}`, status: `Fecha: ${formatDate(i.date)} | Estado: ${i.status}` });
+      items.push({ name: `Incidente: ${i.title}`, status: `Fecha: ${formatDate(i.date)} | Estado: ${i.status}` });
     });
 
     // 12. Equipos y Máquinas
@@ -157,7 +157,7 @@ export async function getLegajoData(companyId: string) {
 
     // 16. Ergonomía
     ergonomics.forEach(e => {
-      items.push({ name: `Eval. Ergonómica`, status: `Fecha: ${formatDate(e.date)} | Riesgo: ${e.riskLevel}` });
+      items.push({ name: `Eval. Ergonómica`, status: `Fecha: ${formatDate(e.date)} | Estado: ${e.globalStatus}` });
     });
 
     // 17. EPP
