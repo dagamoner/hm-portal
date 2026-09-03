@@ -22,12 +22,14 @@ export default function BudgetEditPage() {
         const data = await res.json();
         
         // Ensure items have the correct structure if they were saved differently
-        const items = Array.isArray(data.items) ? data.items.map((item: any) => ({
-          description: item.description || "",
-          quantity: item.quantity || 1,
-          unitPrice: item.unitPrice || item.price || 0,
-          total: item.total || (item.quantity || 1) * (item.unitPrice || item.price || 0)
-        })) : [];
+        const items = Array.isArray(data.items) ? data.items.map((item: any) => {
+          // Some old budgets might have used unitPrice/quantity/total
+          const calculatedPrice = Number(item.price) || Number(item.total) || Number(item.unitPrice) || 0;
+          return {
+            description: item.description || "",
+            price: calculatedPrice
+          };
+        }) : [];
 
         setBudget({ ...data, items });
       } catch (error) {
