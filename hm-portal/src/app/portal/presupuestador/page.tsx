@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Calculator, Plus, Search, Trash2, Edit } from "lucide-react";
+import { Calculator, Plus, Search, Trash2, Edit, Eye, Printer } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 
@@ -138,10 +138,16 @@ export default function PresupuestadorList() {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-center gap-2">
-                        <Link href={`/portal/presupuestador/${b.id}`} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                        <Link href={`/portal/presupuestador/${b.id}`} title="Ver Presupuesto" className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                          <Eye className="w-5 h-5" />
+                        </Link>
+                        <Link href={`/portal/presupuestador/${b.id}?print=true`} title="Imprimir" className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
+                          <Printer className="w-5 h-5" />
+                        </Link>
+                        <Link href={`/portal/presupuestador/${b.id}`} title="Editar" className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                           <Edit className="w-5 h-5" />
                         </Link>
-                        <button onClick={() => deleteBudget(b.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <button onClick={() => deleteBudget(b.id)} title="Eliminar" className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                           <Trash2 className="w-5 h-5" />
                         </button>
                       </div>

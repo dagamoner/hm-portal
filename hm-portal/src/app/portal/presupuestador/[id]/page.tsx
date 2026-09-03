@@ -42,6 +42,15 @@ export default function BudgetEditPage() {
     if (id) fetchBudget();
   }, [id]);
 
+  useEffect(() => {
+    // If auto-print flag is in the URL, trigger print dialog after a brief delay
+    if (!loading && budget && typeof window !== "undefined" && window.location.search.includes('print=true')) {
+      setTimeout(() => {
+        window.print();
+      }, 500);
+    }
+  }, [loading, budget]);
+
   const handleSave = async () => {
     if (!budget) return;
     setSaving(true);
