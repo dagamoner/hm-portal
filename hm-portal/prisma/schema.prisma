@@ -338,6 +338,8 @@ model Worker {
 }
 
 model Company {
+  customEvents      CustomEvent[]
+
   id                  String    @id @default(uuid())
   name                String
   legalName           String?
@@ -1428,4 +1430,17 @@ model InternalMessage {
   attendedBy   User?   @relation("AttendedMessages", fields: [attendedById], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
+}
+
+
+model CustomEvent {
+  id          String   @id @default(uuid())
+  title       String
+  date        DateTime
+  color       String   @default("bg-blue-500")
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

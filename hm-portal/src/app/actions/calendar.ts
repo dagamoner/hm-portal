@@ -6,7 +6,7 @@ export type CalendarEvent = {
   id: string;
   title: string;
   date: Date;
-  type: 'visit' | 'finding' | 'training' | 'measurement' | 'invoice' | 'improvement_action';
+  type: 'visit' | 'finding' | 'training' | 'measurement' | 'invoice' | 'improvement_action' | 'custom';
   color: string;
   companyName: string;
   url: string;
@@ -164,6 +164,25 @@ export async function getCalendarEvents(companyId?: string): Promise<CalendarEve
     }
   });
 
+  // 7. Eventos Personalizados (CustomEvents)
+  const customEvents = await prisma.customEvent.findMany({
+    where: whereCompany,
+    include: { company: true }
+  });
+
+  customEvents.forEach(e => {
+    events.push({
+      id: `custom-${e.id}`,
+      title: e.title,
+      date: e.date,
+      type: 'custom',
+      color: e.color || 'bg-blue-500',
+      companyName: e.company?.name || 'General',
+      url: `/portal/calendario`,
+      description: e.description || ''
+    });
+  });
+
   return events;
 }
 
@@ -190,6 +209,9 @@ export async function updateEventDate(eventId: string, type: string, newDateIso:
   else if (type === 'training') {
     const id = eventId.replace('training-', '');
     await prisma.training.update({ where: { id }, data: { monthIndex: date.getMonth() + 1 } });
+  } else if (type === 'custom') {
+    const id = eventId.replace('custom-', '');
+    await prisma.customEvent.update({ where: { id }, data: { date } });
   }
 
   return { success: true };
@@ -216,4 +238,23 @@ export async function createVisitFromCalendar(establishmentId: string, dateIso: 
   });
 
   return visit;
+}
+
+export async function createCustomEvent(data: { title: string, date: string, color?: string, companyId?: string, description?: string }) {
+  const event = await prisma.customEvent.create({
+    data: {
+      title: data.title,
+      date: new Date(data.date),
+      color: data.color || 'bg-blue-500',
+      companyId: data.companyId || null,
+      description: data.description || ''
+    }
+  });
+  return event;
+}
+
+export async function deleteCustomEvent(id: string) {
+  const realId = id.replace('custom-', '');
+  await prisma.customEvent.delete({ where: { id: realId } });
+  return { success: true };
 }

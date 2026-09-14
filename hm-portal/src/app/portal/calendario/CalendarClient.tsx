@@ -43,7 +43,7 @@ export default function CalendarClient({
 }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeFilters, setActiveFilters] = useState<string[]>([
-    'visit', 'finding', 'training', 'measurement', 'invoice', 'improvement_action'
+    'visit', 'finding', 'training', 'measurement', 'invoice', 'improvement_action', 'custom'
   ]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateForModal, setSelectedDateForModal] = useState<Date | null>(null);
@@ -100,7 +100,8 @@ export default function CalendarClient({
     { type: 'visit', label: 'Visitas', color: 'bg-emerald-500' },
     { type: 'training', label: 'Capacitaciones', color: 'bg-blue-500' },
     { type: 'measurement', label: 'Mediciones', color: 'bg-purple-500' },
-    { type: 'invoice', label: 'Facturas', color: 'bg-slate-700' },
+    { type: 'invoice', label: 'Facturación', color: 'bg-slate-700' },
+    { type: 'custom', label: 'Personalizados', color: 'bg-blue-500' },
   ];
 
   const canEdit = userRole === 'ADMIN' || userRole === 'MANAGER' || userRole === 'INSPECTOR';
@@ -233,6 +234,24 @@ export default function CalendarClient({
                         <span className="font-medium text-slate-700">{event.companyName}</span>
                       </p>
                     </div>
+                    {event.type === 'custom' && canEdit && (
+                      <button 
+                        className="text-red-500 hover:bg-red-50 p-2 rounded shrink-0" 
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          if (confirm(`¿Deseas eliminar el evento personalizado: "${event.title}"?`)) {
+                            try {
+                              const { deleteCustomEvent } = await import('@/app/actions/calendar');
+                              await deleteCustomEvent(event.id);
+                              window.location.reload();
+                            } catch (err) {
+                              alert("Error al eliminar evento");
+                            }
+                          }
+                        }}>
+                        Eliminar
+                      </button>
+                    )}
                   </Link>
                 ))
               )}
@@ -281,6 +300,20 @@ export default function CalendarClient({
                         setTooltipPos({ x: rect.left + rect.width / 2, y: rect.top - 10 });
                       }}
                       onMouseLeave={() => setHoveredEvent(null)}
+                      onClick={async (e) => {
+                        if (event.type === 'custom' && canEdit) {
+                          e.preventDefault();
+                          if (confirm(`¿Deseas eliminar el evento personalizado: "${event.title}"?`)) {
+                            try {
+                              const { deleteCustomEvent } = await import('@/app/actions/calendar');
+                              await deleteCustomEvent(event.id);
+                              window.location.reload();
+                            } catch (err) {
+                              alert("Error al eliminar evento");
+                            }
+                          }
+                        }
+                      }}
                       className={`text-[10px] leading-tight px-1.5 py-1 rounded-md text-white font-medium truncate hover:opacity-90 transition-opacity ${event.color} ${canEdit ? 'cursor-grab active:cursor-grabbing' : ''}`}
                     >
                       <span className="opacity-80 mr-1">[{event.companyName.substring(0, 5)}]</span>
@@ -345,7 +378,7 @@ export default function CalendarClient({
   {isModalOpen && canEdit && (
     <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-xl w-full max-w-md p-6 animate-fade-in relative">
-        <h3 className="text-xl font-bold text-slate-800 mb-2">Agendar Visita</h3>
+        <h3 className="text-xl font-bold text-slate-800 mb-2">Agendar Evento</h3>
         <p className="text-sm text-slate-500 mb-6">
           Fecha: {selectedDateForModal && format(selectedDateForModal, "dd 'de' MMMM, yyyy", { locale: es })}
         </p>
@@ -354,31 +387,96 @@ export default function CalendarClient({
           e.preventDefault();
           setIsSubmitting(true);
           const formData = new FormData(e.currentTarget);
-          const estId = formData.get('establishmentId') as string;
-          if (estId && selectedDateForModal) {
-            try {
-              const { createVisitFromCalendar } = await import('@/app/actions/calendar');
-              await createVisitFromCalendar(estId, selectedDateForModal.toISOString());
-              window.location.reload();
-            } catch (err) {
-              alert("Error al agendar visita");
+          const eventType = formData.get('eventType') as string;
+          
+          try {
+            if (eventType === 'visit') {
+              const estId = formData.get('establishmentId') as string;
+              if (estId && selectedDateForModal) {
+                const { createVisitFromCalendar } = await import('@/app/actions/calendar');
+                await createVisitFromCalendar(estId, selectedDateForModal.toISOString());
+              }
+            } else if (eventType === 'custom') {
+              const { createCustomEvent } = await import('@/app/actions/calendar');
+              await createCustomEvent({
+                title: formData.get('title') as string,
+                description: formData.get('description') as string,
+                color: formData.get('color') as string,
+                companyId: formData.get('companyId') as string || undefined,
+                date: selectedDateForModal!.toISOString()
+              });
             }
+            window.location.reload();
+          } catch (err) {
+            alert("Error al agendar evento");
           }
           setIsSubmitting(false);
         }}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Empresa / Establecimiento</label>
-              <select name="establishmentId" required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <option value="">Selecciona un establecimiento...</option>
-                {companies?.map(c => (
-                  <optgroup key={c.id} label={c.name}>
-                    {c.establishments?.map((est: any) => (
-                      <option key={est.id} value={est.id}>{est.name}</option>
-                    ))}
-                  </optgroup>
-                ))}
+              <label className="block text-sm font-bold text-slate-700 mb-1">Tipo de Evento</label>
+              <select name="eventType" id="eventTypeSelect" onChange={(e) => {
+                const isVisit = e.target.value === 'visit';
+                document.getElementById('visitFields')!.style.display = isVisit ? 'block' : 'none';
+                document.getElementById('customFields')!.style.display = isVisit ? 'none' : 'block';
+              }} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="visit">Visita Programada</option>
+                <option value="custom">Evento Personalizado</option>
               </select>
+            </div>
+
+            <div id="visitFields" className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Empresa / Establecimiento</label>
+                <select name="establishmentId" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="">Selecciona un establecimiento...</option>
+                  {companies?.map(c => (
+                    <optgroup key={c.id} label={c.name}>
+                      {c.establishments?.map((est: any) => (
+                        <option key={est.id} value={est.id}>{est.name}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div id="customFields" className="space-y-4 hidden">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Título del Evento</label>
+                <input type="text" name="title" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ej. Presentación de Informe" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Descripción (Opcional)</label>
+                <textarea name="description" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" rows={2}></textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Empresa (Opcional)</label>
+                <select name="companyId" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="">Ninguna / Evento General</option>
+                  {companies?.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Color</label>
+                <div className="flex gap-2">
+                  {[
+                    { value: 'bg-blue-500', label: 'Azul' },
+                    { value: 'bg-red-500', label: 'Rojo' },
+                    { value: 'bg-emerald-500', label: 'Verde' },
+                    { value: 'bg-purple-500', label: 'Morado' },
+                    { value: 'bg-orange-500', label: 'Naranja' },
+                    { value: 'bg-slate-700', label: 'Gris' }
+                  ].map(color => (
+                    <label key={color.value} className="cursor-pointer">
+                      <input type="radio" name="color" value={color.value} className="peer sr-only" defaultChecked={color.value === 'bg-blue-500'} />
+                      <div className={`w-8 h-8 rounded-full ${color.value} ring-2 ring-transparent peer-checked:ring-offset-2 peer-checked:ring-slate-400 hover:opacity-80 transition-all`}></div>
+                    </label>
+                  ))}
+                </div>
+              </div>
             </div>
             
             <div className="flex gap-3 pt-4">
@@ -394,7 +492,7 @@ export default function CalendarClient({
                 disabled={isSubmitting}
                 className="flex-1 px-4 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
               >
-                {isSubmitting ? 'Agendando...' : 'Agendar Visita'}
+                {isSubmitting ? 'Agendando...' : 'Agendar Evento'}
               </button>
             </div>
           </div>
