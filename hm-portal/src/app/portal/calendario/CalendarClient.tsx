@@ -86,7 +86,9 @@ export default function CalendarClient({
   const filteredEvents = initialEvents.filter(e => activeFilters.includes(e.type));
 
   const getEventsForDay = (day: Date) => {
-    return filteredEvents.filter(e => isSameDay(parseISO(e.date), day));
+    return filteredEvents
+      .filter(e => isSameDay(parseISO(e.date), day))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   };
 
   // Agenda Events (Upcoming from start of current month)
@@ -229,7 +231,12 @@ export default function CalendarClient({
                     </div>
                     <div className={`w-3 h-3 rounded-full shrink-0 ${event.color}`}></div>
                     <div className="flex-1">
-                      <h4 className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">{event.title}</h4>
+                      <h4 className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                        {(new Date(event.date).getUTCHours() !== 0 || new Date(event.date).getUTCMinutes() !== 0) && (
+                          <span className="text-indigo-600 font-bold mr-2">{format(new Date(event.date), 'HH:mm')}</span>
+                        )}
+                        {event.title}
+                      </h4>
                       <p className="text-xs text-slate-500 mt-1 flex items-center gap-2">
                         <span className="font-medium text-slate-700">{event.companyName}</span>
                       </p>
@@ -316,6 +323,9 @@ export default function CalendarClient({
                       }}
                       className={`text-[10px] leading-tight px-1.5 py-1 rounded-md text-white font-medium truncate hover:opacity-90 transition-opacity ${event.color} ${canEdit ? 'cursor-grab active:cursor-grabbing' : ''}`}
                     >
+                      {(new Date(event.date).getUTCHours() !== 0 || new Date(event.date).getUTCMinutes() !== 0) && (
+                        <span className="opacity-100 font-bold mr-1">{format(new Date(event.date), 'HH:mm')}</span>
+                      )}
                       <span className="opacity-80 mr-1">[{event.companyName.substring(0, 5)}]</span>
                       {event.title}
                     </Link>
@@ -389,12 +399,19 @@ export default function CalendarClient({
           const formData = new FormData(e.currentTarget);
           const eventType = formData.get('eventType') as string;
           
+          const timeStr = formData.get('time') as string;
+          let finalDate = new Date(selectedDateForModal!);
+          if (timeStr) {
+            const [hours, minutes] = timeStr.split(':');
+            finalDate.setHours(parseInt(hours), parseInt(minutes));
+          }
+          
           try {
             if (eventType === 'visit') {
               const estId = formData.get('establishmentId') as string;
               if (estId && selectedDateForModal) {
                 const { createVisitFromCalendar } = await import('@/app/actions/calendar');
-                await createVisitFromCalendar(estId, selectedDateForModal.toISOString());
+                await createVisitFromCalendar(estId, finalDate.toISOString());
               }
             } else if (eventType === 'custom') {
               const { createCustomEvent } = await import('@/app/actions/calendar');
@@ -403,7 +420,8 @@ export default function CalendarClient({
                 description: formData.get('description') as string,
                 color: formData.get('color') as string,
                 companyId: formData.get('companyId') as string || undefined,
-                date: selectedDateForModal!.toISOString()
+                category: formData.get('category') as string,
+                date: finalDate.toISOString()
               });
             }
             window.location.reload();
@@ -425,6 +443,11 @@ export default function CalendarClient({
               </select>
             </div>
 
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1">Hora (Opcional)</label>
+              <input type="time" name="time" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+
             <div id="visitFields" className="space-y-4">
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1">Empresa / Establecimiento</label>
@@ -442,6 +465,17 @@ export default function CalendarClient({
             </div>
 
             <div id="customFields" className="space-y-4 hidden">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Categoría</label>
+                <select name="category" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="General">General</option>
+                  <option value="Reunión">Reunión</option>
+                  <option value="Cita">Cita</option>
+                  <option value="Tarea">Tarea</option>
+                  <option value="Auditoría">Auditoría</option>
+                  <option value="Recordatorio">Recordatorio</option>
+                </select>
+              </div>
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1">Título del Evento</label>
                 <input type="text" name="title" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ej. Presentación de Informe" />

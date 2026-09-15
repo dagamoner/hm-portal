@@ -179,7 +179,7 @@ export async function getCalendarEvents(companyId?: string): Promise<CalendarEve
       color: e.color || 'bg-blue-500',
       companyName: e.company?.name || 'General',
       url: `/portal/calendario`,
-      description: e.description || ''
+      description: `[${e.category || 'General'}] ` + (e.description || '')
     });
   });
 
@@ -240,14 +240,15 @@ export async function createVisitFromCalendar(establishmentId: string, dateIso: 
   return visit;
 }
 
-export async function createCustomEvent(data: { title: string, date: string, color?: string, companyId?: string, description?: string }) {
+export async function createCustomEvent(data: { title: string, date: string, color?: string, companyId?: string, description?: string, category?: string }) {
   const event = await prisma.customEvent.create({
     data: {
       title: data.title,
       date: new Date(data.date),
       color: data.color || 'bg-blue-500',
       companyId: data.companyId || null,
-      description: data.description || ''
+      description: data.description || '',
+      category: data.category || 'General'
     }
   });
   return event;
