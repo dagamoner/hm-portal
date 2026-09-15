@@ -159,3 +159,18 @@ export async function deleteFinding(id: string) {
     return { error: error.message || "Ha ocurrido un error inesperado." };
   }
 }
+
+export async function deleteVisit(id: string) {
+  try {
+    const session = await getSession();
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'MANAGER' && session.role !== 'INSPECTOR')) {
+      throw new Error("No tienes permisos para borrar visitas");
+    }
+    const visit = await prisma.visit.delete({ where: { id } });
+    revalidatePath(`/portal/empresas/${visit.companyId}/visitas`);
+    return { success: true };
+  } catch (error: any) {
+    console.error("Action Error:", error);
+    return { error: error.message || "Ha ocurrido un error inesperado." };
+  }
+}

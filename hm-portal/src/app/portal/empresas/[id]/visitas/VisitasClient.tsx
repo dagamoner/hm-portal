@@ -43,6 +43,7 @@ export default function VisitasClient({
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
   const [isCreating, setIsCreating] = useState(false);
+  const [visitToEdit, setVisitToEdit] = useState<any>(null);
   const [isManagingTemplates, setIsManagingTemplates] = useState(false);
   const [isManagingLibrary, setIsManagingLibrary] = useState(false);
   const [visits, setVisits] = useState(initialVisits);
@@ -80,16 +81,16 @@ export default function VisitasClient({
     }
   };
 
-  if (isCreating) {
+  if (isCreating || visitToEdit) {
     return (
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-black text-slate-800">Nueva Acta de Visita</h1>
+            <h1 className="text-2xl font-black text-slate-800">{visitToEdit ? 'Editar Acta de Visita' : 'Nueva Acta de Visita'}</h1>
             <p className="text-sm text-slate-500">Inspección de Higiene y Seguridad</p>
           </div>
           <button
-            onClick={() => setIsCreating(false)}
+            onClick={() => { setIsCreating(false); setVisitToEdit(null); }}
             className="text-sm text-slate-500 hover:text-slate-700 font-medium px-4 py-2"
           >
             Cancelar
@@ -101,6 +102,11 @@ export default function VisitasClient({
             <AlertCircle className="w-8 h-8 mx-auto text-amber-500" />
             <h3 className="font-bold">No hay Establecimientos u Obras</h3>
             <p className="text-sm">Debe crear al menos un establecimiento u obra en el módulo de Riesgos antes de poder registrar una visita.</p>
+          </div>
+        ) : visitToEdit ? (
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 p-6 rounded-2xl text-center mb-4">
+             <AlertCircle className="w-8 h-8 mx-auto text-amber-500 mb-2" />
+             <p className="text-sm">La edición completa de actas estará disponible en la próxima actualización. Actualmente solo puede borrar actas.</p>
           </div>
         ) : (
           <VisitaWizard 
@@ -154,15 +160,14 @@ export default function VisitasClient({
                 >
                   <Settings className="w-4 h-4" /> Plantillas
                 </button>
+                <button 
+                  onClick={() => setIsCreating(true)}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-sm shadow-indigo-200"
+                >
+                  <Plus className="w-4 h-4" /> Nueva Acta
+                </button>
               </>
             )}
-            
-            <button 
-              onClick={() => setIsCreating(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-200 transition-all"
-            >
-              <Plus className="w-4 h-4" /> Nueva Visita
-            </button>
           </div>
         )}
       </div>
@@ -180,44 +185,44 @@ export default function VisitasClient({
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden print:border-none print:shadow-none print:overflow-visible">
-        <div className="flex border-b border-slate-100 print:hidden">
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden print:border-none print:shadow-none">
+        <div className="flex overflow-x-auto border-b border-slate-200 bg-slate-50/50 print:hidden">
           <button
             onClick={() => setActiveTab('visitas')}
-            className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${
-              activeTab === 'visitas' 
-                ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50/50' 
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap transition-colors border-b-2 ${
+              activeTab === 'visitas'
+                ? 'border-indigo-600 text-indigo-600 bg-white'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 border-transparent'
             }`}
           >
             <FileText className="w-4 h-4" /> Actas / Check-lists ({visits.length})
           </button>
           <button
             onClick={() => setActiveTab('desvios')}
-            className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${
-              activeTab === 'desvios' 
-                ? 'text-rose-600 border-b-2 border-rose-600 bg-rose-50/50' 
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap transition-colors border-b-2 ${
+              activeTab === 'desvios'
+                ? 'border-indigo-600 text-indigo-600 bg-white'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 border-transparent'
             }`}
           >
-            <AlertCircle className="w-4 h-4" /> Desvíos / No Conformidades ({findings.filter(f => f.status !== 'CERRADO').length})
+            <AlertCircle className="w-4 h-4" /> Desvíos / No Conformidades ({findings.length})
           </button>
           <button
             onClick={() => setActiveTab('libro')}
-            className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${
-              activeTab === 'libro' 
-                ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/50' 
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap transition-colors border-b-2 ${
+              activeTab === 'libro'
+                ? 'border-indigo-600 text-indigo-600 bg-white'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 border-transparent'
             }`}
           >
             <Book className="w-4 h-4" /> Libro Digital
           </button>
           <button
             onClick={() => setActiveTab('informes')}
-            className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${
-              activeTab === 'informes' 
-                ? 'text-amber-600 border-b-2 border-amber-600 bg-amber-50/50' 
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap transition-colors border-b-2 ${
+              activeTab === 'informes'
+                ? 'border-indigo-600 text-indigo-600 bg-white'
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
             }`}
           >
             <MessageSquare className="w-4 h-4" /> Informes
@@ -225,7 +230,7 @@ export default function VisitasClient({
         </div>
 
         <div className="p-6">
-          {activeTab === 'visitas' && <VisitsList visits={visits} />}
+          {activeTab === 'visitas' && <VisitsList visits={visits} onEdit={(visit) => setVisitToEdit(visit)} />}
           {activeTab === 'desvios' && (
             <FindingsList findings={findings} companyId={company.id} onUpdate={handleFindingUpdated} />
           )}

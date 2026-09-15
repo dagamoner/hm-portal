@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ClipboardCheck, Download, AlertCircle, Eye, Building2 } from 'lucide-react';
+import { ClipboardCheck, Download, AlertCircle, Eye, Building2, Trash2, Edit2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import VisitDetailsModal from './VisitDetailsModal';
@@ -8,8 +8,9 @@ const formatDate = (dateString: string | Date) => {
   return new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(dateString));
 };
 
-export default function VisitsList({ visits }: { visits: any[] }) {
+export default function VisitsList({ visits, onEdit }: { visits: any[], onEdit?: (visit: any) => void }) {
   const [selectedVisit, setSelectedVisit] = useState<any>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   if (visits.length === 0) {
     return (
@@ -287,13 +288,55 @@ export default function VisitsList({ visits }: { visits: any[] }) {
                     >
                       <Eye className="w-4 h-4" />
                     </button>
+                    {onEdit && (
+                      <button 
+                        onClick={() => onEdit(visit)}
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Editar Acta"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                    )}
                     <button 
                       onClick={() => exportPdf(visit)}
-                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                      className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
                       title="Exportar Acta PDF"
                     >
                       <Download className="w-4 h-4" />
                     </button>
+                    
+                    {/* Botón de Borrar con confirmación en línea */}
+                    {confirmDeleteId === visit.id ? (
+                      <div className="flex items-center gap-1 bg-rose-50 px-2 py-1 rounded-lg">
+                        <span className="text-xs font-bold text-rose-600 mr-1">¿Borrar?</span>
+                        <button 
+                          onClick={async () => {
+                            const { deleteVisit } = await import('@/app/actions/visits');
+                            await deleteVisit(visit.id);
+                            window.location.reload();
+                          }}
+                          className="p-1 text-white bg-rose-500 hover:bg-rose-600 rounded"
+                          title="Confirmar eliminación"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </button>
+                        <button 
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="p-1 text-slate-500 hover:bg-slate-200 rounded"
+                          title="Cancelar"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => setConfirmDeleteId(visit.id)}
+                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        title="Eliminar Acta"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
