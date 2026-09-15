@@ -232,7 +232,7 @@ export default function VisitasClient({
         <div className="p-6">
           {activeTab === 'visitas' && <VisitsList visits={visits} onEdit={(visit) => setVisitToEdit(visit)} />}
           {activeTab === 'desvios' && (
-            <FindingsList findings={findings} companyId={company.id} onUpdate={handleFindingUpdated} />
+            <FindingsList findings={findings} companyId={company.id} establishments={establishments} onUpdate={handleFindingUpdated} />
           )}
           {activeTab === 'libro' && (
             <LibroHySLClient 

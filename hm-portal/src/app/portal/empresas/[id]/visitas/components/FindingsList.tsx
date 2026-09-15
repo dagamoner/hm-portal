@@ -19,9 +19,12 @@ const RECOMMENDED_DEADLINES = [
   { label: "Plazo libre (Definido manualmente)", days: undefined },
 ];
 
-export default function FindingsList({ findings, companyId, onUpdate }: { findings: any[], companyId: string, onUpdate: (f: any) => void }) {
+export default function FindingsList({ findings, companyId, establishments, onUpdate }: { findings: any[], companyId: string, establishments?: any[], onUpdate: (f: any) => void }) {
   const { isClient } = useAuth();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isCreatingFast, setIsCreatingFast] = useState(false);
+  const [fastFindings, setFastFindings] = useState<{id: string, description: string, sector: string, dateObserved: string, hazardLevel: string}[]>([]);
+  const [fastEstablishmentId, setFastEstablishmentId] = useState('');
   const [actionPlan, setActionPlan] = useState('');
   const [deadline, setDeadline] = useState<Date | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -78,19 +81,58 @@ export default function FindingsList({ findings, companyId, onUpdate }: { findin
     }
   };
 
-  if (findings.length === 0) {
-    return (
-      <div className="text-center py-10">
-        <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-        <p className="text-slate-500 font-medium">No hay desvíos registrados.</p>
-      </div>
-    );
-  }
+  const handleCreateFast = async () => {
+    if (!fastEstablishmentId) return alert("Seleccione un establecimiento");
+    if (fastFindings.length === 0 || fastFindings.some(f => !f.description.trim())) return alert("Complete la descripción de todos los desvíos");
+    
+    try {
+      setIsUpdating(true);
+      const { createVisit } = await import('@/app/actions/visits');
+      const payload = {
+        establishmentId: fastEstablishmentId,
+        date: fastFindings[0]?.dateObserved || new Date().toISOString().split('T')[0],
+        visitNumber: null,
+        inspectorName: "Registro Rápido de Desvíos",
+        observations: "Desvíos y No Conformidades cargadas manualmente sin acta de visita general.",
+        checklistData: { templateName: 'Registro de Desvíos', categories: [] },
+        findings: fastFindings.map(f => ({
+          description: `[Sector/Ubicación: ${f.sector || 'General'}] [Observado: ${f.dateObserved}] ${f.description}`,
+          hazardLevel: f.hazardLevel
+        }))
+      };
+      await createVisit(companyId, payload);
+      window.location.reload();
+    } catch (err) {
+      alert("Error al guardar los desvíos");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
-      {findings.map(finding => (
-        <div key={finding.id} className="border border-slate-200 rounded-xl p-4 hover:border-slate-300 transition-colors bg-white">
+      <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
+        <p className="text-sm text-slate-500 font-medium">Aquí puede gestionar los desvíos generados automáticamente desde las actas, o cargar nuevos manualmente.</p>
+        <button 
+          onClick={() => {
+            setFastEstablishmentId(establishments && establishments.length > 0 ? establishments[0].id : '');
+            setFastFindings([{id: Date.now().toString(), description: '', sector: '', dateObserved: new Date().toISOString().split('T')[0], hazardLevel: 'Medio'}]);
+            setIsCreatingFast(true);
+          }}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2"
+        >
+          <AlertCircle className="w-4 h-4" /> Nuevo Desvío
+        </button>
+      </div>
+
+      {findings.length === 0 ? (
+        <div className="text-center py-10 bg-white border border-slate-200 rounded-xl">
+          <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+          <p className="text-slate-500 font-medium">No hay desvíos registrados.</p>
+        </div>
+      ) : (
+        findings.map(finding => (
+          <div key={finding.id} className="border border-slate-200 rounded-xl p-4 hover:border-slate-300 transition-colors bg-white">
           <div className="flex flex-col md:flex-row justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
@@ -299,7 +341,108 @@ export default function FindingsList({ findings, companyId, onUpdate }: { findin
             </div>
           </div>
         </div>
-      ))}
+      )))}
+
+      {/* MODAL NUEVO DESVIO RAPIDO */}
+      {isCreatingFast && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-3xl p-6 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-indigo-600" /> Carga Rápida de Desvíos
+            </h3>
+            
+            <div className="mb-6">
+              <label className="block text-sm font-bold text-slate-700 mb-2">Establecimiento / Locación</label>
+              <select
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                value={fastEstablishmentId}
+                onChange={e => setFastEstablishmentId(e.target.value)}
+              >
+                {establishments?.map((e: any) => (
+                  <option key={e.id} value={e.id}>{e.name} {e.type ? `(${e.type})` : ''}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              {fastFindings.map((finding, idx) => (
+                <div key={finding.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl relative">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-bold text-slate-500 uppercase">Desvío #{idx + 1}</span>
+                    {fastFindings.length > 1 && (
+                      <button onClick={() => setFastFindings(fastFindings.filter(f => f.id !== finding.id))} className="text-slate-400 hover:text-rose-500">
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Sector / Ubicación (Opcional)</label>
+                      <input 
+                        type="text" placeholder="Ej. Depósito 2" 
+                        className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500"
+                        value={finding.sector} onChange={e => setFastFindings(fastFindings.map(f => f.id === finding.id ? {...f, sector: e.target.value} : f))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Fecha Observada</label>
+                      <input 
+                        type="date"
+                        className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500"
+                        value={finding.dateObserved} onChange={e => setFastFindings(fastFindings.map(f => f.id === finding.id ? {...f, dateObserved: e.target.value} : f))}
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Descripción del Hallazgo</label>
+                    <textarea 
+                      rows={2} placeholder="Describa el desvío o condición insegura..."
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
+                      value={finding.description} onChange={e => setFastFindings(fastFindings.map(f => f.id === finding.id ? {...f, description: e.target.value} : f))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Nivel de Riesgo</label>
+                    <select
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500"
+                      value={finding.hazardLevel} onChange={e => setFastFindings(fastFindings.map(f => f.id === finding.id ? {...f, hazardLevel: e.target.value} : f))}
+                    >
+                      <option value="Bajo">Riesgo Bajo</option>
+                      <option value="Medio">Riesgo Medio</option>
+                      <option value="Alto">Riesgo Alto</option>
+                      <option value="Crítico">Riesgo Crítico</option>
+                    </select>
+                  </div>
+                </div>
+              ))}
+              
+              <button
+                onClick={() => setFastFindings([...fastFindings, {id: Date.now().toString(), description: '', sector: '', dateObserved: new Date().toISOString().split('T')[0], hazardLevel: 'Medio'}])}
+                className="w-full py-3 border-2 border-dashed border-slate-200 text-slate-500 hover:border-indigo-300 hover:text-indigo-600 font-bold text-sm rounded-xl transition-colors"
+              >
+                + Agregar otro desvío
+              </button>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <button 
+                onClick={() => setIsCreatingFast(false)}
+                className="px-6 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
+                disabled={isUpdating}
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleCreateFast}
+                className="px-6 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md flex items-center gap-2"
+                disabled={isUpdating}
+              >
+                {isUpdating ? 'Guardando...' : 'Guardar Desvíos'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
