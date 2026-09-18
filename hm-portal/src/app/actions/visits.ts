@@ -163,12 +163,52 @@ export async function deleteFinding(id: string) {
 export async function deleteVisit(id: string) {
   try {
     const session = await getSession();
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'MANAGER' && session.role !== 'INSPECTOR')) {
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'MANAGER')) {
       throw new Error("No tienes permisos para borrar visitas");
     }
     const visit = await prisma.visit.delete({ where: { id } });
     revalidatePath(`/portal/empresas/${visit.companyId}/visitas`);
     return { success: true };
+  } catch (error: any) {
+    console.error("Action Error:", error);
+    return { error: error.message || "Ha ocurrido un error inesperado." };
+  }
+}
+
+export async function updateVisit(id: string, data: any) {
+  try {
+    const session = await getSession();
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'MANAGER')) {
+      throw new Error("No tienes permisos para editar visitas");
+    }
+    
+    // Calculate new date
+    const visitDate = new Date(data.date.includes('T') ? data.date : `${data.date}T12:00:00Z`);
+
+    const visit = await prisma.visit.update({
+      where: { id },
+      data: {
+        establishmentId: data.establishmentId,
+        date: visitDate,
+        visitNumber: data.visitNumber ? parseInt(data.visitNumber) : null,
+        inspectorName: data.inspectorName,
+        inspectorSignatureUrl: data.inspectorSignatureUrl,
+        observations: data.observations,
+        recommendedTrainings: data.recommendedTrainings,
+        checklistData: data.checklistData,
+      },
+      include: {
+        establishment: true,
+        findings: true
+      }
+    });
+
+    // Optionally update findings if data.findings is passed? 
+    // To keep it simple, we usually don't delete existing findings from the acta automatically here, 
+    // because manual findings could be lost. We only update the core acta data and checklist structure.
+    
+    revalidatePath(`/portal/empresas/${visit.companyId}/visitas`);
+    return visit;
   } catch (error: any) {
     console.error("Action Error:", error);
     return { error: error.message || "Ha ocurrido un error inesperado." };

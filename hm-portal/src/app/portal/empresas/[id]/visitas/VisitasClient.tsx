@@ -54,10 +54,17 @@ export default function VisitasClient({
     setFindings(initialFindings);
   }, [initialVisits, initialFindings]);
 
-  const handleVisitCreated = (newVisit: any) => {
-    setVisits([newVisit, ...visits]);
-    if (newVisit.findings && newVisit.findings.length > 0) {
-      setFindings([...newVisit.findings, ...findings]);
+  const handleVisitCreated = (savedVisit: any) => {
+    if (visitToEdit) {
+      setVisits(visits.map(v => v.id === savedVisit.id ? savedVisit : v));
+      // Re-fetch or manually merge findings would be complex here, so we will rely on reload or basic append if we were adding new findings. 
+      // For now, let's just do a window.location.reload() to make sure all relational data (like removed/added findings) is perfectly in sync.
+      window.location.reload();
+      return;
+    }
+    setVisits([savedVisit, ...visits]);
+    if (savedVisit.findings && savedVisit.findings.length > 0) {
+      setFindings([...savedVisit.findings, ...findings]);
     }
     setIsCreating(false);
   };
@@ -98,15 +105,10 @@ export default function VisitasClient({
         </div>
         
         {establishments.length === 0 ? (
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 p-6 rounded-2xl text-center space-y-3">
-            <AlertCircle className="w-8 h-8 mx-auto text-amber-500" />
-            <h3 className="font-bold">No hay Establecimientos u Obras</h3>
-            <p className="text-sm">Debe crear al menos un establecimiento u obra en el módulo de Riesgos antes de poder registrar una visita.</p>
-          </div>
-        ) : visitToEdit ? (
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 p-6 rounded-2xl text-center mb-4">
-             <AlertCircle className="w-8 h-8 mx-auto text-amber-500 mb-2" />
-             <p className="text-sm">La edición completa de actas estará disponible en la próxima actualización. Actualmente solo puede borrar actas.</p>
+          <div className="bg-white p-10 rounded-3xl border border-slate-200 shadow-sm text-center">
+            <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-slate-800 mb-2">No hay establecimientos</h3>
+            <p className="text-slate-500 mb-6 max-w-md mx-auto">Para crear un acta de visita, primero debe dar de alta al menos un establecimiento para esta empresa.</p>
           </div>
         ) : (
           <VisitaWizard 
@@ -115,6 +117,7 @@ export default function VisitasClient({
             establishments={establishments} 
             templates={initialTemplates}
             professionals={professionals}
+            visitToEdit={visitToEdit}
             onComplete={handleVisitCreated}
           />
         )}
@@ -230,7 +233,7 @@ export default function VisitasClient({
         </div>
 
         <div className="p-6">
-          {activeTab === 'visitas' && <VisitsList visits={visits} onEdit={(visit) => setVisitToEdit(visit)} />}
+          {activeTab === 'visitas' && <VisitsList visits={visits} onEdit={(visit) => setVisitToEdit(visit)} canEditVisit={isAdmin || isManager} />}
           {activeTab === 'desvios' && (
             <FindingsList findings={findings} companyId={company.id} establishments={establishments} onUpdate={handleFindingUpdated} />
           )}

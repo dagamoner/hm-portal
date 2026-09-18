@@ -16,6 +16,7 @@ export default function VisitaWizard({
   establishments, 
   templates,
   professionals = [],
+  visitToEdit,
   onComplete 
 }: { 
   company?: any;
@@ -23,6 +24,7 @@ export default function VisitaWizard({
   establishments: any[];
   templates: any[];
   professionals?: any[];
+  visitToEdit?: any;
   onComplete: (visit: any) => void;
 }) {
   const { user } = useAuth();
@@ -30,15 +32,20 @@ export default function VisitaWizard({
   const [includeSignature, setIncludeSignature] = useState(true);
   
   // Basic info
-  const [establishmentId, setEstablishmentId] = useState(establishments[0]?.id || '');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [visitNumber, setVisitNumber] = useState('');
-  const [inspectorName, setInspectorName] = useState('');
+  const [establishmentId, setEstablishmentId] = useState(visitToEdit?.establishmentId || establishments[0]?.id || '');
+  const [date, setDate] = useState(visitToEdit ? new Date(visitToEdit.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+  const [visitNumber, setVisitNumber] = useState(visitToEdit?.visitNumber?.toString() || '');
+  const [inspectorName, setInspectorName] = useState(visitToEdit?.inspectorName || '');
+  
+  // Try to find the inspector id if it exists in professionals
   const initialProfIds = user?.role === 'ADMIN' ? [] : (user?.id ? [user.id] : []);
   const [selectedProfIds, setSelectedProfIds] = useState<string[]>(initialProfIds);
-  const [observations, setObservations] = useState('');
-  const [recommendedTrainings, setRecommendedTrainings] = useState('');
-  const [selectedTemplateId, setSelectedTemplateId] = useState(templates.length > 0 ? templates[0].id : '');
+  const [observations, setObservations] = useState(visitToEdit?.observations || '');
+  const [recommendedTrainings, setRecommendedTrainings] = useState(visitToEdit?.recommendedTrainings || '');
+  
+  // If editing, try to find matching template, otherwise leave empty so we can reconstruct from checklistData
+  const [selectedTemplateId, setSelectedTemplateId] = useState(visitToEdit ? '' : (templates.length > 0 ? templates[0].id : ''));
+  const isEditingSetup = React.useRef(!!visitToEdit);
 
   // Checklist Data state
   const [template, setTemplate] = useState<{name: string, items: {id: string, text: string, type?: string}[]}[]>([]);
@@ -48,11 +55,49 @@ export default function VisitaWizard({
   const currentUserData = professionals?.find(p => p.id === user?.id);
   const hasAvailableSignature = !!user?.signatureUrl || !!currentUserData?.signatureUrl || (professionals || []).some(p => selectedProfIds.includes(p.id) && !!p.signatureUrl);
 
-  // Initialize template based on selected dynamic template
+  // Reconstruct template and answers from visitToEdit if it exists
   useEffect(() => {
+    if (visitToEdit?.checklistData?.categories) {
+      const reconstructedTemplate: any[] = [];
+      const reconstructedAnswers: any = {};
+      
+      visitToEdit.checklistData.categories.forEach((cat: any, cIdx: number) => {
+        const items = cat.items.map((item: any, iIdx: number) => {
+          const id = `item_${cat.category}_${iIdx}`;
+          reconstructedAnswers[id] = item.answer || { status: null, peligro: '' };
+          return { id, text: item.text, type: item.type || 'boolean' };
+        });
+        reconstructedTemplate.push({ name: cat.category, items });
+      });
+
+      setTemplate(reconstructedTemplate);
+      setAnswers(reconstructedAnswers);
+      
+      // Load manual findings that were created during this visit
+      // (This is an approximation, we load findings that don't match the checklist pattern)
+      if (visitToEdit.findings) {
+         const manuals = visitToEdit.findings.filter((f: any) => !f.description.startsWith('Incumplimiento en '));
+         setManualFindings(manuals.map((m: any) => ({
+           id: m.id,
+           description: m.description,
+           hazardLevel: m.hazardLevel || 'Medio'
+         })));
+      }
+    }
+  }, [visitToEdit]);
+
+  // Initialize template based on selected dynamic template (only if not doing initial edit setup)
+  useEffect(() => {
+    if (isEditingSetup.current) {
+        isEditingSetup.current = false;
+        return;
+    }
+
     if (!selectedTemplateId) {
-        setTemplate([]);
-        setAnswers({});
+        if (!visitToEdit) {
+            setTemplate([]);
+            setAnswers({});
+        }
         return;
     }
 
@@ -254,18 +299,30 @@ export default function VisitaWizard({
         date,
         visitNumber,
         inspectorName,
-        inspectorSignatureUrl: signatureToEmbed,
         observations,
         recommendedTrainings,
         checklistData,
-        findings: allFindings
+        findings: allFindings,
+        inspectorSignatureUrl: signatureToEmbed
       };
 
-      const newVisit = await createVisit(companyId, payload);
-      onComplete(newVisit);
-
-    } catch (e) {
-      alert("Error al guardar el acta de visita.");
+      if (visitToEdit) {
+        const { updateVisit } = await import('@/app/actions/visits');
+        const updatedVisit: any = await updateVisit(visitToEdit.id, payload);
+        if (updatedVisit?.error) {
+          throw new Error(updatedVisit.error);
+        }
+        onComplete(updatedVisit);
+      } else {
+        const { createVisit } = await import('@/app/actions/visits');
+        const newVisit: any = await createVisit(companyId, payload);
+        if (newVisit?.error) {
+          throw new Error(newVisit.error);
+        }
+        onComplete(newVisit);
+      }
+    } catch (err: any) {
+      alert("Error al guardar: " + (err.message || 'Error desconocido'));
     } finally {
       setIsSaving(false);
     }

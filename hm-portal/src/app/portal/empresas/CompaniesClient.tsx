@@ -324,14 +324,14 @@ export default function CompaniesClient({ initialCompanies, userRole, allUsers =
                                         </div>
                                     </td>
                                     <td className="px-6 py-5 text-right">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center justify-end gap-2">
                                             <a 
                                                 href={`/portal/empresas/${company.id}`}
                                                 className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all bg-white shadow-sm border border-slate-100 flex items-center gap-1.5"
-                                                title="Ver Empresa"
+                                                title="Ingresar al Portal de la Empresa"
                                             >
-                                                <TrendingUp className="w-4 h-4" />
-                                                <span className="text-[10px] font-black uppercase tracking-wider hidden md:inline">Empresa</span>
+                                                <ArrowRight className="w-4 h-4" />
+                                                <span className="text-[10px] font-black uppercase tracking-wider hidden md:inline">Ingresar</span>
                                             </a>
                                             <button 
                                                 onClick={() => handleDownloadLegajo(company)}
@@ -339,7 +339,7 @@ export default function CompaniesClient({ initialCompanies, userRole, allUsers =
                                                 className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all bg-white shadow-sm border border-slate-100 disabled:opacity-50"
                                                 title="Descargar Legajo Técnico"
                                             >
-                                                {downloadingLegajo === company.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                                {downloadingLegajo === company.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
                                             </button>
                                             {userRole !== 'CLIENT' && (
                                                 <>
