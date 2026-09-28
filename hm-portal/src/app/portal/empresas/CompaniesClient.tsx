@@ -185,9 +185,9 @@ export default function CompaniesClient({ initialCompanies, userRole, allUsers =
     const [activeLetter, setActiveLetter] = useState<string | null>(null);
 
     const filteredCompanies = companies.filter((c: any) => {
-        const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            c.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            c.taxId.includes(searchTerm);
+        const matchesSearch = (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (c.industry || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (c.taxId || '').includes(searchTerm);
         const matchesLetter = activeLetter ? c.name.charAt(0).toUpperCase() === activeLetter : true;
         return matchesSearch && matchesLetter;
     }).sort((a: any, b: any) => a.name.localeCompare(b.name));
@@ -256,7 +256,7 @@ export default function CompaniesClient({ initialCompanies, userRole, allUsers =
                     </div>
                 </div>
 
-                {activeLetter === null ? (
+                {activeLetter === null && searchTerm === '' ? (
                     <div className="p-12 flex flex-col items-center justify-center bg-slate-50/50">
                         <label className="text-slate-600 font-bold mb-4">Seleccione una empresa para gestionar:</label>
                         <select 
