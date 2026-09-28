@@ -9,6 +9,7 @@ import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 
 export default function Home() {
+  const [currentVideo, setCurrentVideo] = useState('/videos/Video1.mp4')
   const [isHigieneModalOpen, setIsHigieneModalOpen] = useState(false)
   const [isLegajoModalOpen, setIsLegajoModalOpen] = useState(false)
   const [isIncendiosModalOpen, setIsIncendiosModalOpen] = useState(false)
@@ -25,18 +26,19 @@ export default function Home() {
     <div className="flex flex-col w-full">
       {/* Hero Section */}
       <section className="relative w-full py-32 md:py-48 bg-gray-900 overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0 z-0">
-          <Image 
-            src="/images/hero.png" 
-            alt="Profesionales de Seguridad Laboral" 
-            fill 
-            className="object-cover object-center opacity-40 mix-blend-overlay"
-            priority
+        {/* Background Video Loop */}
+        <div className="absolute inset-0 z-0 bg-gray-900">
+          <video 
+            src={currentVideo}
+            autoPlay
+            muted
+            playsInline
+            onEnded={() => setCurrentVideo(prev => prev === '/videos/Video1.mp4' ? '/videos/Video2.mp4' : '/videos/Video1.mp4')}
+            className="w-full h-full object-cover opacity-50 mix-blend-overlay transition-opacity duration-1000"
           />
         </div>
         {/* Gradient Overlay for text legibility */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-secondary)]/90 to-transparent z-0"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-secondary)]/90 via-[var(--color-secondary)]/50 to-transparent z-0 pointer-events-none"></div>
 
         <div className="container mx-auto px-4 md:px-8 relative z-10">
           <motion.div 
