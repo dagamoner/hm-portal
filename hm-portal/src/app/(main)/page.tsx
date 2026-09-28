@@ -27,18 +27,19 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative w-full py-32 md:py-48 bg-gray-900 overflow-hidden">
         {/* Background Video Loop */}
-        <div className="absolute inset-0 z-0 bg-gray-900">
+        <div className="absolute inset-0 z-0 bg-black">
           <video 
             src={currentVideo}
             autoPlay
             muted
+            loop={false}
             playsInline
             onEnded={() => setCurrentVideo(prev => prev === '/videos/Video1.mp4' ? '/videos/Video2.mp4' : '/videos/Video1.mp4')}
-            className="w-full h-full object-cover opacity-50 mix-blend-overlay transition-opacity duration-1000"
+            className="w-full h-full object-cover opacity-60 transition-opacity duration-1000"
           />
         </div>
         {/* Gradient Overlay for text legibility */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-secondary)]/90 via-[var(--color-secondary)]/50 to-transparent z-0 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-secondary)]/95 via-[var(--color-secondary)]/60 to-transparent z-0 pointer-events-none"></div>
 
         <div className="container mx-auto px-4 md:px-8 relative z-10">
           <motion.div 
