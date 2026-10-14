@@ -86,25 +86,45 @@ export async function logout() {
   redirect("/login");
 }
 
-export async function updatePassword(userId: string, newPassword: string) {
+export async function updatePassword(userId: string, newPassword: string, newUsername?: string) {
   try {
+    if (newUsername && newUsername.trim()) {
+      const trimmedUsername = newUsername.trim();
+      const existing = await prisma.user.findFirst({
+        where: {
+          username: trimmedUsername,
+          id: { not: userId }
+        }
+      });
+      if (existing) {
+        return { error: "El nombre de usuario ya está en uso por otra persona." };
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const updateData: any = { 
+      password: hashedPassword,
+      needsPasswordChange: false
+    };
+
+    if (newUsername && newUsername.trim()) {
+      updateData.username = newUsername.trim();
+    }
+
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { 
-        password: hashedPassword,
-        needsPasswordChange: false
-      }
+      data: updateData
     });
 
-    // Update the session
+    // Update the session safely (excluding large fields)
+    const { password: _, signatureUrl: __, ...safeUser } = user;
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    const session = await encrypt({ user, expires });
+    const session = await encrypt({ user: safeUser, expires });
     const cookieStore = await cookies();
     cookieStore.set("mh_session", session, { httpOnly: true, secure: process.env.NODE_ENV === "production" });
 
     return { success: true };
   } catch (error) {
-    return { error: "Error al actualizar la contraseña" };
+    return { error: "Error al actualizar las credenciales" };
   }
 }

@@ -6,12 +6,17 @@ import toast from "react-hot-toast";
 import { updatePassword } from "@/app/actions/auth";
 
 export function ForcePasswordChange({ user }: { user: any }) {
+  const [username, setUsername] = useState(user?.username || "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!username.trim()) {
+      toast.error("El nombre de usuario no puede estar vacío");
+      return;
+    }
     if (password !== confirmPassword) {
       toast.error("Las contraseñas no coinciden");
       return;
@@ -22,13 +27,13 @@ export function ForcePasswordChange({ user }: { user: any }) {
     }
 
     setLoading(true);
-    const result = await updatePassword(user.id, password);
+    const result = await updatePassword(user.id, password, username.trim());
     setLoading(false);
 
     if (result.error) {
       toast.error(result.error);
     } else {
-      toast.success("Contraseña actualizada con éxito");
+      toast.success("Credenciales actualizadas con éxito");
       // Hard refresh to reload session and layout
       window.location.reload();
     }
@@ -42,16 +47,29 @@ export function ForcePasswordChange({ user }: { user: any }) {
             <Lock className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-2xl font-black">Actualización de Seguridad</h2>
-          <p className="text-amber-100 mt-2 text-sm font-medium">Por motivos de seguridad, debes cambiar tu contraseña para continuar utilizando el portal.</p>
+          <p className="text-amber-100 mt-2 text-sm font-medium">Por motivos de seguridad, debes actualizar tus credenciales para continuar utilizando el portal.</p>
         </div>
         
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3 text-amber-800 text-sm">
             <AlertTriangle className="w-5 h-5 shrink-0 text-amber-600" />
-            <p>Es tu primer ingreso o tu contraseña fue restablecida por un administrador. Por favor ingresa una nueva contraseña.</p>
+            <p>Es tu primer ingreso o tu contraseña fue restablecida por un administrador. Por favor ingresa o confirma tu usuario y tu nueva contraseña.</p>
           </div>
 
           <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Nombre de Usuario</label>
+              <input 
+                type="text"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all font-medium text-slate-800"
+                placeholder="Nombre de usuario"
+              />
+              <p className="text-xs text-slate-400 mt-1">Puedes conservar el usuario actual o ingresar uno nuevo que recuerdes fácilmente.</p>
+            </div>
+
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">Nueva Contraseña</label>
               <input 
